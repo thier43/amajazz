@@ -1536,12 +1536,13 @@ function renderDashboard(){
         const statusBadge = e.type==='concert' && e.status==='projet'
           ? `<span style="font-size:10px;padding:1px 7px;border-radius:20px;background:rgba(232,200,124,.15);color:var(--amber);margin-left:6px">Projet</span>`
           : '';
-        return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px">
+        return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer" title="Double-cliquez pour ouvrir" ondblclick="${e.type==='concert'?'navTo(\'concerts\')':'navTo(\'planning\')'}">
           <div style="width:7px;height:7px;border-radius:50%;background:${e.type==='concert'?'var(--accent)':'var(--accent2)'};flex-shrink:0"></div>
           <div style="flex:1;min-width:0">
             <div class="text-sm" style="display:flex;align-items:center">${esc(e.label)}${statusBadge}</div>
             <div class="text-xs text-muted">${dateLabel}${e.sub?' · '+esc(e.sub):''}</div>
           </div>
+          <span style="font-size:10px;color:var(--text3);flex-shrink:0">↗</span>
         </div>`;
       }).join('')
     : `<p class="text-xs text-muted">Aucun événement à venir.</p>`;
