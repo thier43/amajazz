@@ -234,7 +234,13 @@ select.form-input option{background:var(--surface2)}
 .dot-impro{background:rgba(124,159,232,.2);color:var(--accent2);font-size:9px}
 .dot-empty{background:var(--surface3);color:var(--text3)}
 
-/* ===== EVENT DETAIL ===== */
+.badge-projet{background:rgba(232,200,124,.15);color:var(--amber);border:1px solid rgba(232,200,124,.3);font-size:11px;padding:2px 9px;border-radius:20px;font-weight:500}
+.badge-confirme{background:rgba(93,200,160,.15);color:var(--green);border:1px solid rgba(93,200,160,.3);font-size:11px;padding:2px 9px;border-radius:20px;font-weight:500}
+.badge-annule{background:rgba(232,124,124,.1);color:var(--red);border:1px solid rgba(232,124,124,.25);font-size:11px;padding:2px 9px;border-radius:20px;font-weight:500;text-decoration:line-through}
+.concert-card.statut-projet{border-color:rgba(232,200,124,.25)}
+.concert-card.statut-annule{opacity:.55}
+
+/* EVENT DETAIL */
 .evdet-info{background:var(--surface2);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:14px}
 .evdet-row{display:flex;align-items:flex-start;gap:10px;padding:5px 0;font-size:13px}
 .evdet-row:not(:last-child){border-bottom:1px solid var(--border)}
@@ -581,13 +587,23 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
       <button class="modal-close" onclick="closeModal()">×</button>
     </div>
     <div class="modal-body">
-      <div class="form-group">
-        <label class="form-label">Nom *</label>
-        <input class="form-input" id="f-concert-name" placeholder="Ex: Soirée Jazz au parc">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nom *</label>
+          <input class="form-input" id="f-concert-name" placeholder="Ex: Soirée Jazz au parc">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Statut</label>
+          <select class="form-input" id="f-concert-status">
+            <option value="projet">Projet</option>
+            <option value="confirme">Confirmé</option>
+            <option value="annule">Annulé</option>
+          </select>
+        </div>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Date *</label>
+          <label class="form-label">Date <span style="color:var(--text3);font-weight:400">(optionnelle)</span></label>
           <input class="form-input" type="date" id="f-concert-date">
         </div>
         <div class="form-group">
@@ -596,7 +612,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Lieu / Salle</label>
+        <label class="form-label">Lieu / Salle <span style="color:var(--text3);font-weight:400">(optionnel)</span></label>
         <input class="form-input" id="f-concert-venue" placeholder="Nom et ville">
       </div>
       <div class="form-group">
@@ -1154,23 +1170,41 @@ async function deleteSet(id){
 function renderConcerts(){
   const list = document.getElementById('concert-list');
   if(!DB.concerts.length){
-    list.innerHTML=`<div class="empty"><div class="empty-icon">★</div><p>Aucun concert programmé.<br>Ajoutez votre première date !</p></div>`;
+    list.innerHTML=`<div class="empty"><div class="empty-icon">★</div><p>Aucune prestation.<br>Ajoutez votre première date !</p></div>`;
     return;
   }
-  const sorted = [...DB.concerts].sort((a,b)=>a.date.localeCompare(b.date));
+  const statusLabel = {projet:'Projet', confirme:'Confirmé', annule:'Annulé'};
+  // Trier : confirmés d'abord par date, puis projets sans date en bas
+  const sorted = [...DB.concerts].sort((a,b)=>{
+    if(!a.date && !b.date) return 0;
+    if(!a.date) return 1;
+    if(!b.date) return -1;
+    return a.date.localeCompare(b.date);
+  });
   list.innerHTML = sorted.map(c=>{
-    const d = new Date(c.date+'T12:00:00');
+    const status = c.status||'confirme';
     const set = c.set_id ? DB.sets.find(s=>s.id===c.set_id) : null;
+    const dateBlock = c.date
+      ? (() => {
+          const d = new Date(c.date+'T12:00:00');
+          return `<div class="concert-date-block">
+            <div class="concert-day">${d.getDate()}</div>
+            <div class="concert-month">${d.toLocaleDateString('fr-FR',{month:'short'})}</div>
+            <div class="text-xs text-muted" style="margin-top:2px">${d.getFullYear()}</div>
+          </div>`;
+        })()
+      : `<div class="concert-date-block" style="min-width:60px;display:flex;align-items:center;justify-content:center">
+           <span style="font-size:22px;color:var(--text3)">?</span>
+         </div>`;
     return `
-      <div class="concert-card">
-        <div class="concert-date-block">
-          <div class="concert-day">${d.getDate()}</div>
-          <div class="concert-month">${d.toLocaleDateString('fr-FR',{month:'short'})}</div>
-          <div class="text-xs text-muted" style="margin-top:2px">${d.getFullYear()}</div>
-        </div>
+      <div class="concert-card statut-${status}">
+        ${dateBlock}
         <div class="concert-info">
-          <div class="concert-name">${esc(c.name)}</div>
-          <div class="concert-venue">${c.time?c.time+' · ':''}${esc(c.venue||'Lieu à définir')}</div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <div class="concert-name">${esc(c.name)}</div>
+            <span class="badge-${status}">${statusLabel[status]||status}</span>
+          </div>
+          <div class="concert-venue">${c.date&&c.time?c.time+' · ':''}${esc(c.venue||(!c.date?'Date et lieu à définir':'Lieu à définir'))}</div>
           ${set?`<div class="concert-set-badge">♪ ${esc(set.name)}</div>`:''}
           ${c.notes?`<div class="concert-notes">${esc(c.notes)}</div>`:''}
         </div>
@@ -1193,31 +1227,34 @@ function openConcertModal(id=null){
   editingId = id;
   document.getElementById('concert-modal-title').textContent = id?'Modifier la prestation':'Nouvelle prestation';
   const c = id ? DB.concerts.find(x=>x.id===id) : {};
-  setVal('f-concert-name', c.name||'');
-  setVal('f-concert-date', c.date||'');
-  setVal('f-concert-time', c.time||'20:30');
-  setVal('f-concert-venue', c.venue||'');
-  setVal('f-concert-notes', c.notes||'');
+  setVal('f-concert-name',   c.name||'');
+  setVal('f-concert-date',   c.date||'');
+  setVal('f-concert-time',   c.time||'20:30');
+  setVal('f-concert-venue',  c.venue||'');
+  setVal('f-concert-notes',  c.notes||'');
+  setVal('f-concert-status', c.status||'projet');
   populateConcertSets(c.set_id);
   showModal('concert');
 }
 
 async function saveConcert(){
   const name = getVal('f-concert-name').trim();
-  const date = getVal('f-concert-date');
-  if(!name||!date) return toast('Nom et date requis','error');
+  if(!name) return toast('Le nom est requis','error');
   const payload = {
-    name, date, time:getVal('f-concert-time')||null,
-    venue:getVal('f-concert-venue'),
-    set_id:parseInt(getVal('f-concert-set'))||null,
-    notes:getVal('f-concert-notes'),
+    name,
+    date:   getVal('f-concert-date')||null,
+    time:   getVal('f-concert-time')||null,
+    venue:  getVal('f-concert-venue'),
+    set_id: parseInt(getVal('f-concert-set'))||null,
+    notes:  getVal('f-concert-notes'),
+    status: getVal('f-concert-status')||'projet',
   };
   setSyncStatus('loading');
   try {
     if(editingId) await sb.from('concerts').update(payload).eq('id',editingId);
     else await sb.from('concerts').insert(payload);
     await loadAll(); closeModal(); renderConcerts(); renderDashboard();
-    toast(editingId?'Concert modifié':'Concert ajouté');
+    toast(editingId?'Prestation modifiée':'Prestation ajoutée');
     setSyncStatus('ok');
   } catch(e){ toast('Erreur: '+e.message,'error'); setSyncStatus('error'); }
 }
