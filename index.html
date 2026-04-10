@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AMAJAZZ – Band Manager</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+/* ===== RESET & ROOT ===== */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0e17;--surface:#1a1927;--surface2:#222136;--surface3:#2b2942;
+  --accent:#e8a87c;--accent2:#7c9fe8;--accent3:#a87ce8;
+  --green:#5dc8a0;--red:#e87c7c;--amber:#e8c87c;
+  --text:#f0ebe1;--text2:#a09db8;--text3:#6b6880;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --radius:12px;--radius-sm:8px;--radius-xs:6px;
+  --shadow:0 4px 24px rgba(0,0,0,.4);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+h1,h2,h3{font-family:'Playfair Display',serif}
+button{font-family:'DM Sans',sans-serif}
+
+/* ===== LAYOUT ===== */
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:220px;min-width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column}
+.main{flex:1;overflow-y:auto;background:var(--bg)}
+
+/* ===== SIDEBAR ===== */
+.logo{padding:22px 20px 18px;border-bottom:1px solid var(--border)}
+.logo h1{font-size:17px;color:var(--accent);letter-spacing:.3px}
+.logo p{font-size:10px;color:var(--text3);margin-top:3px;letter-spacing:1.8px;text-transform:uppercase}
+.nav{padding:10px 0;flex:1}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 18px;cursor:pointer;color:var(--text2);font-size:13px;transition:all .15s;border-left:2px solid transparent;user-select:none}
+.nav-item:hover{color:var(--text);background:var(--surface2)}
+.nav-item.active{color:var(--accent);background:var(--surface2);border-left-color:var(--accent)}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:.65}
+.nav-item.active svg{opacity:1}
+.sidebar-footer{padding:14px 18px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)}
+.sync-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:6px;vertical-align:middle}
+.sync-dot.error{background:var(--red)}
+.sync-dot.loading{background:var(--amber);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ===== PAGES ===== */
+.page{display:none;padding:30px 34px;min-height:100%;animation:fadeIn .2s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:26px;gap:16px}
+.page-title{font-size:26px;color:var(--text);line-height:1.2}
+.page-sub{font-size:12px;color:var(--text3);margin-top:4px}
+
+/* ===== BUTTONS ===== */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-sm);border:1px solid;cursor:pointer;font-size:12px;font-weight:500;transition:all .15s;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#200e00;border-color:var(--accent)}
+.btn-primary:hover{opacity:.85}
+.btn-outline{background:transparent;color:var(--text2);border-color:var(--border2)}
+.btn-outline:hover{color:var(--text);background:var(--surface2)}
+.btn-ghost{background:transparent;color:var(--text3);border-color:transparent;padding:6px 10px}
+.btn-ghost:hover{color:var(--text);background:var(--surface2)}
+.btn-danger{background:transparent;color:var(--red);border-color:rgba(232,124,124,.25)}
+.btn-danger:hover{background:rgba(232,124,124,.08)}
+.btn-sm{padding:5px 12px;font-size:11px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ===== CARDS ===== */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px}
+
+/* ===== STATS BAR ===== */
+.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:26px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 18px}
+.stat-v{font-size:28px;font-weight:700;font-family:'Playfair Display',serif;color:var(--accent);line-height:1}
+.stat-l{font-size:10px;color:var(--text3);margin-top:4px;text-transform:uppercase;letter-spacing:.8px}
+
+/* ===== SONGS ===== */
+.song-list{display:flex;flex-direction:column;gap:8px}
+.song-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .15s}
+.song-item:hover{border-color:var(--border2);background:var(--surface2)}
+.song-num{width:26px;height:26px;border-radius:50%;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text3);flex-shrink:0}
+.song-info{flex:1;min-width:0}
+.song-name{font-size:14px;font-weight:500;color:var(--text)}
+.song-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px}
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;white-space:nowrap}
+.tag-key{background:rgba(232,168,124,.12);color:var(--accent)}
+.tag-tempo{background:rgba(124,159,232,.12);color:var(--accent2)}
+.tag-style{background:rgba(168,124,232,.12);color:var(--accent3)}
+.tag-green{background:rgba(93,200,160,.12);color:var(--green)}
+.song-notes{font-size:11px;color:var(--text3);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:380px}
+.song-actions{display:flex;gap:6px;flex-shrink:0}
+
+/* ===== MEMBERS ===== */
+.family-section{margin-bottom:24px}
+.family-label{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.family-dot{width:8px;height:8px;border-radius:50%}
+.family-title{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px}
+.member-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px}
+.member-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center;cursor:pointer;transition:all .15s}
+.member-card:hover{border-color:var(--border2);background:var(--surface2)}
+.member-avatar{width:50px;height:50px;border-radius:50%;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.member-name{font-size:13px;font-weight:500;color:var(--text)}
+.member-pseudo{font-size:11px;color:var(--accent);margin-top:2px}
+.member-family{font-size:10px;color:var(--text3);margin-top:5px;padding:2px 8px;background:var(--surface3);border-radius:20px;display:inline-block}
+
+/* ===== SETS ===== */
+.set-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.set-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px}
+.set-name{font-size:15px;font-weight:500;color:var(--text)}
+.set-count{font-size:11px;color:var(--text3);margin-top:3px}
+.set-songs-list{margin-top:12px;display:flex;flex-direction:column;gap:5px}
+.set-song-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);padding:5px 0;border-bottom:1px solid var(--border)}
+.set-song-row:last-child{border-bottom:none}
+.set-song-num{font-size:11px;color:var(--text3);min-width:18px}
+
+/* ===== SET BUILDER ===== */
+.set-builder{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+.drop-zone{background:var(--surface2);border:1px dashed var(--border2);border-radius:var(--radius);padding:14px;min-height:240px}
+.drop-zone-title{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.pick-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xs);padding:8px 12px;margin-bottom:6px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);transition:all .15s}
+.pick-item:hover{border-color:var(--border2);color:var(--text)}
+.pick-item .pick-icon{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.pick-add .pick-icon{background:rgba(93,200,160,.15);color:var(--green)}
+.pick-remove .pick-icon{background:rgba(232,124,124,.12);color:var(--red)}
+
+/* ===== CONCERTS ===== */
+.concert-list{display:flex;flex-direction:column;gap:12px}
+.concert-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;display:flex;gap:18px;align-items:flex-start}
+.concert-date-block{background:var(--surface3);border-radius:var(--radius-sm);padding:10px 12px;text-align:center;min-width:60px;flex-shrink:0}
+.concert-day{font-size:24px;font-weight:700;font-family:'Playfair Display',serif;color:var(--accent);line-height:1}
+.concert-month{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+.concert-info{flex:1;min-width:0}
+.concert-name{font-size:15px;font-weight:500;color:var(--text)}
+.concert-venue{font-size:12px;color:var(--text3);margin-top:3px}
+.concert-set-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--green);background:rgba(93,200,160,.1);padding:3px 9px;border-radius:20px;margin-top:7px}
+.concert-notes{font-size:12px;color:var(--text3);margin-top:7px;line-height:1.5}
+
+/* ===== CALENDAR ===== */
+.calendar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.cal-header{background:var(--surface2);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.cal-month-label{font-size:15px;font-weight:500}
+.cal-nav-btn{background:none;border:1px solid var(--border2);color:var(--text2);width:28px;height:28px;border-radius:var(--radius-xs);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.cal-nav-btn:hover{color:var(--text);background:var(--surface3)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr)}
+.cal-day-name{padding:8px 0;text-align:center;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+.cal-cell{min-height:76px;border:1px solid var(--border);padding:5px 6px;position:relative}
+.cal-date-num{font-size:11px;color:var(--text3);margin-bottom:3px;display:inline-block}
+.cal-date-num.today{background:var(--accent);color:#200e00;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700}
+.cal-cell.dim .cal-date-num{opacity:.3}
+.cal-ev{font-size:10px;padding:2px 5px;border-radius:3px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.cal-ev.repet{background:rgba(124,159,232,.2);color:var(--accent2)}
+.cal-ev.concert{background:rgba(232,168,124,.2);color:var(--accent)}
+
+/* ===== MODAL ===== */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:16px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow)}
+.modal.wide{max-width:680px}
+.modal-header{padding:22px 24px 0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);padding-bottom:16px;border-bottom:1px solid var(--border);z-index:1}
+.modal-title{font-size:18px;color:var(--text)}
+.modal-close{background:none;border:none;color:var(--text3);font-size:22px;cursor:pointer;padding:2px 6px;border-radius:4px;line-height:1}
+.modal-close:hover{color:var(--text);background:var(--surface2)}
+.modal-body{padding:20px 24px 24px}
+
+/* ===== FORMS ===== */
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
+.form-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:9px 13px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s}
+.form-input:focus{border-color:var(--accent)}
+.form-input::placeholder{color:var(--text3)}
+textarea.form-input{resize:vertical;min-height:72px;line-height:1.5}
+select.form-input{cursor:pointer}
+select.form-input option{background:var(--surface2)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tempo-row{display:flex;align-items:center;gap:10px}
+.tempo-row input[type=range]{flex:1;accent-color:var(--accent)}
+.tempo-val{font-size:14px;font-weight:500;color:var(--accent);min-width:42px;text-align:right}
+.form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+
+/* ===== LOADING ===== */
+.loading-screen{position:fixed;inset:0;background:var(--bg);z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.loading-screen.hidden{display:none}
+.spinner{width:36px;height:36px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:13px;color:var(--text3)}
+
+/* ===== TOAST ===== */
+.toast-container{position:fixed;bottom:24px;right:24px;z-index:500;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 16px;font-size:13px;color:var(--text2);box-shadow:var(--shadow);animation:toastIn .25s ease;max-width:280px}
+.toast.success{border-left:3px solid var(--green);color:var(--green)}
+.toast.error{border-left:3px solid var(--red);color:var(--red)}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+
+/* ===== EMPTY STATE ===== */
+.empty{text-align:center;padding:48px 20px;color:var(--text3)}
+.empty-icon{font-size:36px;margin-bottom:12px;opacity:.5}
+.empty p{font-size:13px;line-height:1.6}
+
+/* ===== DETAIL MODAL ===== */
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.detail-cell{background:var(--surface2);border-radius:var(--radius-sm);padding:12px 14px}
+.detail-cell-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
+.detail-cell-value{font-size:16px;font-weight:600;color:var(--accent);font-family:'Playfair Display',serif}
+
+/* ===== UTILS ===== */
+.flex{display:flex}.items-center{align-items:center}.gap-8{gap:8px}.gap-12{gap:12px}
+.mt-8{margin-top:8px}.mt-16{margin-top:16px}.mt-20{margin-top:20px}
+.ml-auto{margin-left:auto}.w-full{width:100%}
+.text-sm{font-size:12px}.text-xs{font-size:11px}
+.text-muted{color:var(--text3)}.text-accent{color:var(--accent)}
+hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div class="loading-screen" id="loading-screen">
+  <div class="spinner"></div>
+  <div class="loading-text">Connexion à la base de données…</div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- App -->
+<div class="app" id="app" style="display:none">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">
+      <h1>♪ AMAJAZZ</h1>
+      <p>Band Manager</p>
+    </div>
+    <nav class="nav">
+      <div class="nav-item active" data-page="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Tableau de bord
+      </div>
+      <div class="nav-item" data-page="morceaux">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        Morceaux
+      </div>
+      <div class="nav-item" data-page="membres">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Musiciens
+      </div>
+      <div class="nav-item" data-page="sets">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+        Sets
+      </div>
+      <div class="nav-item" data-page="concerts">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+        Concerts
+      </div>
+      <div class="nav-item" data-page="planning">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Planning
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <span class="sync-dot" id="sync-dot"></span>
+      <span id="sync-label">Connecté</span>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div><h2 class="page-title">Bonjour ♪</h2><p class="page-sub">Vue d'ensemble AMAJAZZ</p></div>
+      </div>
+      <div class="stats-bar" id="stats-bar"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div>
+          <div class="text-xs text-muted" style="text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Prochains événements</div>
+          <div id="dash-events"></div>
+        </div>
+        <div>
+          <div class="text-xs text-muted" style="text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Derniers morceaux</div>
+          <div id="dash-songs"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MORCEAUX -->
+    <div class="page" id="page-morceaux">
+      <div class="page-header">
+        <div><h2 class="page-title">Morceaux</h2><p class="page-sub" id="song-count-label"></p></div>
+        <button class="btn btn-primary" onclick="openSongModal()">+ Ajouter</button>
+      </div>
+      <div class="song-list" id="song-list"></div>
+    </div>
+
+    <!-- MEMBRES -->
+    <div class="page" id="page-membres">
+      <div class="page-header">
+        <div><h2 class="page-title">Musiciens</h2><p class="page-sub" id="member-count-label"></p></div>
+        <button class="btn btn-primary" onclick="openMemberModal()">+ Ajouter</button>
+      </div>
+      <div id="members-by-family"></div>
+    </div>
+
+    <!-- SETS -->
+    <div class="page" id="page-sets">
+      <div class="page-header">
+        <div><h2 class="page-title">Sets</h2><p class="page-sub">Composez vos sets de morceaux</p></div>
+        <button class="btn btn-primary" onclick="openSetModal()">+ Nouveau set</button>
+      </div>
+      <div class="set-grid" id="set-list"></div>
+    </div>
+
+    <!-- CONCERTS -->
+    <div class="page" id="page-concerts">
+      <div class="page-header">
+        <div><h2 class="page-title">Concerts</h2><p class="page-sub">Dates et programmation</p></div>
+        <button class="btn btn-primary" onclick="openConcertModal()">+ Ajouter</button>
+      </div>
+      <div class="concert-list" id="concert-list"></div>
+    </div>
+
+    <!-- PLANNING -->
+    <div class="page" id="page-planning">
+      <div class="page-header">
+        <div><h2 class="page-title">Planning</h2><p class="page-sub">Répétitions &amp; concerts</p></div>
+        <div class="flex gap-8">
+          <button class="btn btn-outline btn-sm" onclick="openRepetModal()">+ Répétition</button>
+          <button class="btn btn-primary btn-sm" onclick="openConcertModal()">+ Concert</button>
+        </div>
+      </div>
+      <div class="calendar" id="calendar"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ===== MODALS ===== -->
+<div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+
+  <!-- Song Modal -->
+  <div class="modal" id="modal-song">
+    <div class="modal-header">
+      <h3 class="modal-title" id="song-modal-title">Nouveau morceau</h3>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nom *</label>
+          <input class="form-input" id="f-song-name" placeholder="Titre du morceau">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Style / Genre</label>
+          <input class="form-input" id="f-song-style" placeholder="Ex: Bossa, Swing, Blues…">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tonalité</label>
+          <select class="form-input" id="f-song-key">
+            <option value="">—</option>
+            <option>Do (C)</option><option>Do# / Ré♭</option>
+            <option>Ré (D)</option><option>Ré# / Mi♭</option>
+            <option>Mi (E)</option><option>Fa (F)</option>
+            <option>Fa# / Sol♭</option><option>Sol (G)</option>
+            <option>Sol# / La♭</option><option>La (A)</option>
+            <option>La# / Si♭</option><option>Si (B)</option>
+            <option>Do m</option><option>Ré m</option><option>Mi m</option>
+            <option>Fa m</option><option>Sol m</option><option>La m</option><option>Si m</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Durée estimée (min)</label>
+          <input class="form-input" type="number" id="f-song-duration" placeholder="4" min="1" max="30">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tempo — <span id="tempo-display">120</span> BPM</label>
+        <div class="tempo-row">
+          <input type="range" id="f-song-tempo" min="40" max="280" value="120" oninput="document.getElementById('tempo-display').textContent=this.value">
+          <span class="tempo-val" id="tempo-val-display">120</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes d'exécution</label>
+        <textarea class="form-input" id="f-song-notes" placeholder="Arrangement, difficultés, références YouTube…"></textarea>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-outline" onclick="closeModal()">Annuler</button>
+        <button class="btn btn-primary" onclick="saveSong()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Member Modal -->
+  <div class="modal" id="modal-member">
+    <div class="modal-header">
+      <h3 class="modal-title" id="member-modal-title">Nouveau musicien</h3>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Prénom *</label>
+          <input class="form-input" id="f-member-prenom" placeholder="Prénom">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nom</label>
+          <input class="form-input" id="f-member-nom" placeholder="Nom">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Pseudo</label>
+          <input class="form-input" id="f-member-pseudo" placeholder="Surnom">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Famille instrument</label>
+          <select class="form-input" id="f-member-family">
+            <option>Cordes</option><option>Vents bois</option>
+            <option>Vents cuivres</option><option>Percussions</option>
+            <option>Claviers</option><option>Voix</option>
+            <option>Basses</option><option>Autre</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Instrument(s)</label>
+        <input class="form-input" id="f-member-instrument" placeholder="Ex: Guitare, Piano, Saxophone…">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Avatar (emoji ou 2 initiales)</label>
+        <input class="form-input" id="f-member-avatar" placeholder="🎸 ou TM" maxlength="4">
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-outline" onclick="closeModal()">Annuler</button>
+        <button class="btn btn-primary" onclick="saveMember()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Set Modal -->
+  <div class="modal wide" id="modal-set">
+    <div class="modal-header">
+      <h3 class="modal-title" id="set-modal-title">Composer un set</h3>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Nom du set *</label>
+        <input class="form-input" id="f-set-name" placeholder="Ex: Set Jazz Club – Vendredi">
+      </div>
+      <div class="set-builder">
+        <div class="drop-zone">
+          <div class="drop-zone-title">Répertoire disponible</div>
+          <div id="set-available"></div>
+        </div>
+        <div class="drop-zone">
+          <div class="drop-zone-title">Dans le set · <span id="set-count-label" style="color:var(--accent)">0 morceaux</span></div>
+          <div id="set-selected"></div>
+        </div>
+      </div>
+      <p class="text-xs text-muted mt-8">Cliquez sur les morceaux pour les ajouter ou retirer.</p>
+      <div class="form-actions">
+        <button class="btn btn-outline" onclick="closeModal()">Annuler</button>
+        <button class="btn btn-primary" onclick="saveSet()">Enregistrer le set</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Concert Modal -->
+  <div class="modal" id="modal-concert">
+    <div class="modal-header">
+      <h3 class="modal-title" id="concert-modal-title">Nouveau concert</h3>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Nom *</label>
+        <input class="form-input" id="f-concert-name" placeholder="Ex: Soirée Jazz au parc">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Date *</label>
+          <input class="form-input" type="date" id="f-concert-date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Heure</label>
+          <input class="form-input" type="time" id="f-concert-time" value="20:30">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Lieu / Salle</label>
+        <input class="form-input" id="f-concert-venue" placeholder="Nom et ville">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Set programmé</label>
+        <select class="form-input" id="f-concert-set">
+          <option value="">— Aucun set associé —</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea class="form-input" id="f-concert-notes" placeholder="Contacts, cachet, accès scène…"></textarea>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-outline" onclick="closeModal()">Annuler</button>
+        <button class="btn btn-primary" onclick="saveConcert()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Repet Modal -->
+  <div class="modal" id="modal-repet">
+    <div class="modal-header">
+      <h3 class="modal-title">Nouvelle répétition</h3>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Date *</label>
+          <input class="form-input" type="date" id="f-repet-date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Heure</label>
+          <input class="form-input" type="time" id="f-repet-time" value="20:00">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Lieu</label>
+        <input class="form-input" id="f-repet-venue" placeholder="Studio, salle…">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea class="form-input" id="f-repet-notes" placeholder="Morceaux à travailler…" style="min-height:56px"></textarea>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-outline" onclick="closeModal()">Annuler</button>
+        <button class="btn btn-primary" onclick="saveRepet()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Song detail Modal -->
+  <div class="modal" id="modal-detail">
+    <div class="modal-header">
+      <h3 class="modal-title" id="detail-title">Détail</h3>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="detail-body"></div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+//  CONFIG – remplacez par vos valeurs Supabase
+// ============================================================
+const SUPABASE_URL  = 'VOTRE_SUPABASE_URL';
+const SUPABASE_ANON = 'VOTRE_SUPABASE_ANON_KEY';
+
+// ============================================================
+//  INIT
+// ============================================================
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+let DB = { songs:[], members:[], sets:[], set_songs:[], concerts:[], events:[] };
+let editingId = null;
+let setSelectedSongs = [];
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+
+const familyColors = {
+  'Cordes':      ['#7c9fe8','rgba(124,159,232,.15)'],
+  'Vents bois':  ['#5dc8a0','rgba(93,200,160,.15)'],
+  'Vents cuivres':['#e8c87c','rgba(232,200,124,.15)'],
+  'Percussions': ['#e87c7c','rgba(232,124,124,.15)'],
+  'Claviers':    ['#a87ce8','rgba(168,124,232,.15)'],
+  'Voix':        ['#e8a87c','rgba(232,168,124,.15)'],
+  'Basses':      ['#7ce8b8','rgba(124,232,184,.15)'],
+  'Autre':       ['#888','rgba(136,136,136,.12)'],
+};
+
+async function init(){
+  try {
+    await loadAll();
+    setSyncStatus('ok');
+    document.getElementById('loading-screen').classList.add('hidden');
+    document.getElementById('app').style.display='flex';
+    renderDashboard();
+  } catch(e) {
+    console.error(e);
+    setSyncStatus('error');
+    document.getElementById('loading-screen').querySelector('.loading-text').textContent =
+      'Erreur de connexion — vérifiez la config Supabase';
+  }
+}
+
+async function loadAll(){
+  const [songs, members, sets, set_songs, concerts, events] = await Promise.all([
+    sb.from('songs').select('*').order('name'),
+    sb.from('members').select('*').order('prenom'),
+    sb.from('sets').select('*').order('name'),
+    sb.from('set_songs').select('*').order('position'),
+    sb.from('concerts').select('*').order('date'),
+    sb.from('events').select('*').order('date'),
+  ]);
+  DB.songs    = songs.data    || [];
+  DB.members  = members.data  || [];
+  DB.sets     = sets.data     || [];
+  DB.set_songs= set_songs.data|| [];
+  DB.concerts = concerts.data || [];
+  DB.events   = events.data   || [];
+}
+
+// ============================================================
+//  NAVIGATION
+// ============================================================
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    item.classList.add('active');
+    const page = item.dataset.page;
+    document.getElementById('page-'+page).classList.add('active');
+    const renders = {
+      dashboard: renderDashboard, morceaux: renderSongs,
+      membres: renderMembers, sets: renderSets,
+      concerts: renderConcerts, planning: renderCalendar,
+    };
+    if(renders[page]) renders[page]();
+  });
+});
+
+// ============================================================
+//  TOAST
+// ============================================================
+function toast(msg, type='success'){
+  const el = document.createElement('div');
+  el.className = 'toast '+(type==='error'?'error':'success');
+  el.textContent = msg;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(()=>el.remove(), 3200);
+}
+
+function setSyncStatus(s){
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  dot.className = 'sync-dot '+(s==='loading'?'loading':s==='error'?'error':'');
+  lbl.textContent = s==='loading'?'Synchronisation…':s==='error'?'Hors ligne':'Connecté';
+}
+
+// ============================================================
+//  SONGS
+// ============================================================
+function renderSongs(){
+  const label = document.getElementById('song-count-label');
+  label.textContent = DB.songs.length + ' morceau'+(DB.songs.length>1?'s':'');
+  const list = document.getElementById('song-list');
+  if(!DB.songs.length){
+    list.innerHTML=`<div class="empty"><div class="empty-icon">♫</div><p>Aucun morceau<br>Ajoutez votre premier morceau !</p></div>`;
+    return;
+  }
+  list.innerHTML = DB.songs.map((s,i) => `
+    <div class="song-item" onclick="showSongDetail(${s.id})">
+      <div class="song-num">${i+1}</div>
+      <div class="song-info">
+        <div class="song-name">${esc(s.name)}</div>
+        <div class="song-meta">
+          ${s.key   ?`<span class="tag tag-key">${esc(s.key)}</span>`:''}
+          ${s.tempo ?`<span class="tag tag-tempo">♩ ${s.tempo} BPM</span>`:''}
+          ${s.style ?`<span class="tag tag-style">${esc(s.style)}</span>`:''}
+          ${s.duration?`<span class="tag tag-green">~${s.duration} min</span>`:''}
+        </div>
+        ${s.notes?`<div class="song-notes">${esc(s.notes)}</div>`:''}
+      </div>
+      <div class="song-actions" onclick="event.stopPropagation()">
+        <button class="btn btn-ghost btn-sm" onclick="openSongModal(${s.id})">✎</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteSong(${s.id})">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openSongModal(id=null){
+  editingId = id;
+  document.getElementById('song-modal-title').textContent = id?'Modifier le morceau':'Nouveau morceau';
+  const s = id ? DB.songs.find(x=>x.id===id) : {};
+  setVal('f-song-name', s.name||'');
+  setVal('f-song-style', s.style||'');
+  setVal('f-song-key', s.key||'');
+  setVal('f-song-tempo', s.tempo||120);
+  setVal('f-song-duration', s.duration||'');
+  setVal('f-song-notes', s.notes||'');
+  document.getElementById('tempo-display').textContent = s.tempo||120;
+  document.getElementById('tempo-val-display').textContent = s.tempo||120;
+  document.getElementById('f-song-tempo').oninput = function(){
+    document.getElementById('tempo-display').textContent = this.value;
+    document.getElementById('tempo-val-display').textContent = this.value;
+  };
+  showModal('song');
+}
+
+async function saveSong(){
+  const name = getVal('f-song-name').trim();
+  if(!name) return toast('Le nom est requis','error');
+  const payload = {
+    name, style:getVal('f-song-style'), key:getVal('f-song-key'),
+    tempo:parseInt(getVal('f-song-tempo'))||120,
+    duration:parseInt(getVal('f-song-duration'))||null,
+    notes:getVal('f-song-notes'),
+  };
+  setSyncStatus('loading');
+  try {
+    if(editingId){
+      const {error} = await sb.from('songs').update(payload).eq('id', editingId);
+      if(error) throw error;
+    } else {
+      const {error} = await sb.from('songs').insert(payload);
+      if(error) throw error;
+    }
+    await loadAll();
+    closeModal(); renderSongs(); renderDashboard();
+    toast(editingId?'Morceau modifié':'Morceau ajouté');
+    setSyncStatus('ok');
+  } catch(e){ toast('Erreur: '+e.message,'error'); setSyncStatus('error'); }
+}
+
+async function deleteSong(id){
+  if(!confirm('Supprimer ce morceau ?')) return;
+  setSyncStatus('loading');
+  try {
+    await sb.from('set_songs').delete().eq('song_id',id);
+    await sb.from('songs').delete().eq('id',id);
+    await loadAll(); renderSongs(); renderDashboard();
+    toast('Morceau supprimé');
+    setSyncStatus('ok');
+  } catch(e){ toast('Erreur','error'); setSyncStatus('error'); }
+}
+
+function showSongDetail(id){
+  const s = DB.songs.find(x=>x.id===id);
+  const inSets = DB.set_songs.filter(ss=>ss.song_id===id)
+    .map(ss=>DB.sets.find(set=>set.id===ss.set_id)?.name).filter(Boolean);
+  document.getElementById('detail-title').textContent = s.name;
+  document.getElementById('detail-body').innerHTML = `
+    <div class="detail-grid">
+      <div class="detail-cell"><div class="detail-cell-label">Tonalité</div><div class="detail-cell-value">${s.key||'—'}</div></div>
+      <div class="detail-cell"><div class="detail-cell-label">Tempo</div><div class="detail-cell-value">${s.tempo||'—'} BPM</div></div>
+      <div class="detail-cell"><div class="detail-cell-label">Style</div><div class="detail-cell-value" style="font-size:14px">${s.style||'—'}</div></div>
+      <div class="detail-cell"><div class="detail-cell-label">Durée</div><div class="detail-cell-value" style="font-size:14px">${s.duration?s.duration+' min':'—'}</div></div>
+    </div>
+    ${s.notes?`<div class="card" style="margin-bottom:12px"><div class="form-label">Notes d'exécution</div><p style="font-size:13px;color:var(--text2);margin-top:6px;line-height:1.6">${esc(s.notes)}</p></div>`:''}
+    <div class="card">
+      <div class="form-label">Présent dans les sets</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
+        ${inSets.length?inSets.map(n=>`<span class="tag tag-style">${n}</span>`).join(''):`<span class="text-xs text-muted">Aucun set</span>`}
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-outline" onclick="closeModal()">Fermer</button>
+      <button class="btn btn-primary" onclick="closeModal();openSongModal(${id})">Modifier</button>
+    </div>
+  `;
+  showModal('detail');
+}
+
+// ============================================================
+//  MEMBERS
+// ============================================================
+function renderMembers(){
+  document.getElementById('member-count-label').textContent = DB.members.length+' musicien'+(DB.members.length>1?'s':'');
+  const families = [...new Set(DB.members.map(m=>m.family))].filter(Boolean);
+  document.getElementById('members-by-family').innerHTML = families.map(fam=>{
+    const [color, bg] = familyColors[fam]||['#888','rgba(136,136,136,.12)'];
+    const members = DB.members.filter(m=>m.family===fam);
+    return `
+      <div class="family-section">
+        <div class="family-label">
+          <div class="family-dot" style="background:${color}"></div>
+          <span class="family-title">${fam}</span>
+          <span class="text-xs text-muted">(${members.length})</span>
+        </div>
+        <div class="member-grid">
+          ${members.map(m=>`
+            <div class="member-card" onclick="openMemberModal(${m.id})">
+              <div class="member-avatar" style="background:${bg};color:${color}">${esc(m.avatar||initials(m))}</div>
+              <div class="member-name">${esc(m.prenom)}${m.nom?' '+esc(m.nom):''}</div>
+              ${m.pseudo?`<div class="member-pseudo">"${esc(m.pseudo)}"</div>`:''}
+              <div class="member-family">${esc(m.instrument||m.family||'')}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }).join('') || `<div class="empty"><div class="empty-icon">♪</div><p>Aucun musicien<br>Ajoutez les membres du groupe !</p></div>`;
+}
+
+function openMemberModal(id=null){
+  editingId = id;
+  document.getElementById('member-modal-title').textContent = id?'Modifier le musicien':'Nouveau musicien';
+  const m = id ? DB.members.find(x=>x.id===id) : {};
+  setVal('f-member-prenom', m.prenom||'');
+  setVal('f-member-nom', m.nom||'');
+  setVal('f-member-pseudo', m.pseudo||'');
+  setVal('f-member-family', m.family||'Cordes');
+  setVal('f-member-instrument', m.instrument||'');
+  setVal('f-member-avatar', m.avatar||'');
+  showModal('member');
+}
+
+async function saveMember(){
+  const prenom = getVal('f-member-prenom').trim();
+  if(!prenom) return toast('Le prénom est requis','error');
+  const payload = {
+    prenom, nom:getVal('f-member-nom'),
+    pseudo:getVal('f-member-pseudo'), family:getVal('f-member-family'),
+    instrument:getVal('f-member-instrument'), avatar:getVal('f-member-avatar'),
+  };
+  setSyncStatus('loading');
+  try {
+    if(editingId) await sb.from('members').update(payload).eq('id',editingId);
+    else await sb.from('members').insert(payload);
+    await loadAll(); closeModal(); renderMembers(); renderDashboard();
+    toast(editingId?'Musicien modifié':'Musicien ajouté');
+    setSyncStatus('ok');
+  } catch(e){ toast('Erreur: '+e.message,'error'); setSyncStatus('error'); }
+}
+
+// ============================================================
+//  SETS
+// ============================================================
+function getSongIdsForSet(setId){
+  return DB.set_songs.filter(ss=>ss.set_id===setId).sort((a,b)=>a.position-b.position).map(ss=>ss.song_id);
+}
+
+function renderSets(){
+  const list = document.getElementById('set-list');
+  if(!DB.sets.length){
+    list.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-icon">♫</div><p>Aucun set<br>Créez votre premier set de morceaux !</p></div>`;
+    return;
+  }
+  list.innerHTML = DB.sets.map(set=>{
+    const songIds = getSongIdsForSet(set.id);
+    const songs = songIds.map(sid=>DB.songs.find(s=>s.id===sid)).filter(Boolean);
+    const dur = songs.reduce((a,s)=>a+(s.duration||0),0);
+    return `
+      <div class="set-card">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+          <div class="set-name">${esc(set.name)}</div>
+          <div class="flex gap-8" style="flex-shrink:0">
+            <button class="btn btn-ghost btn-sm" onclick="openSetModal(${set.id})">✎</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteSet(${set.id})">✕</button>
+          </div>
+        </div>
+        <div class="set-count">${songs.length} morceau${songs.length>1?'x':''} ${dur?'· ~'+dur+' min':''}</div>
+        <div class="set-songs-list">
+          ${songs.map((s,i)=>`
+            <div class="set-song-row">
+              <span class="set-song-num">${i+1}.</span>
+              <span style="flex:1;font-size:12px">${esc(s.name)}</span>
+              ${s.key?`<span class="tag tag-key" style="font-size:10px">${esc(s.key)}</span>`:''}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function openSetModal(id=null){
+  editingId = id;
+  document.getElementById('set-modal-title').textContent = id?'Modifier le set':'Composer un set';
+  const set = id ? DB.sets.find(x=>x.id===id) : null;
+  setVal('f-set-name', set?.name||'');
+  setSelectedSongs = id ? getSongIdsForSet(id) : [];
+  renderSetBuilder();
+  showModal('set');
+}
+
+function renderSetBuilder(){
+  const avail = document.getElementById('set-available');
+  const sel   = document.getElementById('set-selected');
+  const notIn = DB.songs.filter(s=>!setSelectedSongs.includes(s.id));
+
+  avail.innerHTML = notIn.length
+    ? notIn.map(s=>`<div class="pick-item pick-add" onclick="toggleInSet(${s.id})">
+        <div class="pick-icon">+</div>
+        <span style="flex:1">${esc(s.name)}</span>
+        ${s.key?`<span class="tag tag-key" style="font-size:10px">${esc(s.key)}</span>`:''}
+      </div>`).join('')
+    : `<p class="text-xs text-muted" style="padding:16px;text-align:center">Tous les morceaux sont déjà dans le set.</p>`;
+
+  const inSongs = setSelectedSongs.map(sid=>DB.songs.find(s=>s.id===sid)).filter(Boolean);
+  sel.innerHTML = inSongs.length
+    ? inSongs.map(s=>`<div class="pick-item pick-remove" onclick="toggleInSet(${s.id})">
+        <div class="pick-icon">−</div>
+        <span style="flex:1">${esc(s.name)}</span>
+        ${s.key?`<span class="tag tag-key" style="font-size:10px">${esc(s.key)}</span>`:''}
+      </div>`).join('')
+    : `<p class="text-xs text-muted" style="padding:16px;text-align:center">Cliquez sur les morceaux pour les ajouter.</p>`;
+
+  document.getElementById('set-count-label').textContent = setSelectedSongs.length+' morceau'+(setSelectedSongs.length>1?'x':'');
+}
+
+function toggleInSet(id){
+  if(setSelectedSongs.includes(id)) setSelectedSongs = setSelectedSongs.filter(s=>s!==id);
+  else setSelectedSongs.push(id);
+  renderSetBuilder();
+}
+
+async function saveSet(){
+  const name = getVal('f-set-name').trim();
+  if(!name) return toast('Le nom est requis','error');
+  setSyncStatus('loading');
+  try {
+    let setId = editingId;
+    if(editingId){
+      await sb.from('sets').update({name}).eq('id', editingId);
+    } else {
+      const {data, error} = await sb.from('sets').insert({name}).select().single();
+      if(error) throw error;
+      setId = data.id;
+    }
+    await sb.from('set_songs').delete().eq('set_id', setId);
+    if(setSelectedSongs.length){
+      await sb.from('set_songs').insert(setSelectedSongs.map((sid,pos)=>({set_id:setId, song_id:sid, position:pos})));
+    }
+    await loadAll(); closeModal(); renderSets(); renderDashboard();
+    populateConcertSets();
+    toast(editingId?'Set modifié':'Set créé');
+    setSyncStatus('ok');
+  } catch(e){ toast('Erreur: '+e.message,'error'); setSyncStatus('error'); }
+}
+
+async function deleteSet(id){
+  if(!confirm('Supprimer ce set ?')) return;
+  setSyncStatus('loading');
+  try {
+    await sb.from('set_songs').delete().eq('set_id',id);
+    await sb.from('sets').delete().eq('id',id);
+    await loadAll(); renderSets();
+    toast('Set supprimé');
+    setSyncStatus('ok');
+  } catch(e){ toast('Erreur','error'); setSyncStatus('error'); }
+}
+
+// ============================================================
+//  CONCERTS
+// ============================================================
+function renderConcerts(){
+  const list = document.getElementById('concert-list');
+  if(!DB.concerts.length){
+    list.innerHTML=`<div class="empty"><div class="empty-icon">★</div><p>Aucun concert programmé.<br>Ajoutez votre première date !</p></div>`;
+    return;
+  }
+  const sorted = [...DB.concerts].sort((a,b)=>a.date.localeCompare(b.date));
+  list.innerHTML = sorted.map(c=>{
+    const d = new Date(c.date+'T12:00:00');
+    const set = c.set_id ? DB.sets.find(s=>s.id===c.set_id) : null;
+    return `
+      <div class="concert-card">
+        <div class="concert-date-block">
+          <div class="concert-day">${d.getDate()}</div>
+          <div class="concert-month">${d.toLocaleDateString('fr-FR',{month:'short'})}</div>
+          <div class="text-xs text-muted" style="margin-top:2px">${d.getFullYear()}</div>
+        </div>
+        <div class="concert-info">
+          <div class="concert-name">${esc(c.name)}</div>
+          <div class="concert-venue">${c.time?c.time+' · ':''}${esc(c.venue||'Lieu à définir')}</div>
+          ${set?`<div class="concert-set-badge">♪ ${esc(set.name)}</div>`:''}
+          ${c.notes?`<div class="concert-notes">${esc(c.notes)}</div>`:''}
+        </div>
+        <div class="flex gap-8" style="flex-shrink:0">
+          <button class="btn btn-ghost btn-sm" onclick="openConcertModal(${c.id})">✎</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteConcert(${c.id})">✕</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function populateConcertSets(selectedId){
+  const sel = document.getElementById('f-concert-set');
+  sel.innerHTML = '<option value="">— Aucun set associé —</option>'+
+    DB.sets.map(s=>`<option value="${s.id}" ${s.id===selectedId?'selected':''}>${esc(s.name)}</option>`).join('');
+}
+
+function openConcertModal(id=null){
+  editingId = id;
+  document.getElementById('concert-modal-title').textContent = id?'Modifier le concert':'Nouveau concert';
+  const c = id ? DB.concerts.find(x=>x.id===id) : {};
+  setVal('f-concert-name', c.name||'');
+  setVal('f-concert-date', c.date||'');
+  setVal('f-concert-time', c.time||'20:30');
+  setVal('f-concert-venue', c.venue||'');
+  setVal('f-concert-notes', c.notes||'');
+  populateConcertSets(c.set_id);
+  showModal('concert');
+}
+
+async function saveConcert(){
+  const name = getVal('f-concert-name').trim();
+  const date = getVal('f-concert-date');
+  if(!name||!date) return toast('Nom et date requis','error');
+  const payload = {
+    name, date, time:getVal('f-concert-time')||null,
+    venue:getVal('f-concert-venue'),
+    set_id:parseInt(getVal('f-concert-set'))||null,
+    notes:getVal('f-concert-notes'),
+  };
+  setSyncStatus('loading');
+  try {
+    if(editingId) await sb.from('concerts').update(payload).eq('id',editingId);
+    else await sb.from('concerts').insert(payload);
+    await loadAll(); closeModal(); renderConcerts(); renderDashboard();
+    toast(editingId?'Concert modifié':'Concert ajouté');
+    setSyncStatus('ok');
+  } catch(e){ toast('Erreur: '+e.message,'error'); setSyncStatus('error'); }
+}
+
+async function deleteConcert(id){
+  if(!confirm('Supprimer ce concert ?')) return;
+  setSyncStatus('loading');
+  try {
+    await sb.from('concerts').delete().eq('id',id);
+    await loadAll(); renderConcerts();
+    toast('Concert supprimé');
+    setSyncStatus('ok');
+  } catch(e){ toast('Erreur','error'); setSyncStatus('error'); }
+}
+
+// ============================================================
+//  PLANNING
+// ============================================================
+function renderCalendar(){
+  const months = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  const days = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+  const today = new Date();
+
+  const firstDay = new Date(calYear, calMonth, 1);
+  const lastDay  = new Date(calYear, calMonth+1, 0);
+  let startDow = firstDay.getDay(); if(startDow===0) startDow=7; startDow--;
+
+  const allEvts = [
+    ...DB.events.map(e=>({date:e.date, label:'♩ '+(e.venue||'Répétition'), css:'repet', title:e.notes||''})),
+    ...DB.concerts.map(c=>({date:c.date, label:'★ '+c.name, css:'concert', title:c.venue||''})),
+  ];
+
+  let html = `
+    <div class="cal-header">
+      <button class="cal-nav-btn" onclick="calNav(-1)">‹</button>
+      <div class="cal-month-label">${months[calMonth]} ${calYear}</div>
+      <button class="cal-nav-btn" onclick="calNav(1)">›</button>
+    </div>
+    <div class="cal-grid">
+      ${days.map(d=>`<div class="cal-day-name">${d}</div>`).join('')}
+  `;
+
+  for(let i=0;i<startDow;i++){
+    const d = new Date(calYear, calMonth, -startDow+i+1);
+    html += `<div class="cal-cell dim"><div class="cal-date-num">${d.getDate()}</div></div>`;
+  }
+
+  for(let d=1;d<=lastDay.getDate();d++){
+    const isToday = d===today.getDate()&&calMonth===today.getMonth()&&calYear===today.getFullYear();
+    const dateStr = calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const evts = allEvts.filter(e=>e.date===dateStr);
+    html += `<div class="cal-cell">
+      <div class="cal-date-num ${isToday?'today':''}">${d}</div>
+      ${evts.map(e=>`<div class="cal-ev ${e.css}" title="${esc(e.title)}">${esc(e.label)}</div>`).join('')}
+    </div>`;
+  }
+
+  const total = startDow + lastDay.getDate();
+  const rem = (7-(total%7))%7;
+  for(let i=1;i<=rem;i++) html += `<div class="cal-cell dim"><div class="cal-date-num">${i}</div></div>`;
+
+  html += '</div>';
+  document.getElementById('calendar').innerHTML = html;
+}
+
+window.calNav = function(dir){
+  calMonth += dir;
+  if(calMonth<0){calMonth=11;calYear--}
+  if(calMonth>11){calMonth=0;calYear++}
+  renderCalendar();
+};
+
+function openRepetModal(){
+  setVal('f-repet-date',''); setVal('f-repet-time','20:00');
+  setVal('f-repet-venue',''); setVal('f-repet-notes','');
+  showModal('repet');
+}
+
+async function saveRepet(){
+  const date = getVal('f-repet-date');
+  if(!date) return toast('Date requise','error');
+  const payload = {
+    type:'repetition', date,
+    time:getVal('f-repet-time')||null,
+    venue:getVal('f-repet-venue'),
+    notes:getVal('f-repet-notes'),
+  };
+  setSyncStatus('loading');
+  try {
+    await sb.from('events').insert(payload);
+    await loadAll(); closeModal(); renderCalendar(); renderDashboard();
+    toast('Répétition ajoutée');
+    setSyncStatus('ok');
+  } catch(e){ toast('Erreur: '+e.message,'error'); setSyncStatus('error'); }
+}
+
+// ============================================================
+//  DASHBOARD
+// ============================================================
+function renderDashboard(){
+  document.getElementById('stats-bar').innerHTML = [
+    {v:DB.songs.length,   l:'Morceaux'},
+    {v:DB.members.length, l:'Musiciens'},
+    {v:DB.sets.length,    l:'Sets'},
+    {v:DB.concerts.length,l:'Concerts'},
+  ].map(s=>`<div class="stat"><div class="stat-v">${s.v}</div><div class="stat-l">${s.l}</div></div>`).join('');
+
+  const now = new Date();
+  const upcoming = [
+    ...DB.events.map(e=>({date:e.date, time:e.time, label:'Répétition', sub:e.venue||'', type:'repet'})),
+    ...DB.concerts.map(c=>({date:c.date, time:c.time, label:c.name, sub:c.venue||'', type:'concert'})),
+  ].filter(e=>new Date(e.date+'T23:59:59')>=now)
+   .sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5);
+
+  document.getElementById('dash-events').innerHTML = upcoming.length
+    ? upcoming.map(e=>{
+        const d = new Date(e.date+'T12:00:00');
+        const label = d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
+        return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px">
+          <div style="width:7px;height:7px;border-radius:50%;background:${e.type==='concert'?'var(--accent)':'var(--accent2)'};flex-shrink:0"></div>
+          <div style="flex:1;min-width:0">
+            <div class="text-sm">${esc(e.label)}</div>
+            <div class="text-xs text-muted">${label}${e.time?' · '+e.time:''} ${e.sub?'· '+esc(e.sub):''}</div>
+          </div>
+        </div>`;
+      }).join('')
+    : `<p class="text-xs text-muted">Aucun événement à venir.</p>`;
+
+  document.getElementById('dash-songs').innerHTML = DB.songs.slice(0,6).map(s=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;cursor:pointer" onclick="navTo('morceaux')">
+      <span style="color:var(--text3)">♩</span>
+      <span class="text-sm" style="flex:1">${esc(s.name)}</span>
+      ${s.key?`<span class="tag tag-key">${esc(s.key)}</span>`:''}
+    </div>
+  `).join('');
+}
+
+window.navTo = function(page){
+  document.querySelector('.nav-item[data-page="'+page+'"]').click();
+};
+
+// ============================================================
+//  MODAL HELPERS
+// ============================================================
+function showModal(name){
+  document.querySelectorAll('.modal').forEach(m=>m.style.display='none');
+  document.getElementById('modal-'+name).style.display='block';
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal(){
+  document.getElementById('modal-overlay').classList.remove('open');
+  editingId = null;
+}
+function handleOverlayClick(e){
+  if(e.target===document.getElementById('modal-overlay')) closeModal();
+}
+
+// ============================================================
+//  UTILS
+// ============================================================
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
+function getVal(id){ return document.getElementById(id)?.value||'' }
+function setVal(id, v){ const el=document.getElementById(id); if(el) el.value=v }
+function initials(m){ return ((m.prenom||'').charAt(0)+(m.nom||'').charAt(0)).toUpperCase()||'?' }
+
+// ============================================================
+//  BOOT
+// ============================================================
+init();
+</script>
+</body>
+</html>
