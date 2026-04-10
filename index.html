@@ -353,6 +353,12 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
           <input class="form-input" id="f-song-name" placeholder="Titre du morceau">
         </div>
         <div class="form-group">
+          <label class="form-label">Artiste / Compositeur</label>
+          <input class="form-input" id="f-song-artist" placeholder="Ex: Miles Davis, Coltrane…">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="grid-column:1/-1">
           <label class="form-label">Style / Genre</label>
           <input class="form-input" id="f-song-style" placeholder="Ex: Bossa, Swing, Blues…">
         </div>
@@ -674,7 +680,7 @@ function renderSongs(){
     <div class="song-item" onclick="showSongDetail(${s.id})">
       <div class="song-num">${i+1}</div>
       <div class="song-info">
-        <div class="song-name">${esc(s.name)}</div>
+        <div class="song-name">${esc(s.name)}${s.artist?` <span style="font-size:12px;color:var(--text3);font-weight:400">— ${esc(s.artist)}</span>`:''}</div>
         <div class="song-meta">
           ${s.key   ?`<span class="tag tag-key">${esc(s.key)}</span>`:''}
           ${s.tempo ?`<span class="tag tag-tempo">♩ ${s.tempo} BPM</span>`:''}
@@ -696,6 +702,7 @@ function openSongModal(id=null){
   document.getElementById('song-modal-title').textContent = id?'Modifier le morceau':'Nouveau morceau';
   const s = id ? DB.songs.find(x=>x.id===id) : {};
   setVal('f-song-name', s.name||'');
+  setVal('f-song-artist', s.artist||'');
   setVal('f-song-style', s.style||'');
   setVal('f-song-key', s.key||'');
   setVal('f-song-tempo', s.tempo||120);
@@ -715,7 +722,8 @@ async function saveSong(){
   const name = getVal('f-song-name').trim();
   if(!name) return toast('Le nom est requis','error');
   const payload = {
-    name, style:getVal('f-song-style'), key:getVal('f-song-key'),
+    name, artist:getVal('f-song-artist').trim()||null,
+    style:getVal('f-song-style'), key:getVal('f-song-key'),
     tempo:parseInt(getVal('f-song-tempo'))||120,
     duration:parseInt(getVal('f-song-duration'))||null,
     notes:getVal('f-song-notes'),
@@ -761,6 +769,7 @@ function showSongDetail(id){
       <div class="detail-cell"><div class="detail-cell-label">Style</div><div class="detail-cell-value" style="font-size:14px">${s.style||'—'}</div></div>
       <div class="detail-cell"><div class="detail-cell-label">Durée</div><div class="detail-cell-value" style="font-size:14px">${s.duration?s.duration+' min':'—'}</div></div>
     </div>
+    ${s.artist?`<div class="card" style="margin-bottom:12px"><div class="form-label">Artiste / Compositeur</div><p style="font-size:14px;color:var(--text2);margin-top:4px">${esc(s.artist)}</p></div>`:''}
     ${s.notes?`<div class="card" style="margin-bottom:12px"><div class="form-label">Notes d'exécution</div><p style="font-size:13px;color:var(--text2);margin-top:6px;line-height:1.6">${esc(s.notes)}</p></div>`:''}
     ${s.folder_link?`<div class="card" style="margin-bottom:12px"><div class="form-label">Dossier / Partition</div><a href="${esc(s.folder_link)}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;font-size:13px;color:var(--accent2);text-decoration:none;word-break:break-all">&#128279; ${esc(s.folder_link)}</a></div>`:''}
     <div class="card" style="margin-bottom:12px">
