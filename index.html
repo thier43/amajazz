@@ -386,7 +386,11 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
       </div>
       <div class="form-group">
         <label class="form-label">Notes d'exécution</label>
-        <textarea class="form-input" id="f-song-notes" placeholder="Arrangement, difficultés, références YouTube…"></textarea>
+        <textarea class="form-input" id="f-song-notes" placeholder="Arrangement, difficultés, références…"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Lien dossier / partition</label>
+        <input class="form-input" id="f-song-link" placeholder="https://drive.google.com/… ou YouTube…">
       </div>
       <div class="form-actions">
         <button class="btn btn-outline" onclick="closeModal()">Annuler</button>
@@ -560,8 +564,8 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
 // ============================================================
 //  CONFIG – remplacez par vos valeurs Supabase
 // ============================================================
-const SUPABASE_URL  = 'https://hirykfprszvqkeerpbtt.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpcnlrZnByc3p2cWtlZXJwYnR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MTYwMDQsImV4cCI6MjA5MTM5MjAwNH0.W5U0MsMq21j9Dsvw3MD3AyLnrOfyxz1dd31ziXe0wH8';
+const SUPABASE_URL  = 'VOTRE_SUPABASE_URL';
+const SUPABASE_ANON = 'VOTRE_SUPABASE_ANON_KEY';
 
 // ============================================================
 //  INIT
@@ -571,6 +575,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 let DB = { songs:[], members:[], sets:[], set_songs:[], concerts:[], events:[] };
 let editingId = null;
 let setSelectedSongs = [];
+let setNotesMap = {}; // song_id -> note spécifique au set
 let calYear = new Date().getFullYear();
 let calMonth = new Date().getMonth();
 
@@ -696,6 +701,7 @@ function openSongModal(id=null){
   setVal('f-song-tempo', s.tempo||120);
   setVal('f-song-duration', s.duration||'');
   setVal('f-song-notes', s.notes||'');
+  setVal('f-song-link', s.folder_link||'');
   document.getElementById('tempo-display').textContent = s.tempo||120;
   document.getElementById('tempo-val-display').textContent = s.tempo||120;
   document.getElementById('f-song-tempo').oninput = function(){
@@ -713,6 +719,7 @@ async function saveSong(){
     tempo:parseInt(getVal('f-song-tempo'))||120,
     duration:parseInt(getVal('f-song-duration'))||null,
     notes:getVal('f-song-notes'),
+    folder_link:getVal('f-song-link').trim()||null,
   };
   setSyncStatus('loading');
   try {
@@ -744,8 +751,8 @@ async function deleteSong(id){
 
 function showSongDetail(id){
   const s = DB.songs.find(x=>x.id===id);
-  const inSets = DB.set_songs.filter(ss=>ss.song_id===id)
-    .map(ss=>DB.sets.find(set=>set.id===ss.set_id)?.name).filter(Boolean);
+  const inSetLinks = DB.set_songs.filter(ss=>ss.song_id===id)
+    .map(ss=>({set:DB.sets.find(set=>set.id===ss.set_id), ss})).filter(x=>x.set);
   document.getElementById('detail-title').textContent = s.name;
   document.getElementById('detail-body').innerHTML = `
     <div class="detail-grid">
@@ -755,10 +762,15 @@ function showSongDetail(id){
       <div class="detail-cell"><div class="detail-cell-label">Durée</div><div class="detail-cell-value" style="font-size:14px">${s.duration?s.duration+' min':'—'}</div></div>
     </div>
     ${s.notes?`<div class="card" style="margin-bottom:12px"><div class="form-label">Notes d'exécution</div><p style="font-size:13px;color:var(--text2);margin-top:6px;line-height:1.6">${esc(s.notes)}</p></div>`:''}
-    <div class="card">
+    ${s.folder_link?`<div class="card" style="margin-bottom:12px"><div class="form-label">Dossier / Partition</div><a href="${esc(s.folder_link)}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;font-size:13px;color:var(--accent2);text-decoration:none;word-break:break-all">&#128279; ${esc(s.folder_link)}</a></div>`:''}
+    <div class="card" style="margin-bottom:12px">
       <div class="form-label">Présent dans les sets</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
-        ${inSets.length?inSets.map(n=>`<span class="tag tag-style">${n}</span>`).join(''):`<span class="text-xs text-muted">Aucun set</span>`}
+        ${inSetLinks.length?inSetLinks.map(({set,ss})=>`
+          <div style="display:flex;align-items:center;gap:6px;width:100%;padding:6px 0;border-bottom:1px solid var(--border)">
+            <span class="tag tag-style">${esc(set.name)}</span>
+            ${ss.set_notes?`<span style="font-size:11px;color:var(--amber)">&#9888; ${esc(ss.set_notes)}</span>`:'<span class="text-xs text-muted">Pas de note spécifique</span>'}
+          </div>`).join(''):`<span class="text-xs text-muted">Aucun set</span>`}
       </div>
     </div>
     <div class="form-actions">
@@ -859,13 +871,19 @@ function renderSets(){
         </div>
         <div class="set-count">${songs.length} morceau${songs.length>1?'x':''} ${dur?'· ~'+dur+' min':''}</div>
         <div class="set-songs-list">
-          ${songs.map((s,i)=>`
-            <div class="set-song-row">
-              <span class="set-song-num">${i+1}.</span>
-              <span style="flex:1;font-size:12px">${esc(s.name)}</span>
-              ${s.key?`<span class="tag tag-key" style="font-size:10px">${esc(s.key)}</span>`:''}
-            </div>
-          `).join('')}
+          ${DB.set_songs.filter(ss=>ss.set_id===set.id).sort((a,b)=>a.position-b.position).map((ss,i)=>{
+            const s = DB.songs.find(x=>x.id===ss.song_id);
+            if(!s) return '';
+            return `<div class="set-song-row" style="flex-direction:column;align-items:flex-start;gap:3px">
+              <div style="display:flex;align-items:center;gap:8px;width:100%">
+                <span class="set-song-num">${i+1}.</span>
+                <span style="flex:1;font-size:12px">${esc(s.name)}</span>
+                ${s.key?`<span class="tag tag-key" style="font-size:10px">${esc(s.key)}</span>`:''}
+                ${s.folder_link?`<a href="${esc(s.folder_link)}" target="_blank" onclick="event.stopPropagation()" title="Ouvrir le dossier" style="color:var(--accent2);font-size:13px;text-decoration:none">&#128279;</a>`:''}
+              </div>
+              ${ss.set_notes?`<div style="font-size:11px;color:var(--amber);padding-left:22px;line-height:1.4">&#9888; ${esc(ss.set_notes)}</div>`:''}
+            </div>`;
+          }).join('')}
         </div>
       </div>
     `;
@@ -878,6 +896,12 @@ function openSetModal(id=null){
   const set = id ? DB.sets.find(x=>x.id===id) : null;
   setVal('f-set-name', set?.name||'');
   setSelectedSongs = id ? getSongIdsForSet(id) : [];
+  setNotesMap = {};
+  if(id){
+    DB.set_songs.filter(ss=>ss.set_id===id).forEach(ss=>{
+      if(ss.set_notes) setNotesMap[ss.song_id] = ss.set_notes;
+    });
+  }
   renderSetBuilder();
   showModal('set');
 }
@@ -897,10 +921,17 @@ function renderSetBuilder(){
 
   const inSongs = setSelectedSongs.map(sid=>DB.songs.find(s=>s.id===sid)).filter(Boolean);
   sel.innerHTML = inSongs.length
-    ? inSongs.map(s=>`<div class="pick-item pick-remove" onclick="toggleInSet(${s.id})">
-        <div class="pick-icon">−</div>
-        <span style="flex:1">${esc(s.name)}</span>
-        ${s.key?`<span class="tag tag-key" style="font-size:10px">${esc(s.key)}</span>`:''}
+    ? inSongs.map(s=>`
+      <div class="pick-item pick-remove" style="flex-direction:column;align-items:stretch;gap:6px;cursor:default">
+        <div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="toggleInSet(${s.id})">
+          <div class="pick-icon">−</div>
+          <span style="flex:1;font-size:12px">${esc(s.name)}</span>
+          ${s.key?`<span class="tag tag-key" style="font-size:10px">${esc(s.key)}</span>`:''}
+        </div>
+        <input class="form-input" style="font-size:11px;padding:5px 9px;background:var(--surface3)"
+          placeholder="&#9888; Note spécifique pour ce set (structure, arrangement…)"
+          value="${esc(setNotesMap[s.id]||'')}"
+          oninput="setNotesMap[${s.id}]=this.value">
       </div>`).join('')
     : `<p class="text-xs text-muted" style="padding:16px;text-align:center">Cliquez sur les morceaux pour les ajouter.</p>`;
 
@@ -928,7 +959,10 @@ async function saveSet(){
     }
     await sb.from('set_songs').delete().eq('set_id', setId);
     if(setSelectedSongs.length){
-      await sb.from('set_songs').insert(setSelectedSongs.map((sid,pos)=>({set_id:setId, song_id:sid, position:pos})));
+      await sb.from('set_songs').insert(setSelectedSongs.map((sid,pos)=>({
+        set_id:setId, song_id:sid, position:pos,
+        set_notes:setNotesMap[sid]||null,
+      })));
     }
     await loadAll(); closeModal(); renderSets(); renderDashboard();
     populateConcertSets();
