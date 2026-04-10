@@ -202,6 +202,12 @@ select.form-input option{background:var(--surface2)}
 .detail-cell-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
 .detail-cell-value{font-size:16px;font-weight:600;color:var(--accent);font-family:'Playfair Display',serif}
 
+/* ===== AVATAR PICKER ===== */
+.avatar-family-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;width:100%;margin-top:6px;margin-bottom:2px}
+.avatar-btn{width:36px;height:36px;border-radius:var(--radius-sm);background:var(--surface2);border:1.5px solid var(--border);font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;line-height:1}
+.avatar-btn:hover{background:var(--surface3);border-color:var(--border2)}
+.avatar-btn.selected{border-color:var(--accent);background:rgba(232,168,124,.15)}
+
 /* ===== PREFERENCES ===== */
 .pref-page-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
 .pref-member-select{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:8px 14px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;min-width:200px}
@@ -519,7 +525,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
         </div>
         <div class="form-group">
           <label class="form-label">Famille instrument</label>
-          <select class="form-input" id="f-member-family">
+          <select class="form-input" id="f-member-family" onchange="suggestFamilyAvatar()">
             <option>Soufflants</option>
             <option>Guitares</option>
             <option>Basse</option>
@@ -535,8 +541,9 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
         <input class="form-input" id="f-member-instrument" placeholder="Ex: Guitare, Piano, Saxophone…">
       </div>
       <div class="form-group">
-        <label class="form-label">Avatar (emoji ou 2 initiales)</label>
-        <input class="form-input" id="f-member-avatar" placeholder="🎸 ou TM" maxlength="4">
+        <label class="form-label">Avatar</label>
+        <div id="avatar-picker" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px"></div>
+        <input class="form-input" id="f-member-avatar" placeholder="🎸 ou initiales" maxlength="4" oninput="syncAvatarPicker(this.value)" style="margin-top:4px">
       </div>
       <div class="form-actions">
         <button class="btn btn-outline" onclick="closeModal()">Annuler</button>
@@ -735,7 +742,6 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
 // ============================================================
 const SUPABASE_URL  = 'https://hirykfprszvqkeerpbtt.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpcnlrZnByc3p2cWtlZXJwYnR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MTYwMDQsImV4cCI6MjA5MTM5MjAwNH0.W5U0MsMq21j9Dsvw3MD3AyLnrOfyxz1dd31ziXe0wH8';
-
 // ============================================================
 //  INIT
 // ============================================================
@@ -956,6 +962,67 @@ function showSongDetail(id){
 }
 
 // ============================================================
+//  AVATAR PICKER
+// ============================================================
+const AVATAR_FAMILIES = [
+  { family:'Soufflants',  emojis:['🎷','🎺','🪗','🎵','🪘','🎶'] },
+  { family:'Guitares',    emojis:['🎸','🎼','🎙','🪕','🎻','🎵'] },
+  { family:'Basse',       emojis:['🎸','🎵','🎶','🎼','🎙','🔊'] },
+  { family:'Batterie',    emojis:['🥁','🪘','🎵','🎶','🎼','🪗'] },
+  { family:'Chant',       emojis:['🎤','🎙','🎵','🎶','🎼','🎧'] },
+  { family:'Clavier',     emojis:['🎹','🎼','🎵','🎶','🎙','🪗'] },
+  { family:'Autres',      emojis:['🎵','🎶','🎼','🎙','🎧','🎤'] },
+];
+
+// Tous les emojis dédoublonnés dans l'ordre des familles pour le picker
+const ALL_AVATARS = [
+  {label:'Soufflants', emojis:['🎷','🎺','🪗']},
+  {label:'Guitares',   emojis:['🎸','🪕','🎻']},
+  {label:'Basse',      emojis:['🎸','🔊','🎵']},
+  {label:'Batterie',   emojis:['🥁','🪘','🎶']},
+  {label:'Chant',      emojis:['🎤','🎙','🎧']},
+  {label:'Clavier',    emojis:['🎹','🎼','🎵']},
+  {label:'Divers',     emojis:['🎵','🎶','🎼','🎧','🎙','🔔','🎻','🪗','🥁']},
+];
+
+function renderAvatarPicker(currentVal){
+  const picker = document.getElementById('avatar-picker');
+  if(!picker) return;
+  picker.innerHTML = ALL_AVATARS.map(group=>`
+    <div class="avatar-family-label">${group.label}</div>
+    ${group.emojis.map(e=>`
+      <button type="button" class="avatar-btn ${currentVal===e?'selected':''}"
+        onclick="pickAvatar('${e}')">${e}</button>
+    `).join('')}
+  `).join('');
+}
+
+function pickAvatar(emoji){
+  setVal('f-member-avatar', emoji);
+  // Update picker selection
+  document.querySelectorAll('.avatar-btn').forEach(btn=>{
+    btn.className = 'avatar-btn '+(btn.textContent.trim()===emoji?'selected':'');
+  });
+}
+
+function syncAvatarPicker(val){
+  document.querySelectorAll('.avatar-btn').forEach(btn=>{
+    btn.className = 'avatar-btn '+(btn.textContent.trim()===val?'selected':'');
+  });
+}
+
+function suggestFamilyAvatar(){
+  const family = getVal('f-member-family');
+  const current = getVal('f-member-avatar');
+  // Seulement suggérer si pas encore d'avatar saisi
+  if(!current){
+    const group = ALL_AVATARS.find(g=>g.label===family);
+    if(group){ pickAvatar(group.emojis[0]); }
+  }
+  renderAvatarPicker(getVal('f-member-avatar'));
+}
+
+// ============================================================
 //  MEMBERS
 // ============================================================
 function renderMembers(){
@@ -1000,6 +1067,7 @@ function openMemberModal(id=null){
   setVal('f-member-family',     m.family||'Soufflants');
   setVal('f-member-instrument', m.instrument||'');
   setVal('f-member-avatar',     m.avatar||'');
+  renderAvatarPicker(m.avatar||'');
   showModal('member');
 }
 
