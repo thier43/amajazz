@@ -280,11 +280,11 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
       </div>
       <div class="nav-item" data-page="sets">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
-        Sets
+        Répétitions
       </div>
       <div class="nav-item" data-page="concerts">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-        Concerts
+        Prestations
       </div>
       <div class="nav-item" data-page="planning">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
@@ -340,19 +340,19 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
       <div id="members-by-family"></div>
     </div>
 
-    <!-- SETS -->
+    <!-- RÉPÉTITIONS (ex-Sets) -->
     <div class="page" id="page-sets">
       <div class="page-header">
-        <div><h2 class="page-title">Sets</h2><p class="page-sub">Composez vos sets de morceaux</p></div>
-        <button class="btn btn-primary" onclick="openSetModal()">+ Nouveau set</button>
+        <div><h2 class="page-title">Répétitions</h2><p class="page-sub">Composez vos programmes de répétition</p></div>
+        <button class="btn btn-primary" onclick="openSetModal()">+ Nouvelle répétition</button>
       </div>
       <div class="set-grid" id="set-list"></div>
     </div>
 
-    <!-- CONCERTS -->
+    <!-- PRESTATIONS (ex-Concerts) -->
     <div class="page" id="page-concerts">
       <div class="page-header">
-        <div><h2 class="page-title">Concerts</h2><p class="page-sub">Dates et programmation</p></div>
+        <div><h2 class="page-title">Prestations</h2><p class="page-sub">Dates et programmation</p></div>
         <button class="btn btn-primary" onclick="openConcertModal()">+ Ajouter</button>
       </div>
       <div class="concert-list" id="concert-list"></div>
@@ -361,10 +361,10 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
     <!-- PLANNING -->
     <div class="page" id="page-planning">
       <div class="page-header">
-        <div><h2 class="page-title">Planning</h2><p class="page-sub">Répétitions &amp; concerts</p></div>
+        <div><h2 class="page-title">Planning</h2><p class="page-sub">Répétitions &amp; prestations</p></div>
         <div class="flex gap-8">
           <button class="btn btn-outline btn-sm" onclick="openRepetModal()">+ Répétition</button>
-          <button class="btn btn-primary btn-sm" onclick="openConcertModal()">+ Concert</button>
+          <button class="btn btn-primary btn-sm" onclick="openConcertModal()">+ Prestation</button>
         </div>
       </div>
       <div class="calendar" id="calendar"></div>
@@ -535,16 +535,16 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
     </div>
   </div>
 
-  <!-- Set Modal -->
+  <!-- Répétition (ex-Set) Modal -->
   <div class="modal wide" id="modal-set">
     <div class="modal-header">
-      <h3 class="modal-title" id="set-modal-title">Composer un set</h3>
+      <h3 class="modal-title" id="set-modal-title">Nouvelle répétition</h3>
       <button class="modal-close" onclick="closeModal()">×</button>
     </div>
     <div class="modal-body">
       <div class="form-group">
-        <label class="form-label">Nom du set *</label>
-        <input class="form-input" id="f-set-name" placeholder="Ex: Set Jazz Club – Vendredi">
+        <label class="form-label">Nom de la répétition *</label>
+        <input class="form-input" id="f-set-name" placeholder="Ex: Répétition Vendredi – Jazz Standards">
       </div>
       <div class="set-builder">
         <div class="drop-zone">
@@ -552,22 +552,22 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
           <div id="set-available"></div>
         </div>
         <div class="drop-zone">
-          <div class="drop-zone-title">Dans le set · <span id="set-count-label" style="color:var(--accent)">0 morceaux</span></div>
+          <div class="drop-zone-title">Au programme · <span id="set-count-label" style="color:var(--accent)">0 morceaux</span></div>
           <div id="set-selected"></div>
         </div>
       </div>
       <p class="text-xs text-muted mt-8">Cliquez sur les morceaux pour les ajouter ou retirer.</p>
       <div class="form-actions">
         <button class="btn btn-outline" onclick="closeModal()">Annuler</button>
-        <button class="btn btn-primary" onclick="saveSet()">Enregistrer le set</button>
+        <button class="btn btn-primary" onclick="saveSet()">Enregistrer la répétition</button>
       </div>
     </div>
   </div>
 
-  <!-- Concert Modal -->
+  <!-- Prestation (ex-Concert) Modal -->
   <div class="modal" id="modal-concert">
     <div class="modal-header">
-      <h3 class="modal-title" id="concert-modal-title">Nouveau concert</h3>
+      <h3 class="modal-title" id="concert-modal-title">Nouvelle prestation</h3>
       <button class="modal-close" onclick="closeModal()">×</button>
     </div>
     <div class="modal-body">
@@ -590,9 +590,9 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
         <input class="form-input" id="f-concert-venue" placeholder="Nom et ville">
       </div>
       <div class="form-group">
-        <label class="form-label">Set programmé</label>
+        <label class="form-label">Répétition associée</label>
         <select class="form-input" id="f-concert-set">
-          <option value="">— Aucun set associé —</option>
+          <option value="">— Aucune répétition associée —</option>
         </select>
       </div>
       <div class="form-group">
@@ -606,16 +606,16 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
     </div>
   </div>
 
-  <!-- Repet Modal -->
+  <!-- Répétition planning Modal -->
   <div class="modal" id="modal-repet">
     <div class="modal-header">
-      <h3 class="modal-title">Nouvelle répétition</h3>
+      <h3 class="modal-title">Ajouter une répétition</h3>
       <button class="modal-close" onclick="closeModal()">×</button>
     </div>
     <div class="modal-body">
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Date *</label>
+          <label class="form-label">Date de début *</label>
           <input class="form-input" type="date" id="f-repet-date">
         </div>
         <div class="form-group">
@@ -625,7 +625,22 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
       </div>
       <div class="form-group">
         <label class="form-label">Lieu</label>
-        <input class="form-input" id="f-repet-venue" placeholder="Studio, salle…">
+        <input class="form-input" id="f-repet-venue" placeholder="Centre Pierre Cardinal">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Récurrence</label>
+        <select class="form-input" id="f-repet-recur" onchange="toggleRepetRecur()">
+          <option value="none">Aucune (date unique)</option>
+          <option value="weekly">Toutes les semaines</option>
+          <option value="biweekly">Toutes les 2 semaines</option>
+          <option value="monthly">Tous les mois</option>
+        </select>
+      </div>
+      <div id="repet-recur-end" style="display:none">
+        <div class="form-group">
+          <label class="form-label">Répéter jusqu'au *</label>
+          <input class="form-input" type="date" id="f-repet-end">
+        </div>
       </div>
       <div class="form-group">
         <label class="form-label">Notes</label>
@@ -987,7 +1002,7 @@ function renderSets(){
 
 function openSetModal(id=null){
   editingId = id;
-  document.getElementById('set-modal-title').textContent = id?'Modifier le set':'Composer un set';
+  document.getElementById('set-modal-title').textContent = id?'Modifier la répétition':'Nouvelle répétition';
   const set = id ? DB.sets.find(x=>x.id===id) : null;
   setVal('f-set-name', set?.name||'');
   setSelectedSongs = id ? getSongIdsForSet(id) : [];
@@ -1061,7 +1076,7 @@ async function saveSet(){
     }
     await loadAll(); closeModal(); renderSets(); renderDashboard();
     populateConcertSets();
-    toast(editingId?'Set modifié':'Set créé');
+    toast(editingId?'Répétition modifiée':'Répétition créée');
     setSyncStatus('ok');
   } catch(e){ toast('Erreur: '+e.message,'error'); setSyncStatus('error'); }
 }
@@ -1115,13 +1130,13 @@ function renderConcerts(){
 
 function populateConcertSets(selectedId){
   const sel = document.getElementById('f-concert-set');
-  sel.innerHTML = '<option value="">— Aucun set associé —</option>'+
+  sel.innerHTML = '<option value="">— Aucune répétition associée —</option>'+
     DB.sets.map(s=>`<option value="${s.id}" ${s.id===selectedId?'selected':''}>${esc(s.name)}</option>`).join('');
 }
 
 function openConcertModal(id=null){
   editingId = id;
-  document.getElementById('concert-modal-title').textContent = id?'Modifier le concert':'Nouveau concert';
+  document.getElementById('concert-modal-title').textContent = id?'Modifier la prestation':'Nouvelle prestation';
   const c = id ? DB.concerts.find(x=>x.id===id) : {};
   setVal('f-concert-name', c.name||'');
   setVal('f-concert-date', c.date||'');
@@ -1220,26 +1235,58 @@ window.calNav = function(dir){
   renderCalendar();
 };
 
+function toggleRepetRecur(){
+  const v = document.getElementById('f-repet-recur').value;
+  document.getElementById('repet-recur-end').style.display = v==='none'?'none':'block';
+}
+
 function openRepetModal(){
-  setVal('f-repet-date',''); setVal('f-repet-time','20:00');
-  setVal('f-repet-venue',''); setVal('f-repet-notes','');
+  setVal('f-repet-date','');
+  setVal('f-repet-time','20:00');
+  setVal('f-repet-venue','Centre Pierre Cardinal');
+  setVal('f-repet-notes','');
+  setVal('f-repet-recur','none');
+  setVal('f-repet-end','');
+  document.getElementById('repet-recur-end').style.display='none';
   showModal('repet');
 }
 
 async function saveRepet(){
   const date = getVal('f-repet-date');
   if(!date) return toast('Date requise','error');
-  const payload = {
-    type:'repetition', date,
-    time:getVal('f-repet-time')||null,
-    venue:getVal('f-repet-venue'),
-    notes:getVal('f-repet-notes'),
-  };
+  const recur = getVal('f-repet-recur');
+  const endDate = getVal('f-repet-end');
+  if(recur!=='none' && !endDate) return toast('Date de fin requise pour la récurrence','error');
+
+  const venue = getVal('f-repet-venue')||'Centre Pierre Cardinal';
+  const time  = getVal('f-repet-time')||null;
+  const notes = getVal('f-repet-notes');
+
+  // Générer toutes les dates
+  const dates = [];
+  if(recur==='none'){
+    dates.push(date);
+  } else {
+    const step = recur==='weekly'?7:recur==='biweekly'?14:null;
+    let cur = new Date(date+'T12:00:00');
+    const end = new Date(endDate+'T12:00:00');
+    while(cur<=end){
+      dates.push(cur.toISOString().slice(0,10));
+      if(step){
+        cur.setDate(cur.getDate()+step);
+      } else {
+        // mensuel
+        cur.setMonth(cur.getMonth()+1);
+      }
+    }
+  }
+
   setSyncStatus('loading');
   try {
-    await sb.from('events').insert(payload);
+    const rows = dates.map(d=>({type:'repetition', date:d, time, venue, notes}));
+    await sb.from('events').insert(rows);
     await loadAll(); closeModal(); renderCalendar(); renderDashboard();
-    toast('Répétition ajoutée');
+    toast(dates.length>1?dates.length+' répétitions ajoutées':'Répétition ajoutée');
     setSyncStatus('ok');
   } catch(e){ toast('Erreur: '+e.message,'error'); setSyncStatus('error'); }
 }
@@ -1251,8 +1298,8 @@ function renderDashboard(){
   document.getElementById('stats-bar').innerHTML = [
     {v:DB.songs.length,   l:'Morceaux'},
     {v:DB.members.length, l:'Musiciens'},
-    {v:DB.sets.length,    l:'Sets'},
-    {v:DB.concerts.length,l:'Concerts'},
+    {v:DB.sets.length,    l:'Répétitions'},
+    {v:DB.concerts.length,l:'Prestations'},
   ].map(s=>`<div class="stat"><div class="stat-v">${s.v}</div><div class="stat-l">${s.l}</div></div>`).join('');
 
   const now = new Date();
@@ -1321,7 +1368,7 @@ let prefView = 'saisie';
 function renderPreferences(){
   const setSelS = document.getElementById('pref-set-sel');
   const curSetS = setSelS.value;
-  setSelS.innerHTML = '<option value="">— Choisir un set —</option>' +
+  setSelS.innerHTML = '<option value="">— Choisir une répétition —</option>' +
     DB.sets.map(s=>`<option value="${s.id}" ${s.id==curSetS?'selected':''}>${esc(s.name)}</option>`).join('');
 
   const memSel = document.getElementById('pref-member-sel');
@@ -1331,7 +1378,7 @@ function renderPreferences(){
 
   const synthSel = document.getElementById('synth-set-sel');
   const curSynth = synthSel.value;
-  synthSel.innerHTML = '<option value="">— Choisir un set —</option>' +
+  synthSel.innerHTML = '<option value="">— Choisir une répétition —</option>' +
     DB.sets.map(s=>`<option value="${s.id}" ${s.id==curSynth?'selected':''}>${esc(s.name)}</option>`).join('');
 
   setPrefView(prefView);
