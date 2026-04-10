@@ -529,10 +529,13 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
         <div class="form-group">
           <label class="form-label">Famille instrument</label>
           <select class="form-input" id="f-member-family">
-            <option>Cordes</option><option>Vents bois</option>
-            <option>Vents cuivres</option><option>Percussions</option>
-            <option>Claviers</option><option>Voix</option>
-            <option>Basses</option><option>Autre</option>
+            <option>Soufflants</option>
+            <option>Guitares</option>
+            <option>Basse</option>
+            <option>Batterie</option>
+            <option>Chant</option>
+            <option>Clavier</option>
+            <option>Autres</option>
           </select>
         </div>
       </div>
@@ -755,14 +758,13 @@ let calYear = new Date().getFullYear();
 let calMonth = new Date().getMonth();
 
 const familyColors = {
-  'Cordes':      ['#7c9fe8','rgba(124,159,232,.15)'],
-  'Vents bois':  ['#5dc8a0','rgba(93,200,160,.15)'],
-  'Vents cuivres':['#e8c87c','rgba(232,200,124,.15)'],
-  'Percussions': ['#e87c7c','rgba(232,124,124,.15)'],
-  'Claviers':    ['#a87ce8','rgba(168,124,232,.15)'],
-  'Voix':        ['#e8a87c','rgba(232,168,124,.15)'],
-  'Basses':      ['#7ce8b8','rgba(124,232,184,.15)'],
-  'Autre':       ['#888','rgba(136,136,136,.12)'],
+  'Soufflants': ['#5dc8a0','rgba(93,200,160,.15)'],
+  'Guitares':   ['#7c9fe8','rgba(124,159,232,.15)'],
+  'Basse':      ['#7ce8b8','rgba(124,232,184,.15)'],
+  'Batterie':   ['#e87c7c','rgba(232,124,124,.15)'],
+  'Chant':      ['#e8a87c','rgba(232,168,124,.15)'],
+  'Clavier':    ['#a87ce8','rgba(168,124,232,.15)'],
+  'Autres':     ['#888','rgba(136,136,136,.12)'],
 };
 
 async function init(){
@@ -980,11 +982,15 @@ function renderMembers(){
         </div>
         <div class="member-grid">
           ${members.map(m=>`
-            <div class="member-card" onclick="openMemberModal(${m.id})">
+            <div class="member-card">
               <div class="member-avatar" style="background:${bg};color:${color}">${esc(m.avatar||initials(m))}</div>
               <div class="member-name">${esc(m.prenom)}${m.nom?' '+esc(m.nom):''}</div>
               ${m.pseudo?`<div class="member-pseudo">"${esc(m.pseudo)}"</div>`:''}
               <div class="member-family">${esc(m.instrument||m.family||'')}</div>
+              <div style="display:flex;gap:6px;margin-top:10px;justify-content:center">
+                <button class="btn btn-ghost btn-sm" onclick="openMemberModal(${m.id})">✎ Modifier</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteMember(${m.id})">✕</button>
+              </div>
             </div>
           `).join('')}
         </div>
@@ -997,13 +1003,27 @@ function openMemberModal(id=null){
   editingId = id;
   document.getElementById('member-modal-title').textContent = id?'Modifier le musicien':'Nouveau musicien';
   const m = id ? DB.members.find(x=>x.id===id) : {};
-  setVal('f-member-prenom', m.prenom||'');
-  setVal('f-member-nom', m.nom||'');
-  setVal('f-member-pseudo', m.pseudo||'');
-  setVal('f-member-family', m.family||'Cordes');
+  setVal('f-member-prenom',     m.prenom||'');
+  setVal('f-member-nom',        m.nom||'');
+  setVal('f-member-pseudo',     m.pseudo||'');
+  setVal('f-member-family',     m.family||'Soufflants');
   setVal('f-member-instrument', m.instrument||'');
-  setVal('f-member-avatar', m.avatar||'');
+  setVal('f-member-avatar',     m.avatar||'');
   showModal('member');
+}
+
+async function deleteMember(id){
+  const m = DB.members.find(x=>x.id===id);
+  if(!m) return;
+  if(!confirm(`Supprimer ${m.prenom}${m.nom?' '+m.nom:''} ? Ses préférences seront aussi supprimées.`)) return;
+  setSyncStatus('loading');
+  try {
+    await sb.from('preferences').delete().eq('member_id', id);
+    await sb.from('members').delete().eq('id', id);
+    await loadAll(); renderMembers(); renderDashboard();
+    toast('Musicien supprimé');
+    setSyncStatus('ok');
+  } catch(e){ toast('Erreur: '+e.message,'error'); setSyncStatus('error'); }
 }
 
 async function saveMember(){
