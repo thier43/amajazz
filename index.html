@@ -234,6 +234,16 @@ select.form-input option{background:var(--surface2)}
 .dot-impro{background:rgba(124,159,232,.2);color:var(--accent2);font-size:9px}
 .dot-empty{background:var(--surface3);color:var(--text3)}
 
+/* ===== EVENT DETAIL ===== */
+.evdet-info{background:var(--surface2);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:14px}
+.evdet-row{display:flex;align-items:flex-start;gap:10px;padding:5px 0;font-size:13px}
+.evdet-row:not(:last-child){border-bottom:1px solid var(--border)}
+.evdet-label{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);min-width:80px;padding-top:1px}
+.evdet-val{color:var(--text2);flex:1}
+.evdet-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.evdet-actions .btn{justify-content:center}
+.recur-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 9px;border-radius:20px;background:rgba(124,159,232,.12);color:var(--accent2);margin-bottom:12px}
+
 /* ===== UTILS ===== */
 .flex{display:flex}.items-center{align-items:center}.gap-8{gap:8px}.gap-12{gap:12px}
 .mt-8{margin-top:8px}.mt-16{margin-top:16px}.mt-20{margin-top:20px}
@@ -687,6 +697,15 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
         <button class="btn btn-primary" onclick="saveRepet()">Enregistrer</button>
       </div>
     </div>
+  </div>
+
+  <!-- Événement planning détail/édition Modal -->
+  <div class="modal" id="modal-event-detail">
+    <div class="modal-header">
+      <h3 class="modal-title" id="evdet-title">Événement</h3>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="evdet-body"></div>
   </div>
 
   <!-- Song detail Modal -->
@@ -1233,9 +1252,9 @@ function renderCalendar(){
       const timeStr  = e.time ? e.time.slice(0,5)+(e.time_end?' – '+e.time_end.slice(0,5):'') : '';
       const isPresta = e.type==='prestation';
       const label    = (isPresta?'★ ':'♩ ')+(concName||setName||e.venue||'Répétition')+(timeStr?' · '+timeStr:'');
-      return {date:e.date, label, css:isPresta?'concert':'repet', title:(e.venue||'')+(timeStr?' · '+timeStr:'')};
+      return {id:e.id, date:e.date, label, css:isPresta?'concert':'repet', title:(e.venue||'')+(timeStr?' · '+timeStr:''), evType:'planning'};
     }),
-    ...DB.concerts.map(c=>({date:c.date, label:'★ '+c.name, css:'concert', title:c.venue||''})),
+    ...DB.concerts.map(c=>({id:c.id, date:c.date, label:'★ '+c.name, css:'concert', title:c.venue||'', evType:'concert'})),
   ];
 
   let html = `
@@ -1259,7 +1278,7 @@ function renderCalendar(){
     const evts = allEvts.filter(e=>e.date===dateStr);
     html += `<div class="cal-cell">
       <div class="cal-date-num ${isToday?'today':''}">${d}</div>
-      ${evts.map(e=>`<div class="cal-ev ${e.css}" title="${esc(e.title)}">${esc(e.label)}</div>`).join('')}
+      ${evts.map(e=>`<div class="cal-ev ${e.css}" title="${esc(e.title)}" onclick="openEventDetail(${e.id},'${e.evType}')" style="cursor:pointer">${esc(e.label)}</div>`).join('')}
     </div>`;
   }
 
@@ -1350,23 +1369,53 @@ function openRepetModal(){
 
 async function saveRepet(){
   const date = getVal('f-repet-date');
-  if(!date) return toast('Date requise','error');
   const recur   = getVal('f-repet-recur');
   const endDate = getVal('f-repet-end');
-  if(recur!=='none' && !endDate) return toast('Date de fin requise pour la récurrence','error');
 
-  const type     = getVal('f-repet-type');
-  const venue    = getVal('f-repet-venue')||'Centre Pierre Cardinal';
-  const time     = getVal('f-repet-time')||null;
-  const time_end = getVal('f-repet-time-end')||null;
-  const notes    = getVal('f-repet-notes');
-  const set_id   = parseInt(getVal('f-repet-set-id'))||null;
+  const type       = getVal('f-repet-type');
+  const venue      = getVal('f-repet-venue')||'Centre Pierre Cardinal';
+  const time       = getVal('f-repet-time')||null;
+  const time_end   = getVal('f-repet-time-end')||null;
+  const notes      = getVal('f-repet-notes');
+  const set_id     = parseInt(getVal('f-repet-set-id'))||null;
   const concert_id = parseInt(getVal('f-repet-concert-id'))||null;
-
-  const dates = recur==='none' ? [date] : genDates(date, endDate, recur);
 
   setSyncStatus('loading');
   try {
+    // Mode édition série
+    if(typeof editingId==='string' && editingId.startsWith('serie:')){
+      const serieKey = editingId.slice(6);
+      const serie = DB.events.filter(x=>{
+        const k = JSON.stringify({type:x.type, set_id:x.set_id||null, concert_id:x.concert_id||null, time:x.time||null, time_end:x.time_end||null, venue:x.venue||null});
+        return k===serieKey;
+      });
+      const payload = {type, time, time_end, venue, notes,
+        set_id:type==='repetition'?set_id:null,
+        concert_id:type==='prestation'?concert_id:null};
+      await sb.from('events').update(payload).in('id', serie.map(x=>x.id));
+      await loadAll(); closeModal(); renderCalendar(); renderDashboard();
+      toast(serie.length+' dates modifiées');
+      editingId = null; window._editSerieKey = null;
+      setSyncStatus('ok'); return;
+    }
+
+    // Mode édition date unique
+    if(editingId && typeof editingId==='number'){
+      if(!date) return toast('Date requise','error');
+      const payload = {type, date, time, time_end, venue, notes,
+        set_id:type==='repetition'?set_id:null,
+        concert_id:type==='prestation'?concert_id:null};
+      await sb.from('events').update(payload).eq('id', editingId);
+      await loadAll(); closeModal(); renderCalendar(); renderDashboard();
+      toast('Date modifiée');
+      editingId = null;
+      setSyncStatus('ok'); return;
+    }
+
+    // Mode création
+    if(!date) return toast('Date requise','error');
+    if(recur!=='none' && !endDate) return toast('Date de fin requise pour la récurrence','error');
+    const dates = recur==='none' ? [date] : genDates(date, endDate, recur);
     const rows = dates.map(d=>({
       type, date:d, time, time_end, venue, notes,
       set_id:   type==='repetition'?set_id:null,
@@ -1617,6 +1666,142 @@ function renderSynthese(){
       </tr>`).join('')}
     </tbody>
   `;
+}
+
+// ============================================================
+//  PLANNING EVENT DETAIL / EDIT / DELETE
+// ============================================================
+
+function openEventDetail(id, evType){
+  if(evType==='concert'){
+    // Prestation fixe → ouvrir le modal prestation
+    openConcertModal(id); return;
+  }
+  const e = DB.events.find(x=>x.id===id);
+  if(!e) return;
+
+  const setName  = e.set_id     ? DB.sets.find(s=>s.id===e.set_id)?.name     : null;
+  const concName = e.concert_id ? DB.concerts.find(c=>c.id===e.concert_id)?.name : null;
+  const timeStr  = [e.time?.slice(0,5), e.time_end?.slice(0,5)].filter(Boolean).join(' – ');
+  const isPresta = e.type==='prestation';
+
+  // Détecter si cet événement fait partie d'une série (même set_id/concert_id/type/time)
+  const serieKey = JSON.stringify({type:e.type, set_id:e.set_id||null, concert_id:e.concert_id||null, time:e.time||null, time_end:e.time_end||null, venue:e.venue||null});
+  const serie = DB.events.filter(x=>{
+    const k = JSON.stringify({type:x.type, set_id:x.set_id||null, concert_id:x.concert_id||null, time:x.time||null, time_end:x.time_end||null, venue:x.venue||null});
+    return k===serieKey;
+  }).sort((a,b)=>a.date.localeCompare(b.date));
+  const isSerie = serie.length > 1;
+
+  document.getElementById('evdet-title').textContent = isPresta?'Prestation':'Répétition';
+  document.getElementById('evdet-body').innerHTML = `
+    ${isSerie?`<div class="recur-badge">↻ Série de ${serie.length} dates</div>`:''}
+    <div class="evdet-info">
+      ${setName||concName?`<div class="evdet-row"><span class="evdet-label">${isPresta?'Prestation':'Répétition'}</span><span class="evdet-val" style="color:var(--accent)">${esc(setName||concName)}</span></div>`:''}
+      <div class="evdet-row"><span class="evdet-label">Date</span><span class="evdet-val">${formatDate(e.date)}</span></div>
+      ${timeStr?`<div class="evdet-row"><span class="evdet-label">Horaire</span><span class="evdet-val">${timeStr}</span></div>`:''}
+      ${e.venue?`<div class="evdet-row"><span class="evdet-label">Lieu</span><span class="evdet-val">${esc(e.venue)}</span></div>`:''}
+      ${e.notes?`<div class="evdet-row"><span class="evdet-label">Notes</span><span class="evdet-val">${esc(e.notes)}</span></div>`:''}
+    </div>
+
+    <div class="evdet-actions">
+      <button class="btn btn-outline" onclick="editPlanningEvent(${id})">✎ Modifier cette date</button>
+      <button class="btn btn-danger" onclick="deletePlanningEvent(${id}, false)">✕ Supprimer cette date</button>
+      ${isSerie?`
+        <button class="btn btn-outline" style="grid-column:1/-1;border-color:rgba(232,200,124,.3);color:var(--amber)" onclick="editPlanningEventSerie('${serieKey}')">✎ Modifier toute la série (${serie.length} dates)</button>
+        <button class="btn btn-danger" style="grid-column:1/-1" onclick="deletePlanningEvent(${id}, true, '${serieKey}')">✕ Supprimer toute la série (${serie.length} dates)</button>
+      `:''}
+    </div>
+  `;
+  showModal('event-detail');
+}
+
+function formatDate(dateStr){
+  const d = new Date(dateStr+'T12:00:00');
+  return d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+
+async function deletePlanningEvent(id, wholeSerie, serieKey){
+  const e = DB.events.find(x=>x.id===id);
+  if(!e) return;
+
+  if(wholeSerie){
+    const serie = DB.events.filter(x=>{
+      const k = JSON.stringify({type:x.type, set_id:x.set_id||null, concert_id:x.concert_id||null, time:x.time||null, time_end:x.time_end||null, venue:x.venue||null});
+      return k===serieKey;
+    });
+    if(!confirm(`Supprimer les ${serie.length} dates de cette série ?`)) return;
+    setSyncStatus('loading');
+    try {
+      await sb.from('events').delete().in('id', serie.map(x=>x.id));
+      await loadAll(); closeModal(); renderCalendar(); renderDashboard();
+      toast(serie.length+' dates supprimées');
+      setSyncStatus('ok');
+    } catch(err){ toast('Erreur: '+err.message,'error'); setSyncStatus('error'); }
+  } else {
+    if(!confirm('Supprimer cette date ?')) return;
+    setSyncStatus('loading');
+    try {
+      await sb.from('events').delete().eq('id', id);
+      await loadAll(); closeModal(); renderCalendar(); renderDashboard();
+      toast('Date supprimée');
+      setSyncStatus('ok');
+    } catch(err){ toast('Erreur: '+err.message,'error'); setSyncStatus('error'); }
+  }
+}
+
+function editPlanningEvent(id){
+  const e = DB.events.find(x=>x.id===id);
+  if(!e) return;
+  closeModal();
+  // Pré-remplir le modal repet en mode édition
+  editingId = id;
+  openRepetModal();
+  // Remplir les valeurs
+  setTimeout(()=>{
+    setVal('f-repet-type', e.type||'repetition');
+    toggleRepetType();
+    setVal('f-repet-date', e.date);
+    setVal('f-repet-time', e.time?.slice(0,5)||'17:00');
+    setVal('f-repet-time-end', e.time_end?.slice(0,5)||'19:00');
+    setVal('f-repet-venue', e.venue||'Centre Pierre Cardinal');
+    setVal('f-repet-notes', e.notes||'');
+    setVal('f-repet-recur','none');
+    document.getElementById('repet-recur-end').style.display='none';
+    if(e.set_id) setVal('f-repet-set-id', e.set_id);
+    if(e.concert_id) setVal('f-repet-concert-id', e.concert_id);
+    document.getElementById('repet-modal-title').textContent = 'Modifier la date';
+  }, 50);
+}
+
+function editPlanningEventSerie(serieKey){
+  // Pour une série, ouvre le modal et en save on mettra à jour toutes les dates
+  // On stocke la clé de série pour saveRepet
+  window._editSerieKey = serieKey;
+  const first = DB.events.find(x=>{
+    const k = JSON.stringify({type:x.type, set_id:x.set_id||null, concert_id:x.concert_id||null, time:x.time||null, time_end:x.time_end||null, venue:x.venue||null});
+    return k===serieKey;
+  });
+  if(!first) return;
+  closeModal();
+  editingId = 'serie:'+serieKey;
+  openRepetModal();
+  setTimeout(()=>{
+    setVal('f-repet-type', first.type||'repetition');
+    toggleRepetType();
+    setVal('f-repet-time', first.time?.slice(0,5)||'17:00');
+    setVal('f-repet-time-end', first.time_end?.slice(0,5)||'19:00');
+    setVal('f-repet-venue', first.venue||'Centre Pierre Cardinal');
+    setVal('f-repet-notes', first.notes||'');
+    setVal('f-repet-recur','none');
+    document.getElementById('repet-recur-end').style.display='none';
+    if(first.set_id) setVal('f-repet-set-id', first.set_id);
+    if(first.concert_id) setVal('f-repet-concert-id', first.concert_id);
+    document.getElementById('repet-modal-title').textContent = 'Modifier la série';
+    // Hide date field for serie edit — only time/venue/notes matter
+    document.getElementById('f-repet-date').closest('.form-row').style.opacity='.4';
+    document.getElementById('f-repet-date').disabled=true;
+  }, 50);
 }
 
 // ============================================================
