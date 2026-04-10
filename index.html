@@ -373,21 +373,25 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
     <!-- PREFERENCES -->
     <div class="page" id="page-preferences">
       <div class="page-header">
-        <div><h2 class="page-title">Préférences</h2><p class="page-sub">Chaque musicien indique son intérêt pour chaque morceau</p></div>
+        <div><h2 class="page-title">Préférences</h2><p class="page-sub">Préférences par musicien et par set</p></div>
         <div class="flex gap-8">
           <button class="btn btn-outline btn-sm" id="btn-view-pref" onclick="setPrefView('saisie')">Saisie</button>
           <button class="btn btn-primary btn-sm" id="btn-view-synth" onclick="setPrefView('synthese')">Synthèse</button>
         </div>
       </div>
 
-      <!-- Vue saisie par musicien -->
+      <!-- Vue saisie -->
       <div id="pref-view-saisie">
         <div class="pref-page-header">
+          <span class="text-xs text-muted">Set :</span>
+          <select class="pref-member-select" id="pref-set-sel" onchange="renderPrefSaisie()">
+            <option value="">— Choisir un set —</option>
+          </select>
           <span class="text-xs text-muted">Musicien :</span>
           <select class="pref-member-select" id="pref-member-sel" onchange="renderPrefSaisie()">
             <option value="">— Choisir un musicien —</option>
           </select>
-          <span class="text-xs text-muted" id="pref-save-status"></span>
+          <span class="text-xs" id="pref-save-status" style="color:var(--green)"></span>
         </div>
         <div id="pref-saisie-body"></div>
       </div>
@@ -395,9 +399,9 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
       <!-- Vue synthèse -->
       <div id="pref-view-synthese" style="display:none">
         <div style="margin-bottom:14px;display:flex;gap:16px;flex-wrap:wrap;align-items:center">
-          <span class="text-xs text-muted">Filtrer par set :</span>
+          <span class="text-xs text-muted">Set :</span>
           <select class="pref-member-select" id="synth-set-sel" onchange="renderSynthese()">
-            <option value="">Tous les morceaux</option>
+            <option value="">— Choisir un set —</option>
           </select>
         </div>
         <div style="overflow-x:auto">
@@ -1310,77 +1314,93 @@ function setVal(id, v){ const el=document.getElementById(id); if(el) el.value=v 
 function initials(m){ return ((m.prenom||'').charAt(0)+(m.nom||'').charAt(0)).toUpperCase()||'?' }
 
 // ============================================================
-//  PREFERENCES
+//  PREFERENCES  (liées à un set)
 // ============================================================
 let prefView = 'saisie';
 
 function renderPreferences(){
-  // Populate member select
-  const sel = document.getElementById('pref-member-sel');
-  const cur = sel.value;
-  sel.innerHTML = '<option value="">— Choisir un musicien —</option>' +
-    DB.members.map(m=>`<option value="${m.id}" ${m.id==cur?'selected':''}>${esc(m.prenom)}${m.nom?' '+esc(m.nom):''}</option>`).join('');
+  const setSelS = document.getElementById('pref-set-sel');
+  const curSetS = setSelS.value;
+  setSelS.innerHTML = '<option value="">— Choisir un set —</option>' +
+    DB.sets.map(s=>`<option value="${s.id}" ${s.id==curSetS?'selected':''}>${esc(s.name)}</option>`).join('');
 
-  // Populate synth set select
-  const ssel = document.getElementById('synth-set-sel');
-  const scur = ssel.value;
-  ssel.innerHTML = '<option value="">Tous les morceaux</option>' +
-    DB.sets.map(s=>`<option value="${s.id}" ${s.id==scur?'selected':''}>${esc(s.name)}</option>`).join('');
+  const memSel = document.getElementById('pref-member-sel');
+  const curMem = memSel.value;
+  memSel.innerHTML = '<option value="">— Choisir un musicien —</option>' +
+    DB.members.map(m=>`<option value="${m.id}" ${m.id==curMem?'selected':''}>${esc(m.prenom)}${m.nom?' '+esc(m.nom):''}</option>`).join('');
+
+  const synthSel = document.getElementById('synth-set-sel');
+  const curSynth = synthSel.value;
+  synthSel.innerHTML = '<option value="">— Choisir un set —</option>' +
+    DB.sets.map(s=>`<option value="${s.id}" ${s.id==curSynth?'selected':''}>${esc(s.name)}</option>`).join('');
 
   setPrefView(prefView);
 }
 
 function setPrefView(v){
   prefView = v;
-  document.getElementById('pref-view-saisie').style.display   = v==='saisie'   ? 'block':'none';
-  document.getElementById('pref-view-synthese').style.display = v==='synthese' ? 'block':'none';
+  document.getElementById('pref-view-saisie').style.display   = v==='saisie'   ?'block':'none';
+  document.getElementById('pref-view-synthese').style.display = v==='synthese' ?'block':'none';
   document.getElementById('btn-view-pref').className  = 'btn btn-sm '+(v==='saisie'  ?'btn-primary':'btn-outline');
   document.getElementById('btn-view-synth').className = 'btn btn-sm '+(v==='synthese'?'btn-primary':'btn-outline');
   if(v==='saisie')   renderPrefSaisie();
   if(v==='synthese') renderSynthese();
 }
 
-function getPref(memberId, songId){
-  return DB.preferences.find(p=>p.member_id==memberId && p.song_id==songId);
+function getPref(setId, memberId, songId){
+  return DB.preferences.find(p=>p.set_id==setId && p.member_id==memberId && p.song_id==songId);
 }
 
 function renderPrefSaisie(){
-  const memberId = parseInt(document.getElementById('pref-member-sel').value);
+  const setId    = parseInt(document.getElementById('pref-set-sel').value)||null;
+  const memberId = parseInt(document.getElementById('pref-member-sel').value)||null;
   const body = document.getElementById('pref-saisie-body');
-  if(!memberId){
-    body.innerHTML=`<div class="empty"><div class="empty-icon">♪</div><p>Sélectionnez un musicien pour saisir ses préférences.</p></div>`;
+
+  if(!setId || !memberId){
+    body.innerHTML=`<div class="empty"><div class="empty-icon">♪</div><p>Sélectionnez un set et un musicien<br>pour saisir les préférences.</p></div>`;
     return;
   }
+
+  // Morceaux du set dans l'ordre
+  const songIds = DB.set_songs.filter(ss=>ss.set_id===setId).sort((a,b)=>a.position-b.position).map(ss=>ss.song_id);
+  const songs = songIds.map(id=>DB.songs.find(s=>s.id===id)).filter(Boolean);
+
+  if(!songs.length){
+    body.innerHTML=`<div class="empty"><div class="empty-icon">♫</div><p>Ce set ne contient pas encore de morceaux.</p></div>`;
+    return;
+  }
+
   const interestLabels = ['Pas intéressé','Moyen','Très intéressé'];
   body.innerHTML = `
     <table class="pref-table">
       <thead><tr>
         <th style="width:35%">Morceau</th>
-        <th>Intérêt</th>
+        <th>Intérêt pour ce set</th>
         <th style="width:120px">Impro</th>
       </tr></thead>
       <tbody>
-        ${DB.songs.map(s=>{
-          const p = getPref(memberId, s.id);
+        ${songs.map((s,i)=>{
+          const p = getPref(setId, memberId, s.id);
           const interest = p?.interest ?? null;
           const impro = p?.impro ?? false;
           return `<tr>
             <td>
-              <div class="pref-song-name">${esc(s.name)}</div>
+              <div class="pref-song-name">${i+1}. ${esc(s.name)}</div>
               ${s.artist?`<div class="pref-song-artist">${esc(s.artist)}</div>`:''}
             </td>
             <td>
               <div class="interest-group">
                 ${[0,1,2].map(v=>`
                   <button class="interest-btn ${interest===v?'active-'+v:''}"
-                    onclick="setPrefInterest(${memberId},${s.id},${v})">
+                    onclick="setPrefInterest(${setId},${memberId},${s.id},${v})">
                     ${interestLabels[v]}
                   </button>`).join('')}
               </div>
             </td>
             <td>
               <label class="impro-wrap">
-                <input type="checkbox" ${impro?'checked':''} onchange="setPrefImpro(${memberId},${s.id},this.checked)">
+                <input type="checkbox" ${impro?'checked':''}
+                  onchange="setPrefImpro(${setId},${memberId},${s.id},this.checked)">
                 Impro
               </label>
             </td>
@@ -1391,27 +1411,26 @@ function renderPrefSaisie(){
   `;
 }
 
-async function setPrefInterest(memberId, songId, value){
-  const existing = getPref(memberId, songId);
-  const payload = {member_id:memberId, song_id:songId, interest:value, impro:existing?.impro||false};
-  await upsertPref(memberId, songId, payload);
-  // Update button styles instantly
-  const btns = document.querySelectorAll(`[onclick*="setPrefInterest(${memberId},${songId},"]`);
-  btns.forEach((b,i)=>{
+async function setPrefInterest(setId, memberId, songId, value){
+  const existing = getPref(setId, memberId, songId);
+  const payload = {set_id:setId, member_id:memberId, song_id:songId, interest:value, impro:existing?.impro||false};
+  await upsertPref(setId, memberId, songId, payload);
+  document.querySelectorAll(`[onclick*="setPrefInterest(${setId},${memberId},${songId},"]`).forEach((b,i)=>{
     b.className = 'interest-btn '+(i===value?'active-'+value:'');
   });
 }
 
-async function setPrefImpro(memberId, songId, value){
-  const existing = getPref(memberId, songId);
-  const payload = {member_id:memberId, song_id:songId, interest:existing?.interest??null, impro:value};
-  await upsertPref(memberId, songId, payload);
+async function setPrefImpro(setId, memberId, songId, value){
+  const existing = getPref(setId, memberId, songId);
+  const payload = {set_id:setId, member_id:memberId, song_id:songId, interest:existing?.interest??null, impro:value};
+  await upsertPref(setId, memberId, songId, payload);
 }
 
-async function upsertPref(memberId, songId, payload){
-  document.getElementById('pref-save-status').textContent = '⟳ Sauvegarde…';
+async function upsertPref(setId, memberId, songId, payload){
+  const status = document.getElementById('pref-save-status');
+  if(status) status.textContent = '⟳ Sauvegarde…';
   try {
-    const existing = getPref(memberId, songId);
+    const existing = getPref(setId, memberId, songId);
     let error;
     if(existing){
       ({error} = await sb.from('preferences').update({interest:payload.interest, impro:payload.impro}).eq('id', existing.id));
@@ -1419,43 +1438,44 @@ async function upsertPref(memberId, songId, payload){
       ({error} = await sb.from('preferences').insert(payload));
     }
     if(error) throw error;
-    // Update local cache
-    const idx = DB.preferences.findIndex(p=>p.member_id==memberId&&p.song_id==songId);
+    const idx = DB.preferences.findIndex(p=>p.set_id==setId&&p.member_id==memberId&&p.song_id==songId);
     if(idx>=0) DB.preferences[idx] = {...DB.preferences[idx], ...payload};
     else DB.preferences.push({...payload, id: Date.now()});
-    document.getElementById('pref-save-status').textContent = '✓ Sauvegardé';
-    setTimeout(()=>{ const el=document.getElementById('pref-save-status'); if(el) el.textContent=''; }, 2000);
+    if(status){ status.textContent = '✓ Sauvegardé'; setTimeout(()=>{status.textContent=''},2000); }
   } catch(e){
-    document.getElementById('pref-save-status').textContent = '✗ Erreur';
-    toast('Erreur sauvegarde: '+e.message,'error');
+    if(status) status.textContent = '✗ Erreur';
+    toast('Erreur: '+e.message,'error');
   }
 }
 
 function renderSynthese(){
   const setId = parseInt(document.getElementById('synth-set-sel').value)||null;
-  let songs = DB.songs;
-  if(setId){
-    const ids = DB.set_songs.filter(ss=>ss.set_id===setId).sort((a,b)=>a.position-b.position).map(ss=>ss.song_id);
-    songs = ids.map(id=>DB.songs.find(s=>s.id===id)).filter(Boolean);
+  const table = document.getElementById('synth-table');
+
+  if(!setId){
+    table.innerHTML=`<tr><td style="padding:40px;text-align:center;color:var(--text3);font-size:13px">Sélectionnez un set pour voir la synthèse.</td></tr>`;
+    return;
   }
+
+  const songIds = DB.set_songs.filter(ss=>ss.set_id===setId).sort((a,b)=>a.position-b.position).map(ss=>ss.song_id);
+  const songs = songIds.map(id=>DB.songs.find(s=>s.id===id)).filter(Boolean);
   const members = DB.members;
   const dotMap = {0:'<span class="dot dot-0">✗</span>', 1:'<span class="dot dot-1">~</span>', 2:'<span class="dot dot-2">✓</span>'};
 
-  document.getElementById('synth-table').innerHTML = `
+  table.innerHTML = `
     <thead><tr>
       <th>Morceau</th>
       ${members.map(m=>`<th style="text-align:center">${esc(m.prenom)}<br><span style="font-weight:400;color:var(--text3);font-size:9px">${esc(m.instrument||m.family||'')}</span></th>`).join('')}
     </tr></thead>
     <tbody>
-      ${songs.map(s=>`<tr>
+      ${songs.map((s,i)=>`<tr>
         <td>
-          <div style="font-size:12px;font-weight:500;color:var(--text)">${esc(s.name)}</div>
+          <div style="font-size:12px;font-weight:500;color:var(--text)">${i+1}. ${esc(s.name)}</div>
           ${s.artist?`<div style="font-size:10px;color:var(--text3)">${esc(s.artist)}</div>`:''}
         </td>
         ${members.map(m=>{
-          const p = getPref(m.id, s.id);
-          if(!p && p?.interest==null) return `<td class="dot-cell"><span class="dot dot-empty">·</span></td>`;
-          const dot = p ? (dotMap[p.interest] ?? `<span class="dot dot-empty">·</span>`) : `<span class="dot dot-empty">·</span>`;
+          const p = getPref(setId, m.id, s.id);
+          const dot = p&&p.interest!=null ? (dotMap[p.interest]??`<span class="dot dot-empty">·</span>`) : `<span class="dot dot-empty">·</span>`;
           const impro = p?.impro ? ' <span class="dot dot-impro">I</span>' : '';
           return `<td class="dot-cell">${dot}${impro}</td>`;
         }).join('')}
