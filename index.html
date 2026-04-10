@@ -1497,21 +1497,50 @@ function renderDashboard(){
   ].map(s=>`<div class="stat"><div class="stat-v">${s.v}</div><div class="stat-l">${s.l}</div></div>`).join('');
 
   const now = new Date();
-  const upcoming = [
-    ...DB.events.map(e=>({date:e.date, time:e.time, label:'Répétition', sub:e.venue||'', type:'repet'})),
-    ...DB.concerts.map(c=>({date:c.date, time:c.time, label:c.name, sub:c.venue||'', type:'concert'})),
-  ].filter(e=>new Date(e.date+'T23:59:59')>=now)
-   .sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5);
+  const todayStr = now.toISOString().slice(0,10);
+
+  // 2 prochaines répétitions planning (events)
+  const nextRepets = DB.events
+    .filter(e=>e.date >= todayStr)
+    .sort((a,b)=>a.date.localeCompare(b.date))
+    .slice(0,2)
+    .map(e=>{
+      const setName = e.set_id ? DB.sets.find(s=>s.id===e.set_id)?.name : null;
+      const timeStr = e.time ? e.time.slice(0,5)+(e.time_end?' – '+e.time_end.slice(0,5):'') : '';
+      return {date:e.date, label: setName||'Répétition', sub:(e.venue||'')+(timeStr?' · '+timeStr:''), type:'repet'};
+    });
+
+  // 1 prochaine prestation : d'abord la plus proche avec date, sinon la première sans date
+  const nextConcertWithDate = DB.concerts
+    .filter(c=>c.status!=='annule' && c.date && c.date >= todayStr)
+    .sort((a,b)=>a.date.localeCompare(b.date))[0];
+  const nextConcertNoDate = !nextConcertWithDate
+    ? DB.concerts.filter(c=>c.status!=='annule' && !c.date)[0]
+    : null;
+  const nextConcert = nextConcertWithDate || nextConcertNoDate;
+  const concertItems = nextConcert ? [{
+    date: nextConcert.date||null,
+    label: nextConcert.name,
+    sub: nextConcert.venue||(nextConcert.status==='projet'?'Projet – date à confirmer':''),
+    type:'concert',
+    status: nextConcert.status||'projet',
+  }] : [];
+
+  const upcoming = [...nextRepets, ...concertItems];
 
   document.getElementById('dash-events').innerHTML = upcoming.length
     ? upcoming.map(e=>{
-        const d = new Date(e.date+'T12:00:00');
-        const label = d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
+        const dateLabel = e.date
+          ? new Date(e.date+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})
+          : '—';
+        const statusBadge = e.type==='concert' && e.status==='projet'
+          ? `<span style="font-size:10px;padding:1px 7px;border-radius:20px;background:rgba(232,200,124,.15);color:var(--amber);margin-left:6px">Projet</span>`
+          : '';
         return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px">
           <div style="width:7px;height:7px;border-radius:50%;background:${e.type==='concert'?'var(--accent)':'var(--accent2)'};flex-shrink:0"></div>
           <div style="flex:1;min-width:0">
-            <div class="text-sm">${esc(e.label)}</div>
-            <div class="text-xs text-muted">${label}${e.time?' · '+e.time:''} ${e.sub?'· '+esc(e.sub):''}</div>
+            <div class="text-sm" style="display:flex;align-items:center">${esc(e.label)}${statusBadge}</div>
+            <div class="text-xs text-muted">${dateLabel}${e.sub?' · '+esc(e.sub):''}</div>
           </div>
         </div>`;
       }).join('')
