@@ -609,42 +609,78 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
   <!-- Répétition planning Modal -->
   <div class="modal" id="modal-repet">
     <div class="modal-header">
-      <h3 class="modal-title">Ajouter une répétition</h3>
+      <h3 class="modal-title" id="repet-modal-title">Ajouter au planning</h3>
       <button class="modal-close" onclick="closeModal()">×</button>
     </div>
     <div class="modal-body">
+
+      <div class="form-group">
+        <label class="form-label">Type</label>
+        <select class="form-input" id="f-repet-type" onchange="toggleRepetType()">
+          <option value="repetition">Répétition</option>
+          <option value="prestation">Prestation</option>
+        </select>
+      </div>
+
+      <!-- Lien répétition -->
+      <div class="form-group" id="repet-link-repet">
+        <label class="form-label">Répétition associée</label>
+        <select class="form-input" id="f-repet-set-id">
+          <option value="">— Aucune —</option>
+        </select>
+      </div>
+
+      <!-- Lien prestation -->
+      <div class="form-group" id="repet-link-concert" style="display:none">
+        <label class="form-label">Prestation associée</label>
+        <select class="form-input" id="f-repet-concert-id">
+          <option value="">— Aucune —</option>
+        </select>
+      </div>
+
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Date de début *</label>
+          <label class="form-label">Première date *</label>
           <input class="form-input" type="date" id="f-repet-date">
         </div>
         <div class="form-group">
-          <label class="form-label">Heure</label>
-          <input class="form-input" type="time" id="f-repet-time" value="20:00">
+          <label class="form-label">Lieu</label>
+          <input class="form-input" id="f-repet-venue" value="Centre Pierre Cardinal">
         </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Lieu</label>
-        <input class="form-input" id="f-repet-venue" placeholder="Centre Pierre Cardinal">
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Heure début</label>
+          <input class="form-input" type="time" id="f-repet-time" value="17:00">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Heure fin</label>
+          <input class="form-input" type="time" id="f-repet-time-end" value="19:00">
+        </div>
       </div>
+
       <div class="form-group">
         <label class="form-label">Récurrence</label>
         <select class="form-input" id="f-repet-recur" onchange="toggleRepetRecur()">
           <option value="none">Aucune (date unique)</option>
           <option value="weekly">Toutes les semaines</option>
           <option value="biweekly">Toutes les 2 semaines</option>
-          <option value="monthly">Tous les mois</option>
+          <option value="monthly">Tous les mois (même jour)</option>
         </select>
       </div>
+
       <div id="repet-recur-end" style="display:none">
         <div class="form-group">
           <label class="form-label">Répéter jusqu'au *</label>
           <input class="form-input" type="date" id="f-repet-end">
         </div>
+        <div class="form-group" id="repet-preview" style="font-size:11px;color:var(--text3);padding:8px 12px;background:var(--surface2);border-radius:var(--radius-sm)"></div>
       </div>
+
       <div class="form-group">
         <label class="form-label">Notes</label>
-        <textarea class="form-input" id="f-repet-notes" placeholder="Morceaux à travailler…" style="min-height:56px"></textarea>
+        <textarea class="form-input" id="f-repet-notes" placeholder="Morceaux à travailler…" style="min-height:50px"></textarea>
       </div>
       <div class="form-actions">
         <button class="btn btn-outline" onclick="closeModal()">Annuler</button>
@@ -1191,7 +1227,14 @@ function renderCalendar(){
   let startDow = firstDay.getDay(); if(startDow===0) startDow=7; startDow--;
 
   const allEvts = [
-    ...DB.events.map(e=>({date:e.date, label:'♩ '+(e.venue||'Répétition'), css:'repet', title:e.notes||''})),
+    ...DB.events.map(e=>{
+      const setName  = e.set_id     ? DB.sets.find(s=>s.id===e.set_id)?.name     : null;
+      const concName = e.concert_id ? DB.concerts.find(c=>c.id===e.concert_id)?.name : null;
+      const timeStr  = e.time ? e.time.slice(0,5)+(e.time_end?' – '+e.time_end.slice(0,5):'') : '';
+      const isPresta = e.type==='prestation';
+      const label    = (isPresta?'★ ':'♩ ')+(concName||setName||e.venue||'Répétition')+(timeStr?' · '+timeStr:'');
+      return {date:e.date, label, css:isPresta?'concert':'repet', title:(e.venue||'')+(timeStr?' · '+timeStr:'')};
+    }),
     ...DB.concerts.map(c=>({date:c.date, label:'★ '+c.name, css:'concert', title:c.venue||''})),
   ];
 
@@ -1235,58 +1278,103 @@ window.calNav = function(dir){
   renderCalendar();
 };
 
+function toggleRepetType(){
+  const t = getVal('f-repet-type');
+  document.getElementById('repet-link-repet').style.display   = t==='repetition'?'block':'none';
+  document.getElementById('repet-link-concert').style.display = t==='prestation'?'block':'none';
+}
+
 function toggleRepetRecur(){
-  const v = document.getElementById('f-repet-recur').value;
+  const v = getVal('f-repet-recur');
   document.getElementById('repet-recur-end').style.display = v==='none'?'none':'block';
+  updateRepetPreview();
+}
+
+function updateRepetPreview(){
+  const date  = getVal('f-repet-date');
+  const end   = getVal('f-repet-end');
+  const recur = getVal('f-repet-recur');
+  const prev  = document.getElementById('repet-preview');
+  if(!prev) return;
+  if(!date||!end||recur==='none'){ prev.textContent=''; return; }
+  const dates = genDates(date, end, recur);
+  const dayNames = ['dim','lun','mar','mer','jeu','ven','sam'];
+  const d0 = new Date(date+'T12:00:00');
+  prev.textContent = dates.length+' séance'+(dates.length>1?'s':'')+
+    ' — chaque '+dayNames[d0.getDay()]+
+    ' de '+getVal('f-repet-time')+' à '+getVal('f-repet-time-end');
+}
+
+function genDates(start, end, recur){
+  const dates = [];
+  const step = recur==='weekly'?7:recur==='biweekly'?14:null;
+  let cur = new Date(start+'T12:00:00');
+  const endD = new Date(end+'T12:00:00');
+  while(cur<=endD){
+    dates.push(cur.toISOString().slice(0,10));
+    if(step) cur.setDate(cur.getDate()+step);
+    else cur.setMonth(cur.getMonth()+1);
+  }
+  return dates;
 }
 
 function openRepetModal(){
+  setVal('f-repet-type','repetition');
   setVal('f-repet-date','');
-  setVal('f-repet-time','20:00');
+  setVal('f-repet-time','17:00');
+  setVal('f-repet-time-end','19:00');
   setVal('f-repet-venue','Centre Pierre Cardinal');
   setVal('f-repet-notes','');
   setVal('f-repet-recur','none');
   setVal('f-repet-end','');
   document.getElementById('repet-recur-end').style.display='none';
+  document.getElementById('repet-link-repet').style.display='block';
+  document.getElementById('repet-link-concert').style.display='none';
+
+  // Populate linked selects
+  document.getElementById('f-repet-set-id').innerHTML =
+    '<option value="">— Aucune —</option>' +
+    DB.sets.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('');
+  document.getElementById('f-repet-concert-id').innerHTML =
+    '<option value="">— Aucune —</option>' +
+    DB.concerts.map(c=>`<option value="${c.id}">${esc(c.name)} (${c.date})</option>`).join('');
+
+  // Live preview update
+  ['f-repet-date','f-repet-end','f-repet-time','f-repet-time-end'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.oninput = updateRepetPreview;
+  });
+
   showModal('repet');
 }
 
 async function saveRepet(){
   const date = getVal('f-repet-date');
   if(!date) return toast('Date requise','error');
-  const recur = getVal('f-repet-recur');
+  const recur   = getVal('f-repet-recur');
   const endDate = getVal('f-repet-end');
   if(recur!=='none' && !endDate) return toast('Date de fin requise pour la récurrence','error');
 
-  const venue = getVal('f-repet-venue')||'Centre Pierre Cardinal';
-  const time  = getVal('f-repet-time')||null;
-  const notes = getVal('f-repet-notes');
+  const type     = getVal('f-repet-type');
+  const venue    = getVal('f-repet-venue')||'Centre Pierre Cardinal';
+  const time     = getVal('f-repet-time')||null;
+  const time_end = getVal('f-repet-time-end')||null;
+  const notes    = getVal('f-repet-notes');
+  const set_id   = parseInt(getVal('f-repet-set-id'))||null;
+  const concert_id = parseInt(getVal('f-repet-concert-id'))||null;
 
-  // Générer toutes les dates
-  const dates = [];
-  if(recur==='none'){
-    dates.push(date);
-  } else {
-    const step = recur==='weekly'?7:recur==='biweekly'?14:null;
-    let cur = new Date(date+'T12:00:00');
-    const end = new Date(endDate+'T12:00:00');
-    while(cur<=end){
-      dates.push(cur.toISOString().slice(0,10));
-      if(step){
-        cur.setDate(cur.getDate()+step);
-      } else {
-        // mensuel
-        cur.setMonth(cur.getMonth()+1);
-      }
-    }
-  }
+  const dates = recur==='none' ? [date] : genDates(date, endDate, recur);
 
   setSyncStatus('loading');
   try {
-    const rows = dates.map(d=>({type:'repetition', date:d, time, venue, notes}));
+    const rows = dates.map(d=>({
+      type, date:d, time, time_end, venue, notes,
+      set_id:   type==='repetition'?set_id:null,
+      concert_id: type==='prestation'?concert_id:null,
+    }));
     await sb.from('events').insert(rows);
     await loadAll(); closeModal(); renderCalendar(); renderDashboard();
-    toast(dates.length>1?dates.length+' répétitions ajoutées':'Répétition ajoutée');
+    toast(dates.length>1?dates.length+' dates ajoutées':'Date ajoutée');
     setSyncStatus('ok');
   } catch(e){ toast('Erreur: '+e.message,'error'); setSyncStatus('error'); }
 }
