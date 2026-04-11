@@ -757,7 +757,7 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 // ============================================================
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-let DB = { songs:[], members:[], sets:[], set_songs:[], concerts:[], events:[], preferences:[] };
+let DB = { songs:[], members:[], sets:[], set_songs:[], concerts:[], concert_songs:[], events:[], preferences:[] };
 let editingId = null;
 let setSelectedSongs = [];
 let setNotesMap = {}; // song_id -> note spécifique au set
@@ -790,22 +790,24 @@ async function init(){
 }
 
 async function loadAll(){
-  const [songs, members, sets, set_songs, concerts, events, preferences] = await Promise.all([
+  const [songs, members, sets, set_songs, concerts, concert_songs, events, preferences] = await Promise.all([
     sb.from('songs').select('*').order('name'),
     sb.from('members').select('*').order('prenom'),
     sb.from('sets').select('*').order('name'),
     sb.from('set_songs').select('*').order('position'),
     sb.from('concerts').select('*').order('date'),
+    sb.from('concert_songs').select('*').order('position'),
     sb.from('events').select('*').order('date'),
     sb.from('preferences').select('*'),
   ]);
-  DB.songs       = songs.data       || [];
-  DB.members     = members.data     || [];
-  DB.sets        = sets.data        || [];
-  DB.set_songs   = set_songs.data   || [];
-  DB.concerts    = concerts.data    || [];
-  DB.events      = events.data      || [];
-  DB.preferences = preferences.data || [];
+  DB.songs          = songs.data          || [];
+  DB.members        = members.data        || [];
+  DB.sets           = sets.data           || [];
+  DB.set_songs      = set_songs.data      || [];
+  DB.concerts       = concerts.data       || [];
+  DB.concert_songs  = concert_songs.data  || [];
+  DB.events         = events.data         || [];
+  DB.preferences    = preferences.data    || [];
 }
 
 // ============================================================
