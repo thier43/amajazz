@@ -1295,7 +1295,6 @@ function renderConcerts(){
         <div class="csp-header">
           <span class="csp-title">Programme · ${cSongs.length} morceau${cSongs.length>1?'x':''} ${inherited?'<span style="font-size:10px;color:var(--text3)">(hérité de la répétition)</span>':''}</span>
           <div style="display:flex;gap:6px">
-            <button class="btn btn-ghost btn-sm" onclick="printConcertSet(${c.id})" title="Imprimer">🖨</button>
             <button class="btn btn-ghost btn-sm" onclick="openAddSongToConcert(${c.id},${c.set_id||'null'})">+ Ajouter</button>
             ${!inherited?`<button class="btn btn-ghost btn-sm" style="color:var(--text3)" onclick="resetConcertSongs(${c.id})" title="Réinitialiser depuis la répétition">↺</button>`:''}
           </div>
@@ -1338,6 +1337,7 @@ function renderConcerts(){
               <span class="badge-${status}">${statusLabel[status]||status}</span>
             </div>
             <div class="flex gap-8" style="flex-shrink:0">
+              <button class="btn btn-outline btn-sm" onclick="printConcertSet(${c.id})" title="Imprimer">🖨</button>
               <button class="btn btn-ghost btn-sm" onclick="openConcertModal(${c.id})">✎</button>
               <button class="btn btn-danger btn-sm" onclick="deleteConcert(${c.id})">✕</button>
             </div>
