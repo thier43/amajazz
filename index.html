@@ -1311,9 +1311,11 @@ function renderConcerts(){
               ondragend="cspDragEnd(event)">
               <span class="csp-drag-handle">⠿</span>
               <span class="csp-song-num">${i+1}.</span>
-              <span class="csp-song-name">${esc(s.name)}${s.artist?` <span style="color:var(--text3);font-weight:400">— ${esc(s.artist)}</span>`:''}</span>
+              <div style="flex:1;min-width:0">
+                <div class="csp-song-name">${esc(s.name)}${s.artist?` <span style="color:var(--text3);font-weight:400">— ${esc(s.artist)}</span>`:''}</div>
+                ${cs.notes?`<div style="font-size:11px;color:var(--amber);margin-top:2px">⚠ ${esc(cs.notes)}</div>`:''}
+              </div>
               ${s.key?`<span class="tag tag-key csp-song-key">${esc(s.key)}</span>`:''}
-              ${cs.notes?`<span style="font-size:10px;color:var(--amber)" title="${esc(cs.notes)}">⚠</span>`:''}
               <button class="btn btn-ghost btn-sm" style="padding:3px 7px" onclick="editConcertSongNote(${c.id},${cs.song_id})" title="Note">✎</button>
               <button class="btn btn-danger btn-sm" style="padding:3px 7px" onclick="removeSongFromConcert(${c.id},${cs.song_id})">✕</button>
             </div>`;
