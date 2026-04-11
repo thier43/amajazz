@@ -290,7 +290,8 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
   .app{flex-direction:column;height:100svh;height:100vh}
   .sidebar{display:none !important}
   .mobile-nav{display:flex !important;position:fixed;bottom:0;left:0;right:0;z-index:300;background:var(--surface);border-top:1px solid var(--border);height:62px}
-  .mobile-header{display:flex !important;align-items:center;gap:10px;padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+  .mobile-header{display:flex !important;align-items:center;gap:10px;padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--border);position:fixed;top:0;left:0;right:0;z-index:200}
+  .main{padding-top:62px}
   .main{flex:1;overflow-y:auto;padding-bottom:70px}
 
   /* Nav mobile items */
@@ -392,8 +393,6 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
 <div class="toast-container" id="toast-container"></div>
 
 <!-- App -->
-<div class="app" id="app" style="display:none">
-
   <!-- HEADER MOBILE (visible uniquement sur mobile) -->
   <div class="mobile-header">
     <img class="mobile-logo" src="" id="mobile-logo-img" alt="AMAJAZZ" width="36" height="36" style="width:36px;height:36px;min-width:36px;border-radius:50%;object-fit:cover;flex-shrink:0">
@@ -430,6 +429,8 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
       Groupe
     </button>
   </nav>
+<div class="app" id="app" style="display:none">
+
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="logo" style="padding:14px 16px 12px;border-bottom:1px solid var(--border);text-align:center">
