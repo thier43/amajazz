@@ -1753,10 +1753,11 @@ function renderDashboard(){
     : `<p class="text-xs text-muted">Aucun événement à venir.</p>`;
 
   document.getElementById('dash-songs').innerHTML = DB.songs.slice(0,6).map(s=>`
-    <div style="display:flex;align-items:center;gap:10px;padding:9px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;cursor:pointer" onclick="navTo('morceaux')">
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;cursor:pointer" title="Double-clic pour ouvrir" ondblclick="navTo('morceaux')">
       <span style="color:var(--text3)">♩</span>
       <span class="text-sm" style="flex:1">${esc(s.name)}</span>
       ${s.key?`<span class="tag tag-key">${esc(s.key)}</span>`:''}
+      <span style="font-size:10px;color:var(--text3)">↗</span>
     </div>
   `).join('');
 }
