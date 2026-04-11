@@ -248,7 +248,7 @@ select.form-input option{background:var(--surface2)}
 .concert-songs-panel{margin-top:12px;border-top:1px solid var(--border);padding-top:10px}
 .csp-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .csp-title{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px}
-.csp-song-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:var(--radius-xs);border:1px solid var(--border);margin-bottom:4px;background:var(--surface2);cursor:grab}
+.csp-song-row{display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:var(--radius-xs);border:1px solid var(--border);margin-bottom:3px;background:var(--surface2);cursor:grab}
 .csp-song-row.dragging{opacity:.4}
 .csp-song-row.drag-over{border-color:var(--accent);background:var(--surface3)}
 .csp-drag-handle{color:var(--text3);font-size:14px;cursor:grab}
@@ -1311,13 +1311,12 @@ function renderConcerts(){
               ondragend="cspDragEnd(event)">
               <span class="csp-drag-handle">⠿</span>
               <span class="csp-song-num">${i+1}.</span>
-              <div style="flex:1;min-width:0">
-                <div class="csp-song-name">${esc(s.name)}${s.artist?` <span style="color:var(--text3);font-weight:400">— ${esc(s.artist)}</span>`:''}</div>
-                ${cs.notes?`<div style="font-size:11px;color:var(--amber);margin-top:2px">⚠ ${esc(cs.notes)}</div>`:''}
-              </div>
+              <span class="csp-song-name" style="flex:1;min-width:0">${esc(s.name)}${s.artist?` <span style="color:var(--text3);font-weight:400">— ${esc(s.artist)}</span>`:''}</span>
               ${s.key?`<span class="tag tag-key csp-song-key">${esc(s.key)}</span>`:''}
-              <button class="btn btn-ghost btn-sm" style="padding:3px 7px" onclick="editConcertSongNote(${c.id},${cs.song_id})" title="Note">✎</button>
-              <button class="btn btn-danger btn-sm" style="padding:3px 7px" onclick="removeSongFromConcert(${c.id},${cs.song_id})">✕</button>
+              ${cs.notes?`<span style="font-size:11px;color:var(--amber);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px" title="${esc(cs.notes)}">⚠ ${esc(cs.notes)}</span>`:''}
+              ${s.notes&&!cs.notes?`<span style="font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px" title="${esc(s.notes)}">📝 ${esc(s.notes)}</span>`:''}
+              <button class="btn btn-ghost btn-sm" style="padding:3px 7px;flex-shrink:0" onclick="editConcertSongNote(${c.id},${cs.song_id})" title="Note">✎</button>
+              <button class="btn btn-danger btn-sm" style="padding:3px 7px;flex-shrink:0" onclick="removeSongFromConcert(${c.id},${cs.song_id})">✕</button>
             </div>`;
           }).join('')}
         </div>
