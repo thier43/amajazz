@@ -245,6 +245,16 @@ select.form-input option{background:var(--surface2)}
 .badge-annule{background:rgba(232,124,124,.1);color:var(--red);border:1px solid rgba(232,124,124,.25);font-size:11px;padding:2px 9px;border-radius:20px;font-weight:500;text-decoration:line-through}
 .concert-card.statut-projet{border-color:rgba(232,200,124,.25)}
 .concert-card.statut-annule{opacity:.55}
+.concert-songs-panel{margin-top:12px;border-top:1px solid var(--border);padding-top:10px}
+.csp-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.csp-title{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px}
+.csp-song-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:var(--radius-xs);border:1px solid var(--border);margin-bottom:4px;background:var(--surface2);cursor:grab}
+.csp-song-row.dragging{opacity:.4}
+.csp-song-row.drag-over{border-color:var(--accent);background:var(--surface3)}
+.csp-drag-handle{color:var(--text3);font-size:14px;cursor:grab}
+.csp-song-num{font-size:11px;color:var(--text3);min-width:18px}
+.csp-song-name{font-size:12px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.csp-song-key{font-size:10px}
 
 /* EVENT DETAIL */
 .evdet-info{background:var(--surface2);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:14px}
@@ -1247,6 +1257,16 @@ async function deleteSet(id){
 // ============================================================
 //  CONCERTS
 // ============================================================
+//  CONCERTS / PRESTATIONS
+// ============================================================
+function getConcertSongs(concertId, setId){
+  const overrides = DB.concert_songs.filter(cs=>cs.concert_id===concertId).sort((a,b)=>a.position-b.position);
+  if(overrides.length) return overrides;
+  if(!setId) return [];
+  return DB.set_songs.filter(ss=>ss.set_id===setId).sort((a,b)=>a.position-b.position)
+    .map(ss=>({concert_id:concertId, song_id:ss.song_id, position:ss.position, notes:ss.set_notes||null, _inherited:true}));
+}
+
 function renderConcerts(){
   const list = document.getElementById('concert-list');
   if(!DB.concerts.length){
@@ -1254,47 +1274,170 @@ function renderConcerts(){
     return;
   }
   const statusLabel = {projet:'Projet', confirme:'Confirmé', annule:'Annulé'};
-  // Trier : confirmés d'abord par date, puis projets sans date en bas
   const sorted = [...DB.concerts].sort((a,b)=>{
     if(!a.date && !b.date) return 0;
-    if(!a.date) return 1;
-    if(!b.date) return -1;
+    if(!a.date) return 1; if(!b.date) return -1;
     return a.date.localeCompare(b.date);
   });
   list.innerHTML = sorted.map(c=>{
     const status = c.status||'confirme';
     const set = c.set_id ? DB.sets.find(s=>s.id===c.set_id) : null;
     const dateBlock = c.date
-      ? (() => {
-          const d = new Date(c.date+'T12:00:00');
-          return `<div class="concert-date-block">
-            <div class="concert-day">${d.getDate()}</div>
-            <div class="concert-month">${d.toLocaleDateString('fr-FR',{month:'short'})}</div>
-            <div class="text-xs text-muted" style="margin-top:2px">${d.getFullYear()}</div>
-          </div>`;
-        })()
-      : `<div class="concert-date-block" style="min-width:60px;display:flex;align-items:center;justify-content:center">
-           <span style="font-size:22px;color:var(--text3)">?</span>
-         </div>`;
+      ? (()=>{ const d=new Date(c.date+'T12:00:00'); return `<div class="concert-date-block"><div class="concert-day">${d.getDate()}</div><div class="concert-month">${d.toLocaleDateString('fr-FR',{month:'short'})}</div><div class="text-xs text-muted" style="margin-top:2px">${d.getFullYear()}</div></div>`; })()
+      : `<div class="concert-date-block" style="min-width:60px;display:flex;align-items:center;justify-content:center"><span style="font-size:22px;color:var(--text3)">?</span></div>`;
+
+    const cSongs = getConcertSongs(c.id, c.set_id);
+    const inherited = cSongs[0]?._inherited;
+    const songsHtml = cSongs.length ? `
+      <div class="concert-songs-panel">
+        <div class="csp-header">
+          <span class="csp-title">Programme · ${cSongs.length} morceau${cSongs.length>1?'x':''} ${inherited?'<span style="font-size:10px;color:var(--text3)">(hérité de la répétition)</span>':''}</span>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost btn-sm" onclick="printConcertSet(${c.id})" title="Imprimer">🖨</button>
+            <button class="btn btn-ghost btn-sm" onclick="openAddSongToConcert(${c.id},${c.set_id||'null'})">+ Ajouter</button>
+            ${!inherited?`<button class="btn btn-ghost btn-sm" style="color:var(--text3)" onclick="resetConcertSongs(${c.id})" title="Réinitialiser depuis la répétition">↺</button>`:''}
+          </div>
+        </div>
+        <div id="csp-list-${c.id}">
+          ${cSongs.map((cs,i)=>{
+            const s = DB.songs.find(x=>x.id===cs.song_id);
+            if(!s) return '';
+            return `<div class="csp-song-row" draggable="true"
+              ondragstart="cspDragStart(event,${c.id},${i})"
+              ondragover="cspDragOver(event)"
+              ondrop="cspDrop(event,${c.id},${i})"
+              ondragleave="cspDragLeave(event)"
+              ondragend="cspDragEnd(event)">
+              <span class="csp-drag-handle">⠿</span>
+              <span class="csp-song-num">${i+1}.</span>
+              <span class="csp-song-name">${esc(s.name)}${s.artist?` <span style="color:var(--text3);font-weight:400">— ${esc(s.artist)}</span>`:''}</span>
+              ${s.key?`<span class="tag tag-key csp-song-key">${esc(s.key)}</span>`:''}
+              ${cs.notes?`<span style="font-size:10px;color:var(--amber)" title="${esc(cs.notes)}">⚠</span>`:''}
+              <button class="btn btn-ghost btn-sm" style="padding:3px 7px" onclick="editConcertSongNote(${c.id},${cs.song_id})" title="Note">✎</button>
+              <button class="btn btn-danger btn-sm" style="padding:3px 7px" onclick="removeSongFromConcert(${c.id},${cs.song_id})">✕</button>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>` : `
+      <div class="concert-songs-panel">
+        <div class="csp-header">
+          <span class="csp-title" style="color:var(--text3)">${set?'Aucun morceau dans la répétition liée':'Aucun programme'}</span>
+          <button class="btn btn-ghost btn-sm" onclick="openAddSongToConcert(${c.id},${c.set_id||'null'})">+ Ajouter</button>
+        </div>
+      </div>`;
+
     return `
       <div class="concert-card statut-${status}">
         ${dateBlock}
-        <div class="concert-info">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <div class="concert-name">${esc(c.name)}</div>
-            <span class="badge-${status}">${statusLabel[status]||status}</span>
+        <div class="concert-info" style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <div class="concert-name">${esc(c.name)}</div>
+              <span class="badge-${status}">${statusLabel[status]||status}</span>
+            </div>
+            <div class="flex gap-8" style="flex-shrink:0">
+              <button class="btn btn-ghost btn-sm" onclick="openConcertModal(${c.id})">✎</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteConcert(${c.id})">✕</button>
+            </div>
           </div>
           <div class="concert-venue">${c.date&&c.time?c.time+' · ':''}${esc(c.venue||(!c.date?'Date et lieu à définir':'Lieu à définir'))}</div>
           ${set?`<div class="concert-set-badge">♪ ${esc(set.name)}</div>`:''}
           ${c.notes?`<div class="concert-notes">${esc(c.notes)}</div>`:''}
-        </div>
-        <div class="flex gap-8" style="flex-shrink:0">
-          <button class="btn btn-ghost btn-sm" onclick="openConcertModal(${c.id})">✎</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteConcert(${c.id})">✕</button>
+          ${songsHtml}
         </div>
       </div>
     `;
   }).join('');
+}
+
+// ===== Drag & drop morceaux prestation =====
+let _dragConcert=null, _dragFrom=null;
+function cspDragStart(e,concertId,fromIdx){ _dragConcert=concertId; _dragFrom=fromIdx; e.currentTarget.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; }
+function cspDragOver(e){ e.preventDefault(); e.currentTarget.classList.add('drag-over'); e.dataTransfer.dropEffect='move'; }
+function cspDragLeave(e){ e.currentTarget.classList.remove('drag-over'); }
+function cspDragEnd(e){ e.currentTarget.classList.remove('dragging'); }
+async function cspDrop(e,concertId,toIdx){
+  e.preventDefault(); e.currentTarget.classList.remove('drag-over');
+  if(_dragConcert!==concertId || _dragFrom===toIdx) return;
+  const cSongs = getConcertSongs(concertId, DB.concerts.find(c=>c.id===concertId)?.set_id);
+  const ids = cSongs.map(cs=>cs.song_id);
+  const [moved] = ids.splice(_dragFrom,1); ids.splice(toIdx,0,moved);
+  await saveConcertSongsOrder(concertId, ids, cSongs);
+}
+async function saveConcertSongsOrder(concertId, songIds, sourceSongs){
+  setSyncStatus('loading');
+  try {
+    await sb.from('concert_songs').delete().eq('concert_id',concertId);
+    const rows = songIds.map((sid,pos)=>{ const src=sourceSongs.find(cs=>cs.song_id===sid); return {concert_id:concertId,song_id:sid,position:pos,notes:src?.notes||null}; });
+    if(rows.length) await sb.from('concert_songs').insert(rows);
+    await loadAll(); renderConcerts(); setSyncStatus('ok');
+  } catch(err){ toast('Erreur: '+err.message,'error'); setSyncStatus('error'); }
+}
+async function removeSongFromConcert(concertId, songId){
+  const concert = DB.concerts.find(c=>c.id===concertId);
+  const cSongs = getConcertSongs(concertId, concert?.set_id);
+  await saveConcertSongsOrder(concertId, cSongs.map(cs=>cs.song_id).filter(id=>id!==songId), cSongs);
+}
+async function resetConcertSongs(concertId){
+  if(!confirm('Réinitialiser le programme depuis la répétition liée ?')) return;
+  setSyncStatus('loading');
+  try { await sb.from('concert_songs').delete().eq('concert_id',concertId); await loadAll(); renderConcerts(); toast('Programme réinitialisé'); setSyncStatus('ok'); }
+  catch(e){ toast('Erreur','error'); setSyncStatus('error'); }
+}
+function openAddSongToConcert(concertId, setId){
+  const cSongs = getConcertSongs(concertId, setId);
+  const inIds = cSongs.map(cs=>cs.song_id);
+  const available = DB.songs.filter(s=>!inIds.includes(s.id));
+  if(!available.length){ toast('Tous les morceaux sont déjà dans ce programme','error'); return; }
+  document.getElementById('detail-title').textContent = 'Ajouter un morceau';
+  document.getElementById('detail-body').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto">
+      ${available.map(s=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-xs);cursor:pointer"
+          onclick="addSongToConcert(${concertId},${s.id},${setId||'null'});closeModal()">
+          <span style="font-size:13px;flex:1">${esc(s.name)}${s.artist?` <span style="color:var(--text3)">— ${esc(s.artist)}</span>`:''}</span>
+          ${s.key?`<span class="tag tag-key" style="font-size:10px">${esc(s.key)}</span>`:''}
+          <span style="color:var(--green);font-size:14px">+</span>
+        </div>`).join('')}
+    </div>
+    <div class="form-actions"><button class="btn btn-outline" onclick="closeModal()">Fermer</button></div>
+  `;
+  showModal('detail');
+}
+async function addSongToConcert(concertId, songId, setId){
+  const concert = DB.concerts.find(c=>c.id===concertId);
+  const cSongs = getConcertSongs(concertId, setId);
+  await saveConcertSongsOrder(concertId, [...cSongs.map(cs=>cs.song_id), songId], cSongs);
+}
+function editConcertSongNote(concertId, songId){
+  const concert = DB.concerts.find(c=>c.id===concertId);
+  const cSongs = getConcertSongs(concertId, concert?.set_id);
+  const cs = cSongs.find(x=>x.song_id===songId);
+  const s = DB.songs.find(x=>x.id===songId);
+  document.getElementById('detail-title').textContent = s?.name||'Morceau';
+  document.getElementById('detail-body').innerHTML = `
+    <div class="form-group">
+      <label class="form-label">Note pour cette prestation</label>
+      <textarea class="form-input" id="csn-note" placeholder="Ex: version courte, intro guitare seule…" style="min-height:80px">${esc(cs?.notes||'')}</textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-outline" onclick="closeModal()">Annuler</button>
+      <button class="btn btn-primary" onclick="saveConcertSongNote(${concertId},${songId})">Enregistrer</button>
+    </div>
+  `;
+  showModal('detail');
+}
+async function saveConcertSongNote(concertId, songId){
+  const note = document.getElementById('csn-note').value.trim();
+  const concert = DB.concerts.find(c=>c.id===concertId);
+  const cSongs = getConcertSongs(concertId, concert?.set_id);
+  setSyncStatus('loading');
+  try {
+    await sb.from('concert_songs').delete().eq('concert_id',concertId);
+    const rows = cSongs.map((cs,pos)=>({concert_id:concertId,song_id:cs.song_id,position:pos,notes:cs.song_id===songId?(note||null):(cs.notes||null)}));
+    if(rows.length) await sb.from('concert_songs').insert(rows);
+    await loadAll(); closeModal(); renderConcerts(); toast('Note enregistrée'); setSyncStatus('ok');
+  } catch(e){ toast('Erreur','error'); setSyncStatus('error'); }
 }
 
 function populateConcertSets(selectedId){
