@@ -240,19 +240,6 @@ select.form-input option{background:var(--surface2)}
 .dot-impro{background:rgba(124,159,232,.2);color:var(--accent2);font-size:9px}
 .dot-empty{background:var(--surface3);color:var(--text3)}
 
-.concert-songs-panel{margin-top:12px;border-top:1px solid var(--border);padding-top:12px}
-.concert-songs-panel .csp-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.concert-songs-panel .csp-title{font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--text3)}
-.csp-song-row{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-xs);margin-bottom:5px;cursor:grab;transition:all .15s}
-.csp-song-row:hover{border-color:var(--border2)}
-.csp-song-row.dragging{opacity:.4;cursor:grabbing}
-.csp-song-row.drag-over{border-color:var(--accent);background:rgba(232,168,124,.08)}
-.csp-drag-handle{color:var(--text3);font-size:14px;flex-shrink:0;cursor:grab;user-select:none}
-.csp-song-num{font-size:11px;color:var(--text3);min-width:18px}
-.csp-song-name{flex:1;font-size:12px;color:var(--text);font-weight:500}
-.csp-song-key{font-size:10px}
-.csp-add-zone{margin-top:8px}
-
 .badge-projet{background:rgba(232,200,124,.15);color:var(--amber);border:1px solid rgba(232,200,124,.3);font-size:11px;padding:2px 9px;border-radius:20px;font-weight:500}
 .badge-confirme{background:rgba(93,200,160,.15);color:var(--green);border:1px solid rgba(93,200,160,.3);font-size:11px;padding:2px 9px;border-radius:20px;font-weight:500}
 .badge-annule{background:rgba(232,124,124,.1);color:var(--red);border:1px solid rgba(232,124,124,.25);font-size:11px;padding:2px 9px;border-radius:20px;font-weight:500;text-decoration:line-through}
@@ -760,7 +747,7 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 // ============================================================
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-let DB = { songs:[], members:[], sets:[], set_songs:[], concerts:[], concert_songs:[], events:[], preferences:[] };
+let DB = { songs:[], members:[], sets:[], set_songs:[], concerts:[], events:[], preferences:[] };
 let editingId = null;
 let setSelectedSongs = [];
 let setNotesMap = {}; // song_id -> note spécifique au set
@@ -793,24 +780,22 @@ async function init(){
 }
 
 async function loadAll(){
-  const [songs, members, sets, set_songs, concerts, concert_songs, events, preferences] = await Promise.all([
+  const [songs, members, sets, set_songs, concerts, events, preferences] = await Promise.all([
     sb.from('songs').select('*').order('name'),
     sb.from('members').select('*').order('prenom'),
     sb.from('sets').select('*').order('name'),
     sb.from('set_songs').select('*').order('position'),
     sb.from('concerts').select('*').order('date'),
-    sb.from('concert_songs').select('*').order('position'),
     sb.from('events').select('*').order('date'),
     sb.from('preferences').select('*'),
   ]);
-  DB.songs         = songs.data         || [];
-  DB.members       = members.data       || [];
-  DB.sets          = sets.data          || [];
-  DB.set_songs     = set_songs.data     || [];
-  DB.concerts      = concerts.data      || [];
-  DB.concert_songs = concert_songs.data || [];
-  DB.events        = events.data        || [];
-  DB.preferences   = preferences.data   || [];
+  DB.songs       = songs.data       || [];
+  DB.members     = members.data     || [];
+  DB.sets        = sets.data        || [];
+  DB.set_songs   = set_songs.data   || [];
+  DB.concerts    = concerts.data    || [];
+  DB.events      = events.data      || [];
+  DB.preferences = preferences.data || [];
 }
 
 // ============================================================
@@ -1259,20 +1244,8 @@ async function deleteSet(id){
 }
 
 // ============================================================
-//  CONCERTS / PRESTATIONS
+//  CONCERTS
 // ============================================================
-
-// Retourne les morceaux d'une prestation :
-// - si concert_songs exist pour ce concert → les utilise (surcharge)
-// - sinon hérite des set_songs de la répétition liée
-function getConcertSongs(concertId, setId){
-  const overrides = DB.concert_songs.filter(cs=>cs.concert_id===concertId).sort((a,b)=>a.position-b.position);
-  if(overrides.length) return overrides;
-  if(!setId) return [];
-  return DB.set_songs.filter(ss=>ss.set_id===setId).sort((a,b)=>a.position-b.position)
-    .map(ss=>({concert_id:concertId, song_id:ss.song_id, position:ss.position, notes:ss.set_notes||null, _inherited:true}));
-}
-
 function renderConcerts(){
   const list = document.getElementById('concert-list');
   if(!DB.concerts.length){
@@ -1280,210 +1253,47 @@ function renderConcerts(){
     return;
   }
   const statusLabel = {projet:'Projet', confirme:'Confirmé', annule:'Annulé'};
+  // Trier : confirmés d'abord par date, puis projets sans date en bas
   const sorted = [...DB.concerts].sort((a,b)=>{
     if(!a.date && !b.date) return 0;
-    if(!a.date) return 1; if(!b.date) return -1;
+    if(!a.date) return 1;
+    if(!b.date) return -1;
     return a.date.localeCompare(b.date);
   });
   list.innerHTML = sorted.map(c=>{
     const status = c.status||'confirme';
     const set = c.set_id ? DB.sets.find(s=>s.id===c.set_id) : null;
     const dateBlock = c.date
-      ? (()=>{ const d=new Date(c.date+'T12:00:00'); return `<div class="concert-date-block"><div class="concert-day">${d.getDate()}</div><div class="concert-month">${d.toLocaleDateString('fr-FR',{month:'short'})}</div><div class="text-xs text-muted" style="margin-top:2px">${d.getFullYear()}</div></div>`; })()
-      : `<div class="concert-date-block" style="min-width:60px;display:flex;align-items:center;justify-content:center"><span style="font-size:22px;color:var(--text3)">?</span></div>`;
-
-    const cSongs = getConcertSongs(c.id, c.set_id);
-    const songsHtml = cSongs.length ? `
-      <div class="concert-songs-panel">
-        <div class="csp-header">
-          <span class="csp-title">Programme · ${cSongs.length} morceau${cSongs.length>1?'x':''} ${cSongs[0]?._inherited?'<span style="font-size:10px;color:var(--text3)">(hérité de la répétition)</span>':''}</span>
-          <div style="display:flex;gap:6px">
-            <button class="btn btn-ghost btn-sm" onclick="openAddSongToConcert(${c.id},${c.set_id||'null'})">+ Ajouter</button>
-            ${!cSongs[0]?._inherited?`<button class="btn btn-ghost btn-sm" style="color:var(--text3)" onclick="resetConcertSongs(${c.id})">↺ Réinitialiser</button>`:''}
-          </div>
-        </div>
-        <div id="csp-list-${c.id}">
-          ${cSongs.map((cs,i)=>{
-            const s = DB.songs.find(x=>x.id===cs.song_id);
-            if(!s) return '';
-            return `<div class="csp-song-row" draggable="true"
-              data-concert="${c.id}" data-song="${cs.song_id}" data-pos="${i}"
-              ondragstart="cspDragStart(event,${c.id},${i})"
-              ondragover="cspDragOver(event)"
-              ondrop="cspDrop(event,${c.id},${i})"
-              ondragleave="cspDragLeave(event)"
-              ondragend="cspDragEnd(event)">
-              <div style="flex:1;min-width:0">
-                <div style="display:flex;align-items:center;gap:6px">
-                  <span class="csp-drag-handle">⠿</span>
-                  <span class="csp-song-num">${i+1}.</span>
-                  <span class="csp-song-name">${esc(s.name)}${s.artist?` <span style="color:var(--text3);font-weight:400">— ${esc(s.artist)}</span>`:''}</span>
-                  ${s.key?`<span class="tag tag-key csp-song-key">${esc(s.key)}</span>`:''}
-                  <button class="btn btn-ghost btn-sm" style="padding:3px 7px;margin-left:4px" onclick="editConcertSongNote(${c.id},${cs.song_id})" title="Ajouter une note">✎</button>
-                  <button class="btn btn-danger btn-sm" style="padding:3px 7px" onclick="removeSongFromConcert(${c.id},${cs.song_id})">✕</button>
-                </div>
-                ${cs.notes?`<div style="font-size:11px;color:var(--amber);padding-left:46px;margin-top:3px;line-height:1.4">⚠ ${esc(cs.notes)}</div>`:''}
-              </div>
-            </div>`;
-          }).join('')}
-        </div>
-      </div>` : set ? `
-      <div class="concert-songs-panel">
-        <div class="csp-header">
-          <span class="csp-title" style="color:var(--text3)">Aucun morceau dans la répétition liée</span>
-          <button class="btn btn-ghost btn-sm" onclick="openAddSongToConcert(${c.id},${c.set_id||'null'})">+ Ajouter</button>
-        </div>
-      </div>` : '';
-
+      ? (() => {
+          const d = new Date(c.date+'T12:00:00');
+          return `<div class="concert-date-block">
+            <div class="concert-day">${d.getDate()}</div>
+            <div class="concert-month">${d.toLocaleDateString('fr-FR',{month:'short'})}</div>
+            <div class="text-xs text-muted" style="margin-top:2px">${d.getFullYear()}</div>
+          </div>`;
+        })()
+      : `<div class="concert-date-block" style="min-width:60px;display:flex;align-items:center;justify-content:center">
+           <span style="font-size:22px;color:var(--text3)">?</span>
+         </div>`;
     return `
       <div class="concert-card statut-${status}">
-        <div style="display:flex;gap:18px;align-items:flex-start">
-          ${dateBlock}
-          <div class="concert-info" style="flex:1;min-width:0">
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-              <div class="concert-name">${esc(c.name)}</div>
-              <span class="badge-${status}">${statusLabel[status]||status}</span>
-            </div>
-            <div class="concert-venue">${c.date&&c.time?c.time+' · ':''}${esc(c.venue||(!c.date?'Date et lieu à définir':'Lieu à définir'))}</div>
-            ${set?`<div class="concert-set-badge">♪ ${esc(set.name)}</div>`:''}
-            ${c.notes?`<div class="concert-notes">${esc(c.notes)}</div>`:''}
-            ${songsHtml}
+        ${dateBlock}
+        <div class="concert-info">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <div class="concert-name">${esc(c.name)}</div>
+            <span class="badge-${status}">${statusLabel[status]||status}</span>
           </div>
-          <div class="flex gap-8" style="flex-shrink:0">
-            ${cSongs.length?`<button class="btn btn-outline btn-sm" onclick="printConcertSet(${c.id})" title="Imprimer le set">🖨</button>`:''}
-            <button class="btn btn-ghost btn-sm" onclick="openConcertModal(${c.id})">✎</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteConcert(${c.id})">✕</button>
-          </div>
+          <div class="concert-venue">${c.date&&c.time?c.time+' · ':''}${esc(c.venue||(!c.date?'Date et lieu à définir':'Lieu à définir'))}</div>
+          ${set?`<div class="concert-set-badge">♪ ${esc(set.name)}</div>`:''}
+          ${c.notes?`<div class="concert-notes">${esc(c.notes)}</div>`:''}
+        </div>
+        <div class="flex gap-8" style="flex-shrink:0">
+          <button class="btn btn-ghost btn-sm" onclick="openConcertModal(${c.id})">✎</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteConcert(${c.id})">✕</button>
         </div>
       </div>
     `;
   }).join('');
-}
-
-// ===== Concert songs drag & drop =====
-let _dragConcert=null, _dragFrom=null;
-
-function cspDragStart(e,concertId,fromIdx){
-  _dragConcert=concertId; _dragFrom=fromIdx;
-  e.currentTarget.classList.add('dragging');
-  e.dataTransfer.effectAllowed='move';
-}
-function cspDragOver(e){
-  e.preventDefault(); e.currentTarget.classList.add('drag-over');
-  e.dataTransfer.dropEffect='move';
-}
-function cspDragLeave(e){ e.currentTarget.classList.remove('drag-over'); }
-function cspDragEnd(e){ e.currentTarget.classList.remove('dragging'); }
-
-async function cspDrop(e,concertId,toIdx){
-  e.preventDefault();
-  e.currentTarget.classList.remove('drag-over');
-  if(_dragConcert!==concertId || _dragFrom===toIdx) return;
-  const cSongs = getConcertSongs(concertId, DB.concerts.find(c=>c.id===concertId)?.set_id);
-  const ids = cSongs.map(cs=>cs.song_id);
-  const [moved] = ids.splice(_dragFrom,1);
-  ids.splice(toIdx,0,moved);
-  await saveConcertSongsOrder(concertId, ids, cSongs);
-}
-
-async function saveConcertSongsOrder(concertId, songIds, sourceSongs){
-  setSyncStatus('loading');
-  try {
-    await sb.from('concert_songs').delete().eq('concert_id',concertId);
-    const rows = songIds.map((sid,pos)=>{
-      const src = sourceSongs.find(cs=>cs.song_id===sid);
-      return {concert_id:concertId, song_id:sid, position:pos, notes:src?.notes||null};
-    });
-    if(rows.length) await sb.from('concert_songs').insert(rows);
-    await loadAll(); renderConcerts();
-    setSyncStatus('ok');
-  } catch(err){ toast('Erreur: '+err.message,'error'); setSyncStatus('error'); }
-}
-
-async function removeSongFromConcert(concertId, songId){
-  const concert = DB.concerts.find(c=>c.id===concertId);
-  const cSongs = getConcertSongs(concertId, concert?.set_id);
-  const newIds = cSongs.map(cs=>cs.song_id).filter(id=>id!==songId);
-  await saveConcertSongsOrder(concertId, newIds, cSongs);
-}
-
-async function resetConcertSongs(concertId){
-  if(!confirm('Réinitialiser le programme depuis la répétition liée ?')) return;
-  setSyncStatus('loading');
-  try {
-    await sb.from('concert_songs').delete().eq('concert_id',concertId);
-    await loadAll(); renderConcerts(); toast('Programme réinitialisé');
-    setSyncStatus('ok');
-  } catch(e){ toast('Erreur','error'); setSyncStatus('error'); }
-}
-
-function openAddSongToConcert(concertId, setId){
-  const cSongs = getConcertSongs(concertId, setId);
-  const inIds = cSongs.map(cs=>cs.song_id);
-  const available = DB.songs.filter(s=>!inIds.includes(s.id));
-  if(!available.length){ toast('Tous les morceaux sont déjà dans ce programme','error'); return; }
-
-  // Petit modal inline — on réutilise le modal détail
-  document.getElementById('detail-title').textContent = 'Ajouter un morceau';
-  document.getElementById('detail-body').innerHTML = `
-    <div style="display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto">
-      ${available.map(s=>`
-        <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-xs);cursor:pointer;transition:all .15s"
-          onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='var(--border)'"
-          onclick="addSongToConcert(${concertId},${s.id},${setId||'null'});closeModal()">
-          <span style="font-size:13px;flex:1">${esc(s.name)}${s.artist?` <span style="color:var(--text3)">— ${esc(s.artist)}</span>`:''}</span>
-          ${s.key?`<span class="tag tag-key" style="font-size:10px">${esc(s.key)}</span>`:''}
-          <span style="color:var(--green);font-size:14px">+</span>
-        </div>`).join('')}
-    </div>
-    <div class="form-actions"><button class="btn btn-outline" onclick="closeModal()">Fermer</button></div>
-  `;
-  showModal('detail');
-}
-
-async function addSongToConcert(concertId, songId, setId){
-  const concert = DB.concerts.find(c=>c.id===concertId);
-  const cSongs = getConcertSongs(concertId, setId);
-  const newIds = [...cSongs.map(cs=>cs.song_id), songId];
-  await saveConcertSongsOrder(concertId, newIds, cSongs);
-}
-
-function editConcertSongNote(concertId, songId){
-  const concert = DB.concerts.find(c=>c.id===concertId);
-  const cSongs = getConcertSongs(concertId, concert?.set_id);
-  const cs = cSongs.find(x=>x.song_id===songId);
-  const s = DB.songs.find(x=>x.id===songId);
-
-  document.getElementById('detail-title').textContent = s?.name||'Morceau';
-  document.getElementById('detail-body').innerHTML = `
-    <div class="form-group">
-      <label class="form-label">Note pour cette prestation</label>
-      <textarea class="form-input" id="csn-note" placeholder="Ex: version courte, intro guitare seule…" style="min-height:80px">${esc(cs?.notes||'')}</textarea>
-    </div>
-    <div class="form-actions">
-      <button class="btn btn-outline" onclick="closeModal()">Annuler</button>
-      <button class="btn btn-primary" onclick="saveConcertSongNote(${concertId},${songId})">Enregistrer</button>
-    </div>
-  `;
-  showModal('detail');
-}
-
-async function saveConcertSongNote(concertId, songId){
-  const note = document.getElementById('csn-note').value.trim();
-  const concert = DB.concerts.find(c=>c.id===concertId);
-  const cSongs = getConcertSongs(concertId, concert?.set_id);
-  setSyncStatus('loading');
-  try {
-    await sb.from('concert_songs').delete().eq('concert_id',concertId);
-    const rows = cSongs.map((cs,pos)=>({
-      concert_id:concertId, song_id:cs.song_id, position:pos,
-      notes: cs.song_id===songId ? (note||null) : (cs.notes||null)
-    }));
-    if(rows.length) await sb.from('concert_songs').insert(rows);
-    await loadAll(); closeModal(); renderConcerts();
-    toast('Note enregistrée');
-    setSyncStatus('ok');
-  } catch(e){ toast('Erreur','error'); setSyncStatus('error'); }
 }
 
 function populateConcertSets(selectedId){
@@ -2189,138 +1999,6 @@ function editPlanningEventSerie(serieKey){
     document.getElementById('f-repet-date').closest('.form-row').style.opacity='.4';
     document.getElementById('f-repet-date').disabled=true;
   }, 50);
-}
-
-// ============================================================
-//  IMPRESSION SET PRESTATION
-// ============================================================
-function printConcertSet(concertId){
-  const c = DB.concerts.find(x=>x.id===concertId);
-  if(!c) return;
-  const cSongs = getConcertSongs(concertId, c.set_id);
-
-  const dateStr = c.date
-    ? new Date(c.date+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})
-    : 'Date à confirmer';
-  const timeStr = c.time ? c.time.slice(0,5) : '';
-  const venue   = c.venue || '';
-
-  const songsRows = cSongs.map((cs,i)=>{
-    const s = DB.songs.find(x=>x.id===cs.song_id);
-    if(!s) return '';
-
-    // Musiciens improvisant sur ce morceau pour cette répétition
-    const setId = c.set_id||null;
-    const improvs = setId ? DB.members.filter(m=>{
-      const p = DB.preferences.find(pr=>pr.set_id===setId && pr.member_id===m.id && pr.song_id===s.id);
-      return p?.impro;
-    }) : [];
-
-    const notes = [cs.notes, s.notes].filter(Boolean).join(' — ');
-
-    return `
-      <tr>
-        <td class="p-num">${i+1}</td>
-        <td class="p-song">
-          <strong>${s.name}</strong>
-          ${s.artist?`<span class="p-artist"> — ${s.artist}</span>`:''}
-          ${notes?`<div class="p-notes">${notes}</div>`:''}
-        </td>
-        <td class="p-key">${s.key||''}</td>
-        <td class="p-tempo">${s.tempo||''}</td>
-        <td class="p-impro">${improvs.map(m=>`${m.prenom}${m.pseudo?' ('+m.pseudo+')':''}`).join(', ')}</td>
-      </tr>
-    `;
-  }).join('');
-
-  // Récupère le logo embarqué
-  const logoImg = document.querySelector('.sidebar img');
-  const logoSrc = logoImg ? logoImg.src : '';
-
-  const html = `<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<title>Set — ${c.name}</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@400;500&display=swap');
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'DM Sans',sans-serif;color:#1a1a1a;background:#fff;padding:0}
-  @page{size:A4;margin:18mm 16mm 18mm 16mm}
-
-  .header{display:flex;align-items:center;gap:20px;padding-bottom:14px;border-bottom:2px solid #1a1a1a;margin-bottom:20px}
-  .logo{width:64px;height:64px;border-radius:50%;object-fit:cover;flex-shrink:0}
-  .header-info{flex:1}
-  .concert-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;line-height:1.2;color:#1a1a1a}
-  .concert-meta{font-size:13px;color:#555;margin-top:5px;display:flex;flex-wrap:wrap;gap:14px}
-  .concert-meta span{display:flex;align-items:center;gap:5px}
-  .concert-meta .ico{font-size:14px}
-
-  table{width:100%;border-collapse:collapse;margin-top:4px}
-  thead tr{background:#1a1a1a;color:#fff}
-  thead th{padding:8px 10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:500}
-  tbody tr{border-bottom:1px solid #e0e0e0}
-  tbody tr:nth-child(even){background:#f9f9f9}
-  tbody tr:last-child{border-bottom:2px solid #1a1a1a}
-
-  .p-num{width:28px;text-align:center;font-size:12px;color:#888;padding:10px 6px}
-  .p-song{padding:10px 10px;min-width:180px}
-  .p-song strong{font-size:13px;font-weight:500}
-  .p-artist{font-size:12px;color:#777}
-  .p-notes{font-size:11px;color:#e6860a;margin-top:4px;font-style:italic}
-  .p-key{width:70px;padding:10px 8px;font-size:12px;font-weight:500;color:#333}
-  .p-tempo{width:60px;padding:10px 8px;font-size:12px;color:#555;text-align:center}
-  .p-impro{padding:10px 8px;font-size:11px;color:#1a6faf;font-style:italic}
-
-  .footer{margin-top:18px;padding-top:10px;border-top:1px solid #ccc;font-size:10px;color:#aaa;display:flex;justify-content:space-between}
-
-  @media print{
-    body{print-color-adjust:exact;-webkit-print-color-adjust:exact}
-    thead tr{background:#1a1a1a!important;color:#fff!important}
-    tbody tr:nth-child(even){background:#f9f9f9!important}
-  }
-</style>
-</head>
-<body>
-
-<div class="header">
-  ${logoSrc?`<img src="${logoSrc}" class="logo" alt="Logo">`:''}
-  <div class="header-info">
-    <div class="concert-title">${c.name}</div>
-    <div class="concert-meta">
-      <span><span class="ico">📅</span>${dateStr}${timeStr?' · '+timeStr:''}</span>
-      ${venue?`<span><span class="ico">📍</span>${venue}</span>`:''}
-    </div>
-  </div>
-</div>
-
-<table>
-  <thead>
-    <tr>
-      <th>#</th>
-      <th>Morceau</th>
-      <th>Tonalité</th>
-      <th>Tempo</th>
-      <th>Impro</th>
-    </tr>
-  </thead>
-  <tbody>
-    ${songsRows}
-  </tbody>
-</table>
-
-<div class="footer">
-  <span>AMAJAZZ — Band Manager</span>
-  <span>Imprimé le ${new Date().toLocaleDateString('fr-FR')}</span>
-</div>
-
-<script>window.onload=()=>{ window.print(); }<\/script>
-</body>
-</html>`;
-
-  const win = window.open('', '_blank');
-  if(win){ win.document.write(html); win.document.close(); }
-  else toast('Autorisez les popups pour imprimer','error');
 }
 
 // ============================================================
