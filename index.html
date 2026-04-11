@@ -389,12 +389,21 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
   #dash-events > div, #dash-songs > div{padding:10px 12px}
 }
 
-/* Desktop : cacher la nav mobile */
+/* Desktop : cacher la nav mobile, restaurer le layout sidebar */
 @media (min-width: 701px) {
-  .mobile-nav{display:none}
-  .mobile-header{display:none}
-}
-</style>
+  .mobile-nav{display:none !important}
+  .mobile-header{display:none !important}
+  .app{flex-direction:row !important;height:100vh !important}
+  .sidebar{display:flex !important;width:220px;min-width:220px}
+  .main{padding-bottom:0 !important}
+  .modal-overlay{padding:20px;align-items:center}
+  .modal{max-width:500px;width:100%;border-radius:16px;max-height:90vh}
+  .modal.wide{max-width:680px}
+  .modal-header{padding:22px 24px 0;border-radius:0}
+  .modal-body{padding:20px 24px 24px}
+  .form-row{grid-template-columns:1fr 1fr}
+  .set-builder{grid-template-columns:1fr 1fr}
+}</style>
 </head>
 <body>
 
@@ -907,6 +916,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
 // ============================================================
 const SUPABASE_URL  = 'https://hirykfprszvqkeerpbtt.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpcnlrZnByc3p2cWtlZXJwYnR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MTYwMDQsImV4cCI6MjA5MTM5MjAwNH0.W5U0MsMq21j9Dsvw3MD3AyLnrOfyxz1dd31ziXe0wH8';
+
 // ============================================================
 //  INIT
 // ============================================================
