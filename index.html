@@ -1313,13 +1313,17 @@ function renderConcerts(){
               ondrop="cspDrop(event,${c.id},${i})"
               ondragleave="cspDragLeave(event)"
               ondragend="cspDragEnd(event)">
-              <span class="csp-drag-handle">⠿</span>
-              <span class="csp-song-num">${i+1}.</span>
-              <span class="csp-song-name">${esc(s.name)}${s.artist?` <span style="color:var(--text3);font-weight:400">— ${esc(s.artist)}</span>`:''}</span>
-              ${s.key?`<span class="tag tag-key csp-song-key">${esc(s.key)}</span>`:''}
-              ${cs.notes?`<span style="font-size:10px;color:var(--amber)" title="${esc(cs.notes)}">⚠</span>`:''}
-              <button class="btn btn-ghost btn-sm" style="padding:3px 7px" onclick="editConcertSongNote(${c.id},${cs.song_id})" title="Note">✎</button>
-              <button class="btn btn-danger btn-sm" style="padding:3px 7px" onclick="removeSongFromConcert(${c.id},${cs.song_id})">✕</button>
+              <div style="flex:1;min-width:0">
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span class="csp-drag-handle">⠿</span>
+                  <span class="csp-song-num">${i+1}.</span>
+                  <span class="csp-song-name">${esc(s.name)}${s.artist?` <span style="color:var(--text3);font-weight:400">— ${esc(s.artist)}</span>`:''}</span>
+                  ${s.key?`<span class="tag tag-key csp-song-key">${esc(s.key)}</span>`:''}
+                  <button class="btn btn-ghost btn-sm" style="padding:3px 7px;margin-left:4px" onclick="editConcertSongNote(${c.id},${cs.song_id})" title="Ajouter une note">✎</button>
+                  <button class="btn btn-danger btn-sm" style="padding:3px 7px" onclick="removeSongFromConcert(${c.id},${cs.song_id})">✕</button>
+                </div>
+                ${cs.notes?`<div style="font-size:11px;color:var(--amber);padding-left:46px;margin-top:3px;line-height:1.4">⚠ ${esc(cs.notes)}</div>`:''}
+              </div>
             </div>`;
           }).join('')}
         </div>
@@ -1346,6 +1350,7 @@ function renderConcerts(){
             ${songsHtml}
           </div>
           <div class="flex gap-8" style="flex-shrink:0">
+            ${cSongs.length?`<button class="btn btn-outline btn-sm" onclick="printConcertSet(${c.id})" title="Imprimer le set">🖨</button>`:''}
             <button class="btn btn-ghost btn-sm" onclick="openConcertModal(${c.id})">✎</button>
             <button class="btn btn-danger btn-sm" onclick="deleteConcert(${c.id})">✕</button>
           </div>
@@ -2184,6 +2189,138 @@ function editPlanningEventSerie(serieKey){
     document.getElementById('f-repet-date').closest('.form-row').style.opacity='.4';
     document.getElementById('f-repet-date').disabled=true;
   }, 50);
+}
+
+// ============================================================
+//  IMPRESSION SET PRESTATION
+// ============================================================
+function printConcertSet(concertId){
+  const c = DB.concerts.find(x=>x.id===concertId);
+  if(!c) return;
+  const cSongs = getConcertSongs(concertId, c.set_id);
+
+  const dateStr = c.date
+    ? new Date(c.date+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})
+    : 'Date à confirmer';
+  const timeStr = c.time ? c.time.slice(0,5) : '';
+  const venue   = c.venue || '';
+
+  const songsRows = cSongs.map((cs,i)=>{
+    const s = DB.songs.find(x=>x.id===cs.song_id);
+    if(!s) return '';
+
+    // Musiciens improvisant sur ce morceau pour cette répétition
+    const setId = c.set_id||null;
+    const improvs = setId ? DB.members.filter(m=>{
+      const p = DB.preferences.find(pr=>pr.set_id===setId && pr.member_id===m.id && pr.song_id===s.id);
+      return p?.impro;
+    }) : [];
+
+    const notes = [cs.notes, s.notes].filter(Boolean).join(' — ');
+
+    return `
+      <tr>
+        <td class="p-num">${i+1}</td>
+        <td class="p-song">
+          <strong>${s.name}</strong>
+          ${s.artist?`<span class="p-artist"> — ${s.artist}</span>`:''}
+          ${notes?`<div class="p-notes">${notes}</div>`:''}
+        </td>
+        <td class="p-key">${s.key||''}</td>
+        <td class="p-tempo">${s.tempo||''}</td>
+        <td class="p-impro">${improvs.map(m=>`${m.prenom}${m.pseudo?' ('+m.pseudo+')':''}`).join(', ')}</td>
+      </tr>
+    `;
+  }).join('');
+
+  // Récupère le logo embarqué
+  const logoImg = document.querySelector('.sidebar img');
+  const logoSrc = logoImg ? logoImg.src : '';
+
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Set — ${c.name}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@400;500&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',sans-serif;color:#1a1a1a;background:#fff;padding:0}
+  @page{size:A4;margin:18mm 16mm 18mm 16mm}
+
+  .header{display:flex;align-items:center;gap:20px;padding-bottom:14px;border-bottom:2px solid #1a1a1a;margin-bottom:20px}
+  .logo{width:64px;height:64px;border-radius:50%;object-fit:cover;flex-shrink:0}
+  .header-info{flex:1}
+  .concert-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;line-height:1.2;color:#1a1a1a}
+  .concert-meta{font-size:13px;color:#555;margin-top:5px;display:flex;flex-wrap:wrap;gap:14px}
+  .concert-meta span{display:flex;align-items:center;gap:5px}
+  .concert-meta .ico{font-size:14px}
+
+  table{width:100%;border-collapse:collapse;margin-top:4px}
+  thead tr{background:#1a1a1a;color:#fff}
+  thead th{padding:8px 10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:500}
+  tbody tr{border-bottom:1px solid #e0e0e0}
+  tbody tr:nth-child(even){background:#f9f9f9}
+  tbody tr:last-child{border-bottom:2px solid #1a1a1a}
+
+  .p-num{width:28px;text-align:center;font-size:12px;color:#888;padding:10px 6px}
+  .p-song{padding:10px 10px;min-width:180px}
+  .p-song strong{font-size:13px;font-weight:500}
+  .p-artist{font-size:12px;color:#777}
+  .p-notes{font-size:11px;color:#e6860a;margin-top:4px;font-style:italic}
+  .p-key{width:70px;padding:10px 8px;font-size:12px;font-weight:500;color:#333}
+  .p-tempo{width:60px;padding:10px 8px;font-size:12px;color:#555;text-align:center}
+  .p-impro{padding:10px 8px;font-size:11px;color:#1a6faf;font-style:italic}
+
+  .footer{margin-top:18px;padding-top:10px;border-top:1px solid #ccc;font-size:10px;color:#aaa;display:flex;justify-content:space-between}
+
+  @media print{
+    body{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+    thead tr{background:#1a1a1a!important;color:#fff!important}
+    tbody tr:nth-child(even){background:#f9f9f9!important}
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  ${logoSrc?`<img src="${logoSrc}" class="logo" alt="Logo">`:''}
+  <div class="header-info">
+    <div class="concert-title">${c.name}</div>
+    <div class="concert-meta">
+      <span><span class="ico">📅</span>${dateStr}${timeStr?' · '+timeStr:''}</span>
+      ${venue?`<span><span class="ico">📍</span>${venue}</span>`:''}
+    </div>
+  </div>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Morceau</th>
+      <th>Tonalité</th>
+      <th>Tempo</th>
+      <th>Impro</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${songsRows}
+  </tbody>
+</table>
+
+<div class="footer">
+  <span>AMAJAZZ — Band Manager</span>
+  <span>Imprimé le ${new Date().toLocaleDateString('fr-FR')}</span>
+</div>
+
+<script>window.onload=()=>{ window.print(); }<\/script>
+</body>
+</html>`;
+
+  const win = window.open('', '_blank');
+  if(win){ win.document.write(html); win.document.close(); }
+  else toast('Autorisez les popups pour imprimer','error');
 }
 
 // ============================================================
