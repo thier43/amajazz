@@ -1140,6 +1140,7 @@ function renderSets(){
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
           <div class="set-name">${esc(set.name)}</div>
           <div class="flex gap-8" style="flex-shrink:0">
+            ${songs.length?`<button class="btn btn-outline btn-sm" onclick="printSetProgram(${set.id})" title="Imprimer">🖨</button>`:''}
             <button class="btn btn-ghost btn-sm" onclick="openSetModal(${set.id})">✎</button>
             <button class="btn btn-danger btn-sm" onclick="deleteSet(${set.id})">✕</button>
           </div>
@@ -2192,77 +2193,33 @@ function editPlanningEventSerie(serieKey){
 }
 
 // ============================================================
-//  IMPRESSION SET PRESTATION
+//  IMPRESSION — fonctions partagées
 // ============================================================
-function printConcertSet(concertId){
-  const c = DB.concerts.find(x=>x.id===concertId);
-  if(!c) return;
-  const cSongs = getConcertSongs(concertId, c.set_id);
-
-  const dateStr = c.date
-    ? new Date(c.date+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})
-    : 'Date à confirmer';
-  const timeStr = c.time ? c.time.slice(0,5) : '';
-  const venue   = c.venue || '';
-
-  const songsRows = cSongs.map((cs,i)=>{
-    const s = DB.songs.find(x=>x.id===cs.song_id);
-    if(!s) return '';
-
-    // Musiciens improvisant sur ce morceau pour cette répétition
-    const setId = c.set_id||null;
-    const improvs = setId ? DB.members.filter(m=>{
-      const p = DB.preferences.find(pr=>pr.set_id===setId && pr.member_id===m.id && pr.song_id===s.id);
-      return p?.impro;
-    }) : [];
-
-    const notes = [cs.notes, s.notes].filter(Boolean).join(' — ');
-
-    return `
-      <tr>
-        <td class="p-num">${i+1}</td>
-        <td class="p-song">
-          <strong>${s.name}</strong>
-          ${s.artist?`<span class="p-artist"> — ${s.artist}</span>`:''}
-          ${notes?`<div class="p-notes">${notes}</div>`:''}
-        </td>
-        <td class="p-key">${s.key||''}</td>
-        <td class="p-tempo">${s.tempo||''}</td>
-        <td class="p-impro">${improvs.map(m=>`${m.prenom}${m.pseudo?' ('+m.pseudo+')':''}`).join(', ')}</td>
-      </tr>
-    `;
-  }).join('');
-
-  // Récupère le logo embarqué
-  const logoImg = document.querySelector('.sidebar img');
-  const logoSrc = logoImg ? logoImg.src : '';
-
-  const html = `<!DOCTYPE html>
+function buildPrintHtml({title, subtitle, dateStr, timeStr, venue, songsRows, logoSrc}){
+  return `<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Set — ${c.name}</title>
+<title>${title}</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@400;500&display=swap');
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:'DM Sans',sans-serif;color:#1a1a1a;background:#fff;padding:0}
   @page{size:A4;margin:18mm 16mm 18mm 16mm}
-
   .header{display:flex;align-items:center;gap:20px;padding-bottom:14px;border-bottom:2px solid #1a1a1a;margin-bottom:20px}
   .logo{width:64px;height:64px;border-radius:50%;object-fit:cover;flex-shrink:0}
   .header-info{flex:1}
-  .concert-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;line-height:1.2;color:#1a1a1a}
-  .concert-meta{font-size:13px;color:#555;margin-top:5px;display:flex;flex-wrap:wrap;gap:14px}
-  .concert-meta span{display:flex;align-items:center;gap:5px}
-  .concert-meta .ico{font-size:14px}
-
+  .print-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;line-height:1.2;color:#1a1a1a}
+  .print-sub{font-size:13px;color:#888;margin-top:2px;font-style:italic}
+  .print-meta{font-size:13px;color:#555;margin-top:6px;display:flex;flex-wrap:wrap;gap:14px}
+  .print-meta span{display:flex;align-items:center;gap:5px}
+  .ico{font-size:14px}
   table{width:100%;border-collapse:collapse;margin-top:4px}
   thead tr{background:#1a1a1a;color:#fff}
   thead th{padding:8px 10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:500}
   tbody tr{border-bottom:1px solid #e0e0e0}
   tbody tr:nth-child(even){background:#f9f9f9}
   tbody tr:last-child{border-bottom:2px solid #1a1a1a}
-
   .p-num{width:28px;text-align:center;font-size:12px;color:#888;padding:10px 6px}
   .p-song{padding:10px 10px;min-width:180px}
   .p-song strong{font-size:13px;font-weight:500}
@@ -2271,9 +2228,7 @@ function printConcertSet(concertId){
   .p-key{width:70px;padding:10px 8px;font-size:12px;font-weight:500;color:#333}
   .p-tempo{width:60px;padding:10px 8px;font-size:12px;color:#555;text-align:center}
   .p-impro{padding:10px 8px;font-size:11px;color:#1a6faf;font-style:italic}
-
   .footer{margin-top:18px;padding-top:10px;border-top:1px solid #ccc;font-size:10px;color:#aaa;display:flex;justify-content:space-between}
-
   @media print{
     body{print-color-adjust:exact;-webkit-print-color-adjust:exact}
     thead tr{background:#1a1a1a!important;color:#fff!important}
@@ -2282,45 +2237,97 @@ function printConcertSet(concertId){
 </style>
 </head>
 <body>
-
 <div class="header">
   ${logoSrc?`<img src="${logoSrc}" class="logo" alt="Logo">`:''}
   <div class="header-info">
-    <div class="concert-title">${c.name}</div>
-    <div class="concert-meta">
-      <span><span class="ico">📅</span>${dateStr}${timeStr?' · '+timeStr:''}</span>
+    <div class="print-title">${title}</div>
+    ${subtitle?`<div class="print-sub">${subtitle}</div>`:''}
+    <div class="print-meta">
+      ${dateStr?`<span><span class="ico">📅</span>${dateStr}${timeStr?' · '+timeStr:''}</span>`:''}
       ${venue?`<span><span class="ico">📍</span>${venue}</span>`:''}
     </div>
   </div>
 </div>
-
 <table>
-  <thead>
-    <tr>
-      <th>#</th>
-      <th>Morceau</th>
-      <th>Tonalité</th>
-      <th>Tempo</th>
-      <th>Impro</th>
-    </tr>
-  </thead>
-  <tbody>
-    ${songsRows}
-  </tbody>
+  <thead><tr>
+    <th>#</th><th>Morceau</th><th>Tonalité</th><th>Tempo</th><th>Impro</th>
+  </tr></thead>
+  <tbody>${songsRows}</tbody>
 </table>
-
 <div class="footer">
   <span>AMAJAZZ — Band Manager</span>
   <span>Imprimé le ${new Date().toLocaleDateString('fr-FR')}</span>
 </div>
-
 <script>window.onload=()=>{ window.print(); }<\/script>
-</body>
-</html>`;
+</body></html>`;
+}
 
+function buildSongRows(songs, setId, notesMap){
+  return songs.map((entry,i)=>{
+    const s = DB.songs.find(x=>x.id===(entry.song_id||entry.id));
+    if(!s) return '';
+    const improvs = setId ? DB.members.filter(m=>{
+      const p = DB.preferences.find(pr=>pr.set_id===setId && pr.member_id===m.id && pr.song_id===s.id);
+      return p?.impro;
+    }) : [];
+    const extraNote = notesMap ? (notesMap[s.id]||entry.notes||'') : (entry.notes||'');
+    const notes = [extraNote, s.notes].filter(Boolean).join(' — ');
+    return `<tr>
+      <td class="p-num">${i+1}</td>
+      <td class="p-song">
+        <strong>${s.name}</strong>
+        ${s.artist?`<span class="p-artist"> — ${s.artist}</span>`:''}
+        ${notes?`<div class="p-notes">${notes}</div>`:''}
+      </td>
+      <td class="p-key">${s.key||''}</td>
+      <td class="p-tempo">${s.tempo||''}</td>
+      <td class="p-impro">${improvs.map(m=>m.prenom).join(', ')}</td>
+    </tr>`;
+  }).join('');
+}
+
+function openPrint(html){
   const win = window.open('', '_blank');
   if(win){ win.document.write(html); win.document.close(); }
   else toast('Autorisez les popups pour imprimer','error');
+}
+
+function printConcertSet(concertId){
+  const c = DB.concerts.find(x=>x.id===concertId);
+  if(!c) return;
+  const cSongs = getConcertSongs(concertId, c.set_id);
+  const logoSrc = document.querySelector('.sidebar img')?.src||'';
+  const dateStr = c.date
+    ? new Date(c.date+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})
+    : 'Date à confirmer';
+  const set = c.set_id ? DB.sets.find(s=>s.id===c.set_id) : null;
+  openPrint(buildPrintHtml({
+    title: c.name,
+    subtitle: set ? '♩ ' + set.name : '',
+    dateStr,
+    timeStr: c.time?.slice(0,5)||'',
+    venue: c.venue||'',
+    songsRows: buildSongRows(cSongs, c.set_id, null),
+    logoSrc,
+  }));
+}
+
+function printSetProgram(setId){
+  const set = DB.sets.find(x=>x.id===setId);
+  if(!set) return;
+  const songRows = DB.set_songs.filter(ss=>ss.set_id===setId).sort((a,b)=>a.position-b.position);
+  const logoSrc = document.querySelector('.sidebar img')?.src||'';
+  const notesMap = {};
+  songRows.forEach(ss=>{ if(ss.set_notes) notesMap[ss.song_id]=ss.set_notes; });
+  openPrint(buildPrintHtml({
+    title: set.name,
+    subtitle: 'Programme de répétition',
+    dateStr: '',
+    timeStr: '',
+    venue: '',
+    songsRows: buildSongRows(songRows, setId, notesMap),
+    logoSrc,
+  }));
 }
 
 // ============================================================
