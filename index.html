@@ -1695,11 +1695,11 @@ async function saveRepet(){
 // ============================================================
 function renderDashboard(){
   document.getElementById('stats-bar').innerHTML = [
-    {v:DB.songs.length,   l:'Morceaux'},
-    {v:DB.members.length, l:'Musiciens'},
-    {v:DB.sets.length,    l:'Répétitions'},
-    {v:DB.concerts.length,l:'Prestations'},
-  ].map(s=>`<div class="stat"><div class="stat-v">${s.v}</div><div class="stat-l">${s.l}</div></div>`).join('');
+    {v:DB.songs.length,   l:'Morceaux',    p:'morceaux'},
+    {v:DB.members.length, l:'Musiciens',   p:'membres'},
+    {v:DB.sets.length,    l:'Répétitions', p:'sets'},
+    {v:DB.concerts.length,l:'Prestations', p:'concerts'},
+  ].map(s=>`<div class="stat" ondblclick="navTo('${s.p}')" title="Double-clic pour ouvrir" style="cursor:pointer"><div class="stat-v">${s.v}</div><div class="stat-l">${s.l}</div></div>`).join('');
 
   const now = new Date();
   const todayStr = now.toISOString().slice(0,10);
