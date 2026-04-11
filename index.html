@@ -281,37 +281,27 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
 ::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:3px}
 
 /* ===== MOBILE RESPONSIVE ===== */
-@media (max-width: 700px) {
+/* Par défaut (desktop) : mobile-header et mobile-nav cachés */
+.mobile-nav{display:none}
+.mobile-header{display:none}
 
-  /* Layout : sidebar cachée, nav en bas */
-  .app{flex-direction:column;height:100dvh}
-  .sidebar{display:none}
+@media (max-width: 700px) {
+  /* Sidebar cachée, nav en bas */
+  .app{flex-direction:column;height:100svh;height:100vh}
+  .sidebar{display:none !important}
+  .mobile-nav{display:flex !important;position:fixed;bottom:0;left:0;right:0;z-index:300;background:var(--surface);border-top:1px solid var(--border);height:62px}
+  .mobile-header{display:flex !important;align-items:center;gap:10px;padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
   .main{flex:1;overflow-y:auto;padding-bottom:70px}
 
-  /* Barre de navigation mobile en bas */
-  .mobile-nav{
-    display:flex;position:fixed;bottom:0;left:0;right:0;z-index:300;
-    background:var(--surface);border-top:1px solid var(--border);
-    height:62px;
-  }
-  .mobile-nav-item{
-    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:3px;cursor:pointer;color:var(--text3);font-size:9px;letter-spacing:.3px;
-    text-transform:uppercase;padding:6px 2px;border:none;background:none;
-    transition:color .15s;-webkit-tap-highlight-color:transparent;
-  }
+  /* Nav mobile items */
+  .mobile-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:var(--text3);font-size:9px;letter-spacing:.3px;text-transform:uppercase;padding:6px 2px;border:none;background:none;transition:color .15s;-webkit-tap-highlight-color:transparent}
   .mobile-nav-item svg{width:22px;height:22px;flex-shrink:0}
   .mobile-nav-item.active{color:var(--accent)}
   .mobile-nav-item.active svg{filter:drop-shadow(0 0 4px rgba(232,168,124,.4))}
 
   /* Header mobile */
-  .mobile-header{
-    display:flex;align-items:center;gap:10px;
-    padding:12px 16px;background:var(--surface);
-    border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;
-  }
-  .mobile-logo{width:36px;height:36px;border-radius:50%;object-fit:cover}
-  .mobile-title{font-size:15px;font-weight:500;color:var(--text);font-family:'Playfair Display',serif}
+  .mobile-logo{width:36px;height:36px;min-width:36px;border-radius:50%;object-fit:cover;overflow:hidden}
+  .mobile-title{font-size:15px;font-weight:500;color:var(--text);font-family:'Playfair Display',serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .mobile-sync{margin-left:auto;font-size:10px;color:var(--text3);display:flex;align-items:center;gap:5px}
 
   /* Pages */
@@ -353,9 +343,9 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
   .cal-date-num{font-size:10px}
   .cal-day-name{font-size:9px;padding:6px 0}
 
-  /* Modals : plein écran sur mobile */
+  /* Modals plein écran */
   .modal-overlay{padding:0;align-items:flex-end}
-  .modal{max-width:100%;width:100%;border-radius:20px 20px 0 0;max-height:92dvh}
+  .modal{max-width:100%;width:100%;border-radius:20px 20px 0 0;max-height:92vh}
   .modal.wide{max-width:100%}
   .modal-header{padding:18px 18px 14px;border-radius:20px 20px 0 0}
   .modal-body{padding:14px 18px 24px}
@@ -366,11 +356,11 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
   /* Preferences */
   .pref-page-header{gap:8px}
   .pref-member-select{min-width:0;width:100%}
-  .pref-table th, .pref-table td{padding:8px 6px}
+  .pref-table th,.pref-table td{padding:8px 6px}
   .interest-group{flex-wrap:wrap;gap:4px}
   .interest-btn{padding:4px 8px;font-size:10px}
 
-  /* Concert songs panel */
+  /* Concert songs */
   .csp-song-row{padding:8px}
   .csp-song-name{font-size:11px}
 
@@ -378,32 +368,17 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
   .form-input{padding:11px 13px;font-size:14px}
   .btn{touch-action:manipulation}
 
-  /* Masquer le dot de sync dans le footer (géré dans mobile-header) */
+  /* Sync footer caché */
   .sidebar-footer{display:none}
 
-  /* Toast en bas au dessus de la nav */
+  /* Toast */
   .toast-container{bottom:72px;right:12px;left:12px}
   .toast{max-width:100%}
 
-  /* Dashboard events */
-  #dash-events > div, #dash-songs > div{padding:10px 12px}
+  /* Dashboard */
+  #dash-events > div,#dash-songs > div{padding:10px 12px}
 }
-
-/* Desktop : cacher la nav mobile, restaurer le layout sidebar */
-@media (min-width: 701px) {
-  .mobile-nav{display:none !important}
-  .mobile-header{display:none !important}
-  .app{flex-direction:row !important;height:100vh !important}
-  .sidebar{display:flex !important;width:220px;min-width:220px}
-  .main{padding-bottom:0 !important}
-  .modal-overlay{padding:20px;align-items:center}
-  .modal{max-width:500px;width:100%;border-radius:16px;max-height:90vh}
-  .modal.wide{max-width:680px}
-  .modal-header{padding:22px 24px 0;border-radius:0}
-  .modal-body{padding:20px 24px 24px}
-  .form-row{grid-template-columns:1fr 1fr}
-  .set-builder{grid-template-columns:1fr 1fr}
-}</style>
+</style>
 </head>
 <body>
 
@@ -421,7 +396,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
 
   <!-- HEADER MOBILE (visible uniquement sur mobile) -->
   <div class="mobile-header">
-    <img class="mobile-logo" src="" id="mobile-logo-img" alt="AMAJAZZ">
+    <img class="mobile-logo" src="" id="mobile-logo-img" alt="AMAJAZZ" width="36" height="36" style="width:36px;height:36px;min-width:36px;border-radius:50%;object-fit:cover;flex-shrink:0">
     <span class="mobile-title" id="mobile-page-title">Tableau de bord</span>
     <div class="mobile-sync">
       <span class="sync-dot" id="sync-dot-mobile"></span>
@@ -916,7 +891,6 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
 // ============================================================
 const SUPABASE_URL  = 'https://hirykfprszvqkeerpbtt.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpcnlrZnByc3p2cWtlZXJwYnR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MTYwMDQsImV4cCI6MjA5MTM5MjAwNH0.W5U0MsMq21j9Dsvw3MD3AyLnrOfyxz1dd31ziXe0wH8';
-
 // ============================================================
 //  INIT
 // ============================================================
