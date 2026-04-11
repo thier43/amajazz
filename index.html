@@ -1313,8 +1313,7 @@ function renderConcerts(){
               <span class="csp-song-num">${i+1}.</span>
               <span class="csp-song-name" style="flex:1;min-width:0">${esc(s.name)}${s.artist?` <span style="color:var(--text3);font-weight:400">— ${esc(s.artist)}</span>`:''}</span>
               ${s.key?`<span class="tag tag-key csp-song-key">${esc(s.key)}</span>`:''}
-              ${cs.notes?`<span style="font-size:11px;color:var(--amber);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px" title="${esc(cs.notes)}">⚠ ${esc(cs.notes)}</span>`:''}
-              ${s.notes&&!cs.notes?`<span style="font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px" title="${esc(s.notes)}">📝 ${esc(s.notes)}</span>`:''}
+              ${(cs.notes||s.notes)?`<span style="font-size:11px;color:var(--amber);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px" title="${esc([s.notes,cs.notes].filter(Boolean).join(' — '))}">⚠ ${esc([s.notes,cs.notes].filter(Boolean).join(' — '))}</span>`:''}
               <button class="btn btn-ghost btn-sm" style="padding:3px 7px;flex-shrink:0" onclick="editConcertSongNote(${c.id},${cs.song_id})" title="Note">✎</button>
               <button class="btn btn-danger btn-sm" style="padding:3px 7px;flex-shrink:0" onclick="removeSongFromConcert(${c.id},${cs.song_id})">✕</button>
             </div>`;
