@@ -1221,7 +1221,9 @@ function renderSets(){
         </div>
         <div class="set-count">${songs.length} morceau${songs.length>1?'x':''} ${dur?'· ~'+dur+' min':''}</div>
         <div class="set-songs-list">
-          ${DB.set_songs.filter(ss=>ss.set_id===set.id).sort((a,b)=>a.position-b.position).map((ss,i)=>{
+          ${DB.set_songs.filter(ss=>ss.set_id===set.id)
+            .sort((a,b)=>(b.priority||0)-(a.priority||0) || a.position-b.position)
+            .map((ss,i)=>{
             const s = DB.songs.find(x=>x.id===ss.song_id);
             if(!s) return '';
             const prio = ss.priority||0;
@@ -1321,14 +1323,18 @@ async function saveSet(){
       if(error) throw error;
       setId = data.id;
     }
+    // Conserver les priorités existantes
+    const existingPrios = {};
+    DB.set_songs.filter(ss=>ss.set_id===setId).forEach(ss=>{ existingPrios[ss.song_id] = ss.priority||0; });
     await sb.from('set_songs').delete().eq('set_id', setId);
     if(setSelectedSongs.length){
       await sb.from('set_songs').insert(setSelectedSongs.map((sid,pos)=>({
         set_id:setId, song_id:sid, position:pos,
         set_notes:setNotesMap[sid]||null,
+        priority: existingPrios[sid]||0,
       })));
     }
-    await loadAll(); closeModal(); renderSets(); renderDashboard();
+    await loadAll(); closeModal(renderSets); renderDashboard();
     populateConcertSets();
     toast(editingId?'Répétition modifiée':'Répétition créée');
     setSyncStatus('ok');

@@ -631,7 +631,8 @@ function renderSets(){
     const songRows = DB.set_songs.filter(ss=>ss.set_id===set.id).sort((a,b)=>a.position-b.position);
     const songs = songRows.map(ss=>DB.songs.find(s=>s.id===ss.song_id)).filter(Boolean);
     const dur = songs.reduce((a,s)=>a+(s.duration||0),0);
-    const songsHtml = songRows.map((ss,i)=>{
+    const songRows2 = [...songRows].sort((a,b)=>(b.priority||0)-(a.priority||0)||(a.position||0)-(b.position||0));
+    const songsHtml = songRows2.map((ss,i)=>{
       const s = DB.songs.find(x=>x.id===ss.song_id);
       if(!s) return '';
       const prio = ss.priority||0;
@@ -1010,7 +1011,8 @@ function closeSynthPanelDirect(){
 function renderSynthBody(setId, cSongList){
   const body = document.getElementById('synth-body');
   // Use set_songs or concert_songs depending on what was passed
-  const songRows = cSongList || DB.set_songs.filter(ss=>ss.set_id===setId).sort((a,b)=>a.position-b.position);
+  const rawRows = cSongList || DB.set_songs.filter(ss=>ss.set_id===setId).sort((a,b)=>a.position-b.position);
+  const songRows = [...rawRows].sort((a,b)=>(b.priority||0)-(a.priority||0)||(a.position||0)-(b.position||0));
   const songs = songRows.map(r=>DB.songs.find(s=>s.id===(r.song_id||r.id))).filter(Boolean);
 
   if(!songs.length){
