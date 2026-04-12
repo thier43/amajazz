@@ -1189,7 +1189,8 @@ function renderSets(){
                 ${s.key?`<span class="tag tag-key" style="font-size:10px">${esc(s.key)}</span>`:''}
                 ${s.folder_link?`<a href="${esc(s.folder_link)}" target="_blank" onclick="event.stopPropagation()" title="Ouvrir le dossier" style="color:var(--accent2);font-size:13px;text-decoration:none">&#128279;</a>`:''}
               </div>
-              ${ss.set_notes?`<div style="font-size:11px;color:var(--amber);padding-left:22px;line-height:1.4">&#9888; ${esc(ss.set_notes)}</div>`:''}
+              ${ss.set_notes?`<div style="font-size:11px;color:var(--amber);padding-left:22px;line-height:1.4">⚠ ${esc(ss.set_notes)}</div>`:''}
+              ${s.notes?`<div style="font-size:11px;color:var(--text3);padding-left:22px;line-height:1.4;font-style:italic">📝 ${esc(s.notes)}</div>`:''}
             </div>`;
           }).join('')}
         </div>
