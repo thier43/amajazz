@@ -19,6 +19,36 @@
   --radius:12px;--radius-sm:8px;--radius-xs:6px;
   --shadow:0 4px 24px rgba(0,0,0,.4);
 }
+/* ===== THÈME CLAIR ===== */
+body.theme-light{
+  --bg:#f4f2ee;--surface:#ffffff;--surface2:#f0ede8;--surface3:#e8e4dd;
+  --accent:#c97a3a;--accent2:#3a6fc9;--accent3:#7a3ac9;
+  --green:#2a9e78;--red:#c93a3a;--amber:#b8860b;
+  --text:#1a1825;--text2:#4a4760;--text3:#8a8799;
+  --border:rgba(0,0,0,0.09);--border2:rgba(0,0,0,0.16);
+  --shadow:0 4px 24px rgba(0,0,0,.10);
+}
+body.theme-light .sidebar{border-right:1px solid var(--border2)}
+body.theme-light .modal-overlay{background:rgba(0,0,0,.5)}
+body.theme-light .nav-item.active{background:var(--surface2)}
+body.theme-light .song-item:hover{background:var(--surface2)}
+body.theme-light .drop-zone{background:var(--surface2)}
+body.theme-light .pick-item{background:var(--surface3)}
+body.theme-light .set-card{background:var(--surface)}
+body.theme-light .concert-card{background:var(--surface)}
+body.theme-light .member-card{background:var(--surface)}
+body.theme-light .csp-song-row{background:var(--surface2)}
+body.theme-light .tag-key{background:rgba(58,111,201,.12);color:var(--accent2)}
+body.theme-light .tag-tempo{background:rgba(42,158,120,.12);color:var(--green)}
+body.theme-light .tag-style{background:rgba(122,58,201,.12);color:var(--accent3)}
+body.theme-light .sync-dot{background:var(--green)}
+body.theme-light input,body.theme-light textarea,body.theme-light select{background:var(--surface2);color:var(--text);border-color:var(--border2)}
+body.theme-light .btn-primary{background:var(--accent);color:#fff}
+body.theme-light .loading-screen{background:var(--bg)}
+/* Bouton thème */
+.theme-toggle{display:flex;align-items:center;gap:8px;padding:10px 16px;cursor:pointer;border:none;background:none;color:var(--text3);font-size:12px;font-family:'DM Sans',sans-serif;width:100%;transition:color .15s}
+.theme-toggle:hover{color:var(--text)}
+.theme-toggle-icon{font-size:16px}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
 h1,h2,h3{font-family:'Playfair Display',serif}
 button{font-family:'DM Sans',sans-serif}
@@ -327,6 +357,10 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
         Préférences
       </div>
     </nav>
+    <button class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()" title="Changer de thème">
+      <span class="theme-toggle-icon" id="theme-toggle-icon">☀️</span>
+      <span id="theme-toggle-label">Thème clair</span>
+    </button>
     <div class="sidebar-footer">
       <span class="sync-dot" id="sync-dot"></span>
       <span id="sync-label">Connecté</span>
@@ -2285,6 +2319,30 @@ function printSetProgram(setId){
     logoSrc,
   }));
 }
+
+// ============================================================
+//  THEME
+// ============================================================
+function toggleTheme(){
+  const isLight = document.body.classList.toggle('theme-light');
+  localStorage.setItem('amajazz-theme', isLight ? 'light' : 'dark');
+  document.getElementById('theme-toggle-icon').textContent = isLight ? '🌙' : '☀️';
+  document.getElementById('theme-toggle-label').textContent = isLight ? 'Thème sombre' : 'Thème clair';
+}
+
+// Appliquer le thème mémorisé au chargement
+(function(){
+  const saved = localStorage.getItem('amajazz-theme');
+  if(saved === 'light'){
+    document.body.classList.add('theme-light');
+    document.addEventListener('DOMContentLoaded', ()=>{
+      const icon = document.getElementById('theme-toggle-icon');
+      const lbl  = document.getElementById('theme-toggle-label');
+      if(icon) icon.textContent = '🌙';
+      if(lbl)  lbl.textContent  = 'Thème sombre';
+    });
+  }
+})();
 
 // ============================================================
 //  BOOT
