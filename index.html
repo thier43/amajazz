@@ -957,7 +957,8 @@ async function saveSong(){
       if(error) throw error;
     }
     await loadAll();
-    closeModal(); renderSongs(); renderDashboard();
+    closeModal(renderSongs);
+    renderDashboard();
     toast(editingId?'Morceau modifié':'Morceau ajouté');
     setSyncStatus('ok');
   } catch(e){ toast('Erreur: '+e.message,'error'); setSyncStatus('error'); }
@@ -1812,13 +1813,15 @@ function showModal(name, returnPage){
   document.getElementById('modal-overlay').classList.add('open');
   _modalReturnPage = returnPage || null;
 }
-function closeModal(){
+function closeModal(defaultRender){
   document.getElementById('modal-overlay').classList.remove('open');
   editingId = null;
   if(_modalReturnPage){
     const p = _modalReturnPage;
     _modalReturnPage = null;
-    navigateTo(p);
+    window.navTo(p);
+  } else if(defaultRender){
+    defaultRender();
   }
 }
 function handleOverlayClick(e){
