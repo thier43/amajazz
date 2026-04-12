@@ -915,7 +915,7 @@ function renderSongs(){
   `).join('');
 }
 
-function openSongModal(id=null){
+function openSongModal(id=null, returnPage=null){
   editingId = id;
   document.getElementById('song-modal-title').textContent = id?'Modifier le morceau':'Nouveau morceau';
   const s = id ? DB.songs.find(x=>x.id===id) : {};
@@ -933,7 +933,7 @@ function openSongModal(id=null){
     document.getElementById('tempo-display').textContent = this.value;
     document.getElementById('tempo-val-display').textContent = this.value;
   };
-  showModal('song');
+  showModal('song', returnPage);
 }
 
 async function saveSong(){
@@ -1788,7 +1788,7 @@ function renderDashboard(){
     : `<p class="text-xs text-muted">Aucun événement à venir.</p>`;
 
   document.getElementById('dash-songs').innerHTML = DB.songs.slice(0,6).map(s=>`
-    <div style="display:flex;align-items:center;gap:10px;padding:9px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;cursor:pointer" title="Cliquer pour modifier" onclick="navTo('morceaux');setTimeout(()=>openSongModal(${s.id}),100)">
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;cursor:pointer" title="Cliquer pour modifier" onclick="navTo('morceaux');setTimeout(()=>openSongModal(${s.id},'dashboard'),100)">
       <span style="color:var(--text3)">♩</span>
       <span class="text-sm" style="flex:1">${esc(s.name)}</span>
       ${s.key?`<span class="tag tag-key">${esc(s.key)}</span>`:''}
@@ -1804,14 +1804,22 @@ window.navTo = function(page){
 // ============================================================
 //  MODAL HELPERS
 // ============================================================
-function showModal(name){
+let _modalReturnPage = null;
+
+function showModal(name, returnPage){
   document.querySelectorAll('.modal').forEach(m=>m.style.display='none');
   document.getElementById('modal-'+name).style.display='block';
   document.getElementById('modal-overlay').classList.add('open');
+  _modalReturnPage = returnPage || null;
 }
 function closeModal(){
   document.getElementById('modal-overlay').classList.remove('open');
   editingId = null;
+  if(_modalReturnPage){
+    const p = _modalReturnPage;
+    _modalReturnPage = null;
+    navigateTo(p);
+  }
 }
 function handleOverlayClick(e){
   if(e.target===document.getElementById('modal-overlay')) closeModal();
