@@ -1224,15 +1224,17 @@ function renderSets(){
           ${DB.set_songs.filter(ss=>ss.set_id===set.id).sort((a,b)=>a.position-b.position).map((ss,i)=>{
             const s = DB.songs.find(x=>x.id===ss.song_id);
             if(!s) return '';
+            const prio = ss.priority||0;
             return `<div class="set-song-row" style="flex-direction:column;align-items:flex-start;gap:3px">
               <div style="display:flex;align-items:center;gap:8px;width:100%">
+                <div class="prio-dot prio-${prio}" onclick="event.stopPropagation();setPriority(${set.id},${s.id},${prio})" title="${prio===0?'Normal — cliquer pour prioriser':prio===1?'À travailler — cliquer pour urgent':'Prioritaire — cliquer pour réinitialiser'}"></div>
                 <span class="set-song-num">${i+1}.</span>
-                <span style="flex:1;font-size:12px">${esc(s.name)}</span>
+                <span style="flex:1;font-size:12px${prio===2?';font-weight:600;color:var(--text)':prio===1?';color:var(--text)':''}">${esc(s.name)}</span>
                 ${s.key?`<span class="tag tag-key" style="font-size:10px">${esc(s.key)}</span>`:''}
                 ${s.folder_link?`<a href="${esc(s.folder_link)}" target="_blank" onclick="event.stopPropagation()" title="Ouvrir le dossier" style="color:var(--accent2);font-size:13px;text-decoration:none">&#128279;</a>`:''}
               </div>
-              ${ss.set_notes?`<div style="font-size:11px;color:var(--amber);padding-left:22px;line-height:1.4">⚠ ${esc(ss.set_notes)}</div>`:''}
-              ${s.notes?`<div style="font-size:11px;color:var(--text3);padding-left:22px;line-height:1.4;font-style:italic">📝 ${esc(s.notes)}</div>`:''}
+              ${ss.set_notes?`<div style="font-size:11px;color:var(--amber);padding-left:30px;line-height:1.4">⚠ ${esc(ss.set_notes)}</div>`:''}
+              ${s.notes?`<div style="font-size:11px;color:var(--text3);padding-left:30px;line-height:1.4;font-style:italic">📝 ${esc(s.notes)}</div>`:''}
             </div>`;
           }).join('')}
         </div>
