@@ -873,6 +873,7 @@ function renderSongs(){
         ${s.notes?`<div class="song-notes">${esc(s.notes)}</div>`:''}
       </div>
       <div class="song-actions" onclick="event.stopPropagation()">
+        ${s.folder_link?`<a href="${esc(s.folder_link)}" target="_blank" class="btn btn-outline btn-sm" title="Ouvrir le dossier / partitions" style="text-decoration:none">📂</a>`:''}
         <button class="btn btn-ghost btn-sm" onclick="openSongModal(${s.id})">✎</button>
         <button class="btn btn-danger btn-sm" onclick="deleteSong(${s.id})">✕</button>
       </div>
