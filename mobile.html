@@ -238,7 +238,7 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 #pref-panel.open{display:flex;flex-direction:column;justify-content:flex-end}
 .pref-sheet{
   background:var(--bg);border-radius:20px 20px 0 0;
-  max-height:85vh;display:flex;flex-direction:column;
+  height:85vh;max-height:85vh;display:flex;flex-direction:column;
   animation:slideUp .25s ease;
 }
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
@@ -255,7 +255,7 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
   white-space:nowrap;
 }
 .pref-member-chip.active{background:var(--nav-bg);color:#fff;border-color:var(--nav-bg)}
-.pref-sheet-body{overflow-y:auto;flex:1;padding:0 0 8px}
+.pref-sheet-body{overflow-y:auto;flex:1;padding:0 0 80px;-webkit-overflow-scrolling:touch}
 .pref-song-card{padding:12px 18px;border-bottom:1px solid var(--border)}
 .pref-song-card-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px}
 .interest-row{display:flex;gap:6px;margin-bottom:8px}
