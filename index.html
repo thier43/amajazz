@@ -307,64 +307,54 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:3px}
 
-/* ===== MOBILE (max 768px) ===== */
-@media(max-width:1024px){
-  /* Cacher la sidebar, afficher le contenu en plein écran */
-  .sidebar{display:none!important}
-  .app{display:block!important;height:100vh;overflow:hidden}
-  .main{height:100vh;padding-bottom:62px;overflow-y:auto}
+/* ===== MOBILE ===== */
+.mobile-nav{display:none}
+.mobile-more-menu{display:none}
 
-  /* Barre de navigation fixe en bas */
+@media(max-width:1024px){
+  .sidebar{display:none!important;visibility:hidden!important;width:0!important;min-width:0!important}
+  .app{display:block!important}
+  .main{height:calc(100vh - 56px);overflow-y:auto;padding-bottom:0}
   .mobile-nav{
     display:flex!important;
-    position:fixed;bottom:0;left:0;right:0;
-    height:56px;
-    background:var(--surface);
-    border-top:1px solid var(--border2);
-    z-index:300;
-    align-items:stretch;
+    position:fixed;bottom:0;left:0;right:0;height:56px;
+    background:var(--surface);border-top:2px solid var(--border2);
+    z-index:9999;align-items:stretch;
+    box-shadow:0 -2px 12px rgba(0,0,0,.3);
   }
   .mobile-nav-btn{
-    flex:1;display:flex;flex-direction:column;align-items:center;
-    justify-content:center;gap:2px;
-    background:none;border:none;
-    color:var(--text3);font-size:8px;letter-spacing:.3px;
-    text-transform:uppercase;font-family:'DM Sans',sans-serif;
-    cursor:pointer;padding:4px 2px;
-    -webkit-tap-highlight-color:transparent;
-    transition:color .15s;
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:2px;background:none;border:none;
+    color:var(--text3);font-size:8px;letter-spacing:.3px;text-transform:uppercase;
+    font-family:'DM Sans',sans-serif;cursor:pointer;padding:4px 1px;
+    -webkit-tap-highlight-color:transparent;transition:color .15s;
   }
-  .mobile-nav-btn svg{width:18px;height:18px;flex-shrink:0;opacity:.7}
-  .mobile-nav-btn.active{color:var(--accent)}
-  .mobile-nav-btn.active svg{opacity:1;filter:drop-shadow(0 0 4px rgba(232,168,124,.4))}
-  /* "More" button pour Préférences et thème */
+  .mobile-nav-btn svg{width:20px;height:20px;flex-shrink:0}
+  .mobile-nav-btn.active{color:var(--btn-color,var(--accent))}
+  .mobile-nav-btn.active svg{filter:drop-shadow(0 0 3px var(--btn-color,rgba(232,168,124,.5)))}
+  .mobile-nav-btn:not(.active):hover{color:var(--btn-color,var(--text2))}
   .mobile-more-menu{
-    display:none;position:fixed;bottom:62px;right:0;
+    display:none;position:fixed;bottom:56px;right:0;
     background:var(--surface);border:1px solid var(--border2);
-    border-radius:12px 0 0 0;padding:8px 0;z-index:400;
-    min-width:180px;
+    border-radius:12px 0 0 0;padding:8px 0;z-index:10000;min-width:180px;
+    box-shadow:-4px -4px 16px rgba(0,0,0,.3);
   }
-  .mobile-more-menu.open{display:block}
+  .mobile-more-menu.open{display:block!important}
   .mobile-more-item{
-    display:flex;align-items:center;gap:10px;
-    padding:11px 18px;font-size:13px;color:var(--text2);
-    cursor:pointer;background:none;border:none;
-    width:100%;font-family:'DM Sans',sans-serif;
-    text-align:left;
+    display:flex;align-items:center;gap:10px;padding:11px 18px;
+    font-size:13px;color:var(--text2);cursor:pointer;background:none;border:none;
+    width:100%;font-family:'DM Sans',sans-serif;text-align:left;
   }
-  .mobile-more-item:hover{color:var(--text);background:var(--surface2)}
-  .mobile-more-item svg{width:16px;height:16px;opacity:.7;flex-shrink:0}
-  /* Ajustements contenu mobile */
-  .page-header{padding:14px 14px 10px}
-  .page{padding:0 12px 12px}
-  .set-grid{grid-template-columns:1fr}
-  .stats-bar{grid-template-columns:repeat(2,1fr);gap:10px}
+  .mobile-more-item:active{background:var(--surface2)}
+  .mobile-more-item svg{width:16px;height:16px;flex-shrink:0}
+  .page-header{padding:12px 12px 8px}
+  .page{padding:0 10px 10px}
+  .set-grid{grid-template-columns:1fr!important}
+  .stats-bar{grid-template-columns:repeat(2,1fr)!important;gap:8px}
+  .modal{max-width:calc(100vw - 20px)!important}
+  .set-builder{grid-template-columns:1fr!important}
 }
-/* Desktop : cacher la barre mobile */
-@media(min-width:1025px){
-  .mobile-nav{display:none!important}
-  .mobile-more-menu{display:none!important}
-}
+
 </style>
 </head>
 <body>
@@ -872,7 +862,7 @@ async function init(){
     await loadAll();
     setSyncStatus('ok');
     document.getElementById('loading-screen').classList.add('hidden');
-    document.getElementById('app').style.display='flex';
+    document.getElementById('app').style.display = window.innerWidth <= 1024 ? 'block' : 'flex';
     renderDashboard();
   } catch(e) {
     console.error(e);
@@ -2480,6 +2470,14 @@ document.addEventListener('click', e=>{
   }
 });
 
+// Fix app display on resize
+window.addEventListener('resize', ()=>{
+  const app = document.getElementById('app');
+  if(app && app.style.display !== 'none'){
+    app.style.display = window.innerWidth <= 1024 ? 'block' : 'flex';
+  }
+});
+
 // ============================================================
 //  BOOT
 // ============================================================
@@ -2492,19 +2490,19 @@ init();
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
     Accueil
   </button>
-  <button class="mobile-nav-btn" data-page="morceaux" onclick="mobileNav('morceaux')">
+  <button class="mobile-nav-btn" data-page="morceaux" style="--btn-color:#5dc8a0" onclick="mobileNav('morceaux')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
     Morceaux
   </button>
-  <button class="mobile-nav-btn" data-page="sets" onclick="mobileNav('sets')">
+  <button class="mobile-nav-btn" data-page="sets" style="--btn-color:#a87ce8" onclick="mobileNav('sets')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
     Répét.
   </button>
-  <button class="mobile-nav-btn" data-page="concerts" onclick="mobileNav('concerts')">
+  <button class="mobile-nav-btn" data-page="concerts" style="--btn-color:#e8a87c" onclick="mobileNav('concerts')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
     Presta.
   </button>
-  <button class="mobile-nav-btn" data-page="planning" onclick="mobileNav('planning')">
+  <button class="mobile-nav-btn" data-page="planning" style="--btn-color:#e8c87c" onclick="mobileNav('planning')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
     Planning
   </button>
