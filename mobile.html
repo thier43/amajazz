@@ -122,6 +122,18 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 .event-date{font-size:10px;color:var(--accent);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px;font-weight:600}
 .event-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;line-height:1.2;margin-bottom:4px}
 .event-venue{font-size:12px;color:rgba(255,255,255,.5)}
+.event-card-compact{
+  display:flex;align-items:center;gap:10px;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:10px 12px;
+  margin-bottom:8px;cursor:pointer;
+  transition:background .15s;
+}
+.event-card-compact:active{background:var(--bg2)}
+.event-compact-icon{font-size:22px;flex-shrink:0}
+.event-compact-info{flex:1;min-width:0}
+.event-compact-title{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.event-compact-meta{font-size:11px;color:var(--text3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .event-badge{display:inline-block;font-size:9px;padding:2px 8px;border-radius:20px;font-weight:600;letter-spacing:.5px;margin-top:6px;text-transform:uppercase}
 .badge-repet{background:rgba(42,95,160,.25);color:#7cb0ff}
 .badge-concert{background:rgba(201,122,58,.25);color:#ffb87c}
@@ -325,6 +337,9 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
   font-size:12px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;
 }
 
+.minput{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:'DM Sans',sans-serif;background:var(--card);color:var(--text);outline:none}
+.minput:focus{border-color:var(--accent)}
+
 /* ── PRINT STYLES ── */
 .print-html{display:none}
 </style>
@@ -410,9 +425,12 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 
     <!-- GROUPE -->
     <div class="page" id="page-membres">
-      <div class="page-top">
-        <h2>Groupe</h2>
-        <p id="membres-count-m"></p>
+      <div class="page-top" style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <h2>Groupe</h2>
+          <p id="membres-count-m"></p>
+        </div>
+        <button onclick="openMemberModal(null)" style="background:var(--nav-bg);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;font-weight:500">+ Ajouter</button>
       </div>
       <div id="membre-list-m"></div>
     </div>
@@ -550,18 +568,21 @@ function renderDashboard(){
   }
   container.innerHTML = items.map(e=>{
     const d = e.date ? new Date(e.date+'T12:00:00') : null;
-    const dateStr = d
-      ? d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})
-      : 'Date à confirmer';
-    const timeStr = e.time ? ' · '+e.time.slice(0,5) : '';
-    const badge = e.type==='concert'
-      ? `<span class="event-badge badge-${e.status||'projet'}">${e.status==='confirme'?'Confirmé':'Projet'}</span>`
-      : `<span class="event-badge badge-repet">Répétition</span>`;
-    return `<div class="event-card">
-      <div class="event-date">${dateStr}${timeStr}</div>
-      <div class="event-title">${esc(e.label)}</div>
-      ${e.venue?`<div class="event-venue">📍 ${esc(e.venue)}</div>`:''}
-      ${badge}
+    const dateShort = d
+      ? d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})
+      : 'Date ?';
+    const timeStr = e.time ? e.time.slice(0,5) : '';
+    const dest = e.type==='concert' ? 'concerts' : 'planning';
+    const icon = e.type==='concert' ? '🎤' : '🎵';
+    const badgeClass = e.type==='concert' ? `badge-${e.status||'projet'}` : 'badge-repet';
+    const badgeText = e.type==='concert' ? (e.status==='confirme'?'Confirmé':'Projet') : 'Répét.';
+    return `<div class="event-card-compact" onclick="goTo('${dest}')">
+      <div class="event-compact-icon">${icon}</div>
+      <div class="event-compact-info">
+        <div class="event-compact-title">${esc(e.label)}</div>
+        <div class="event-compact-meta">${dateShort}${timeStr?' · '+timeStr:''}${e.venue?' · '+esc(e.venue):''}</div>
+      </div>
+      <span class="event-badge ${badgeClass}" style="flex-shrink:0">${badgeText}</span>
     </div>`;
   }).join('');
 }
@@ -758,11 +779,12 @@ function renderMembers(){
     const members = DB.members.filter(m=>m.family===fam);
     return `<div class="family-title" style="color:${color}">${fam}</div>
       <div class="member-grid">
-        ${members.map(m=>`<div class="member-card">
+        ${members.map(m=>`<div class="member-card" onclick="openMemberModal(${m.id})">
           <div class="member-avatar" style="background:${color}">${esc(m.avatar||(m.prenom||'?').charAt(0).toUpperCase())}</div>
           <div class="member-name">${esc(m.prenom)}${m.nom?' '+esc(m.nom):''}</div>
           ${m.pseudo?`<div class="member-pseudo">"${esc(m.pseudo)}"</div>`:''}
           <div class="member-instrument">${esc(m.instrument||m.family||'')}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:6px">✎ Modifier</div>
         </div>`).join('')}
       </div>`;
   }).join('');
@@ -1029,6 +1051,63 @@ function renderSynthBody(setId, cSongList){
   }).join('');
 }
 
+// ── MEMBERS MODAL ──
+let _editMemberId = null;
+
+function openMemberModal(id){
+  _editMemberId = id;
+  const m = id ? DB.members.find(x=>x.id===id) : {};
+  document.getElementById('member-modal-title').textContent = id ? 'Modifier le musicien' : 'Nouveau musicien';
+  document.getElementById('mf-prenom').value    = m?.prenom||'';
+  document.getElementById('mf-nom').value       = m?.nom||'';
+  document.getElementById('mf-pseudo').value    = m?.pseudo||'';
+  document.getElementById('mf-family').value    = m?.family||'Soufflants';
+  document.getElementById('mf-instrument').value= m?.instrument||'';
+  document.getElementById('mf-avatar').value    = m?.avatar||'';
+  document.getElementById('member-delete-btn').style.display = id ? 'block' : 'none';
+  const overlay = document.getElementById('member-modal-overlay');
+  overlay.style.display = 'flex';
+}
+
+function closeMemberModal(e){
+  if(e.target===document.getElementById('member-modal-overlay'))
+    document.getElementById('member-modal-overlay').style.display='none';
+}
+
+async function saveMemberM(){
+  const prenom = document.getElementById('mf-prenom').value.trim();
+  if(!prenom){ alert('Le prénom est requis'); return; }
+  const payload = {
+    prenom,
+    nom:       document.getElementById('mf-nom').value.trim()||null,
+    pseudo:    document.getElementById('mf-pseudo').value.trim()||null,
+    family:    document.getElementById('mf-family').value,
+    instrument:document.getElementById('mf-instrument').value.trim()||null,
+    avatar:    document.getElementById('mf-avatar').value.trim()||null,
+  };
+  setSyncStatus('loading');
+  try {
+    if(_editMemberId) await sb.from('members').update(payload).eq('id',_editMemberId);
+    else await sb.from('members').insert(payload);
+    await loadAll();
+    document.getElementById('member-modal-overlay').style.display='none';
+    renderMembers();
+    setSyncStatus('ok');
+  } catch(e){ setSyncStatus('error'); alert('Erreur: '+e.message); }
+}
+
+async function deleteMemberM(){
+  if(!_editMemberId||!confirm('Supprimer ce musicien ?')) return;
+  setSyncStatus('loading');
+  try {
+    await sb.from('members').delete().eq('id',_editMemberId);
+    await loadAll();
+    document.getElementById('member-modal-overlay').style.display='none';
+    renderMembers();
+    setSyncStatus('ok');
+  } catch(e){ setSyncStatus('error'); alert('Erreur: '+e.message); }
+}
+
 // ── INIT ──
 async function init(){
   try {
@@ -1069,6 +1148,40 @@ init();
       <button class="synth-sheet-close" onclick="closeSynthPanelDirect()">×</button>
     </div>
     <div class="synth-body" id="synth-body"></div>
+  </div>
+</div>
+
+<!-- MODAL MUSICIEN -->
+<div id="member-modal-overlay" onclick="closeMemberModal(event)" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9000;align-items:flex-end">
+  <div style="background:var(--bg);border-radius:20px 20px 0 0;width:100%;max-height:90vh;overflow-y:auto;padding:20px 18px 100px;animation:slideUp .25s ease">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px" id="member-modal-title">Nouveau musicien</div>
+      <button onclick="document.getElementById('member-modal-overlay').style.display='none'" style="background:var(--nav-bg);color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:18px;cursor:pointer">×</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div><label style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Prénom *</label>
+        <input id="mf-prenom" class="minput" placeholder="Prénom"></div>
+      <div><label style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Nom</label>
+        <input id="mf-nom" class="minput" placeholder="Nom"></div>
+      <div><label style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Pseudo</label>
+        <input id="mf-pseudo" class="minput" placeholder="Pseudo / nom de scène"></div>
+      <div><label style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Famille</label>
+        <select id="mf-family" class="minput">
+          <option>Soufflants</option><option>Guitares</option><option>Basse</option>
+          <option>Batterie</option><option>Chant</option><option>Clavier</option><option>Autres</option>
+        </select></div>
+      <div><label style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Instrument</label>
+        <input id="mf-instrument" class="minput" placeholder="Ex: Trompette, Guitare…"></div>
+      <div><label style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Avatar (initiales ou émoji)</label>
+        <input id="mf-avatar" class="minput" placeholder="Ex: JD ou 🎸"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button onclick="document.getElementById('member-modal-overlay').style.display='none'" style="flex:1;padding:12px;border:1px solid var(--border);border-radius:10px;background:none;color:var(--text2);font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer">Annuler</button>
+      <button onclick="saveMemberM()" style="flex:2;padding:12px;background:var(--nav-bg);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">Enregistrer</button>
+    </div>
+    <div id="member-delete-btn" style="display:none;margin-top:10px">
+      <button onclick="deleteMemberM()" style="width:100%;padding:12px;background:rgba(201,58,58,.1);color:var(--red);border:1px solid rgba(201,58,58,.2);border-radius:10px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer">🗑 Supprimer ce musicien</button>
+    </div>
   </div>
 </div>
 
