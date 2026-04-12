@@ -115,7 +115,7 @@ button{font-family:'DM Sans',sans-serif}
 
 /* ===== SET BUILDER ===== */
 .set-builder{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
-.drop-zone{background:var(--surface2);border:1px dashed var(--border2);border-radius:var(--radius);padding:14px;min-height:240px}
+.drop-zone{background:var(--surface2);border:1px dashed var(--border2);border-radius:var(--radius);padding:14px;min-height:320px;max-height:420px;overflow-y:auto}
 .drop-zone-title{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
 .pick-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xs);padding:8px 12px;margin-bottom:6px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);transition:all .15s}
 .pick-item:hover{border-color:var(--border2);color:var(--text)}
@@ -155,7 +155,7 @@ button{font-family:'DM Sans',sans-serif}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
 .modal-overlay.open{display:flex}
 .modal{background:var(--surface);border:1px solid var(--border2);border-radius:16px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow)}
-.modal.wide{max-width:680px}
+.modal.wide{max-width:860px;max-height:92vh}
 .modal-header{padding:22px 24px 0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);padding-bottom:16px;border-bottom:1px solid var(--border);z-index:1}
 .modal-title{font-size:18px;color:var(--text)}
 .modal-close{background:none;border:none;color:var(--text3);font-size:22px;cursor:pointer;padding:2px 6px;border-radius:4px;line-height:1}
@@ -1202,10 +1202,9 @@ function renderSetBuilder(){
           <span style="flex:1;font-size:12px">${esc(s.name)}</span>
           ${s.key?`<span class="tag tag-key" style="font-size:10px">${esc(s.key)}</span>`:''}
         </div>
-        <input class="form-input" style="font-size:11px;padding:5px 9px;background:var(--surface3)"
+        <textarea class="form-input" rows="2" style="font-size:11px;padding:5px 9px;background:var(--surface3);resize:vertical;min-height:38px"
           placeholder="&#9888; Note spécifique pour ce set (structure, arrangement…)"
-          value="${esc(setNotesMap[s.id]||'')}"
-          oninput="setNotesMap[${s.id}]=this.value">
+          oninput="setNotesMap[${s.id}]=this.value">${esc(setNotesMap[s.id]||'')}</textarea>
       </div>`).join('')
     : `<p class="text-xs text-muted" style="padding:16px;text-align:center">Cliquez sur les morceaux pour les ajouter.</p>`;
 
