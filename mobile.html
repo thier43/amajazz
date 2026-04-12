@@ -572,7 +572,7 @@ function renderDashboard(){
       ? d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})
       : 'Date ?';
     const timeStr = e.time ? e.time.slice(0,5) : '';
-    const dest = e.type==='concert' ? 'concerts' : 'planning';
+    const dest = e.type==='concert' ? 'concerts' : 'sets';
     const icon = e.type==='concert' ? '🎤' : '🎵';
     const badgeClass = e.type==='concert' ? `badge-${e.status||'projet'}` : 'badge-repet';
     const badgeText = e.type==='concert' ? (e.status==='confirme'?'Confirmé':'Projet') : 'Répét.';
