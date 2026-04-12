@@ -1917,8 +1917,24 @@ function initials(m){ return ((m.prenom||'').charAt(0)+(m.nom||'').charAt(0)).to
 let prefView = 'saisie';
 
 function renderPreferences(){
+  const todayStr = new Date().toISOString().slice(0,10);
+
+  // Trouver le prochain set avec des morceaux (via planning ou premier set disponible)
+  function getNextSetId(){
+    // D'abord via les événements futurs
+    const futureEvents = DB.events
+      .filter(e=>e.date>=todayStr && e.set_id)
+      .sort((a,b)=>a.date.localeCompare(b.date));
+    for(const ev of futureEvents){
+      if(DB.set_songs.some(ss=>ss.set_id===ev.set_id)) return ev.set_id;
+    }
+    // Sinon premier set avec des morceaux
+    const setWithSongs = DB.sets.find(s=>DB.set_songs.some(ss=>ss.set_id===s.id));
+    return setWithSongs ? setWithSongs.id : null;
+  }
+
   const setSelS = document.getElementById('pref-set-sel');
-  const curSetS = setSelS.value;
+  const curSetS = setSelS.value || getNextSetId() || '';
   setSelS.innerHTML = '<option value="">— Choisir une répétition —</option>' +
     DB.sets.map(s=>`<option value="${s.id}" ${s.id==curSetS?'selected':''}>${esc(s.name)}</option>`).join('');
 
@@ -1928,7 +1944,7 @@ function renderPreferences(){
     DB.members.map(m=>`<option value="${m.id}" ${m.id==curMem?'selected':''}>${esc(m.prenom)}${m.nom?' '+esc(m.nom):''}</option>`).join('');
 
   const synthSel = document.getElementById('synth-set-sel');
-  const curSynth = synthSel.value;
+  const curSynth = synthSel.value || curSetS || '';
   synthSel.innerHTML = '<option value="">— Choisir une répétition —</option>' +
     DB.sets.map(s=>`<option value="${s.id}" ${s.id==curSynth?'selected':''}>${esc(s.name)}</option>`).join('');
 
