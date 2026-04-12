@@ -38,8 +38,8 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 }
 
 /* ── LAYOUT ── */
-#app{display:none;flex-direction:column;height:100vh}
-#main{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:8px;-webkit-overflow-scrolling:touch}
+#app{display:none;flex-direction:column;height:100vh;position:relative}
+#main{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:80px;-webkit-overflow-scrolling:touch}
 .page{display:none;padding:0 14px 14px;animation:fadeIn .18s ease}
 .page.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
@@ -64,15 +64,16 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 
 /* ── BOTTOM NAV ── */
 #bottom-nav{
-  height:calc(var(--nav-h) + var(--safe-bottom));
-  padding-bottom:var(--safe-bottom);
+  position:fixed;
+  bottom:0;left:0;right:0;
+  height:68px;
   background:var(--nav-bg);
   display:flex;
-  align-items:stretch;
-  flex-shrink:0;
-  border-top:1px solid rgba(255,255,255,.06);
-  position:relative;
-  z-index:100;
+  align-items:flex-start;
+  padding-top:6px;
+  border-top:1px solid rgba(255,255,255,.1);
+  z-index:9999;
+  box-shadow:0 -2px 16px rgba(0,0,0,.4);
 }
 .nav-btn{
   flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
