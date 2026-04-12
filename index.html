@@ -140,6 +140,11 @@ button{font-family:'DM Sans',sans-serif}
 .set-count{font-size:11px;color:var(--text3);margin-top:3px}
 .set-songs-list{margin-top:12px;display:flex;flex-direction:column;gap:5px}
 .set-song-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);padding:5px 0;border-bottom:1px solid var(--border)}
+.prio-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;cursor:pointer;transition:transform .15s;border:1px solid rgba(0,0,0,.1)}
+.prio-dot:hover{transform:scale(1.3)}
+.prio-0{background:var(--border2)}
+.prio-1{background:var(--amber);box-shadow:0 0 4px rgba(232,200,124,.6)}
+.prio-2{background:var(--red);box-shadow:0 0 6px rgba(232,124,124,.7)}
 .set-song-row:last-child{border-bottom:none}
 .set-song-num{font-size:11px;color:var(--text3);min-width:18px}
 
@@ -306,6 +311,41 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:3px}
+
+
+
+/* ===== MOBILE NAV BAR ===== */
+#mobile-nav {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 54px;
+  background: var(--surface);
+  border-top: 1px solid var(--border2);
+  z-index: 9999;
+  box-shadow: 0 -2px 10px rgba(0,0,0,.35);
+}
+#mobile-nav.visible { display: flex; }
+.mnav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: none;
+  border: none;
+  color: var(--text3);
+  font-size: 7px;
+  letter-spacing: .4px;
+  text-transform: uppercase;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  padding: 4px 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.mnav-btn svg { width: 19px; height: 19px; }
+.mnav-btn span { display: block; }
 </style>
 </head>
 <body>
@@ -814,6 +854,7 @@ async function init(){
     setSyncStatus('ok');
     document.getElementById('loading-screen').classList.add('hidden');
     document.getElementById('app').style.display='flex';
+    if(window._applyMobileLayout) window._applyMobileLayout();
     renderDashboard();
   } catch(e) {
     console.error(e);
@@ -1251,6 +1292,18 @@ function toggleInSet(id){
   if(setSelectedSongs.includes(id)) setSelectedSongs = setSelectedSongs.filter(s=>s!==id);
   else setSelectedSongs.push(id);
   renderSetBuilder();
+}
+
+async function setPriority(setId, songId, current){
+  const next = (current+1) % 3;
+  setSyncStatus('loading');
+  try {
+    await sb.from('set_songs').update({priority:next}).eq('set_id',setId).eq('song_id',songId);
+    const ss = DB.set_songs.find(x=>x.set_id===setId&&x.song_id===songId);
+    if(ss) ss.priority = next;
+    setSyncStatus('ok');
+    renderSets();
+  } catch(e){ toast('Erreur','error'); setSyncStatus('error'); }
 }
 
 async function saveSet(){
@@ -2236,6 +2289,39 @@ function buildPrintHtml({title, subtitle, dateStr, timeStr, venue, songsRows, lo
     thead tr{background:#1a1a1a!important;color:#fff!important}
     tbody tr:nth-child(even){background:#f9f9f9!important}
   }
+
+/* ===== MOBILE NAV BAR ===== */
+#mobile-nav {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 54px;
+  background: var(--surface);
+  border-top: 1px solid var(--border2);
+  z-index: 9999;
+  box-shadow: 0 -2px 10px rgba(0,0,0,.35);
+}
+#mobile-nav.visible { display: flex; }
+.mnav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: none;
+  border: none;
+  color: var(--text3);
+  font-size: 7px;
+  letter-spacing: .4px;
+  text-transform: uppercase;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  padding: 4px 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.mnav-btn svg { width: 19px; height: 19px; }
+.mnav-btn span { display: block; }
 </style>
 </head>
 <body>
@@ -2261,6 +2347,33 @@ function buildPrintHtml({title, subtitle, dateStr, timeStr, venue, songsRows, lo
   <span>Imprimé le ${new Date().toLocaleDateString('fr-FR')}</span>
 </div>
 <script>window.onload=()=>{ window.print(); }<\/script>
+
+<nav id="mobile-nav">
+  <button class="mnav-btn" id="mb-dashboard" onclick="mNav('dashboard')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#7c9fe8" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    <span>Accueil</span>
+  </button>
+  <button class="mnav-btn" id="mb-morceaux" onclick="mNav('morceaux')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#5dc8a0" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+    <span>Morceaux</span>
+  </button>
+  <button class="mnav-btn" id="mb-sets" onclick="mNav('sets')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#a87ce8" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+    <span>Répét.</span>
+  </button>
+  <button class="mnav-btn" id="mb-concerts" onclick="mNav('concerts')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#e8a87c" stroke-width="2"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+    <span>Presta.</span>
+  </button>
+  <button class="mnav-btn" id="mb-planning" onclick="mNav('planning')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#e8c87c" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    <span>Planning</span>
+  </button>
+  <button class="mnav-btn" id="mb-membres" onclick="mNav('membres')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#e87c7c" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+    <span>Groupe</span>
+  </button>
+</nav>
 </body></html>`;
 }
 
@@ -2356,10 +2469,91 @@ function toggleTheme(){
   }
 })();
 
+
+
+// ============================================================
+//  MOBILE DETECTION & NAV
+// ============================================================
+(function initMobile(){
+  function isMobile(){ return window.innerWidth < 900; }
+
+  function applyMobileLayout(){
+    const app = document.getElementById('app');
+    const sidebar = document.querySelector('.sidebar');
+    const main = document.querySelector('.main');
+    const nav = document.getElementById('mobile-nav');
+    if(!app || !sidebar || !main || !nav) return;
+
+    if(isMobile()){
+      // Hide sidebar
+      sidebar.style.cssText = 'display:none!important;width:0!important;min-width:0!important;overflow:hidden';
+      // Fix app layout
+      app.style.display = 'block';
+      // Add bottom padding to main
+      main.style.paddingBottom = '54px';
+      // Show mobile nav
+      nav.classList.add('visible');
+    } else {
+      // Restore desktop
+      sidebar.style.cssText = '';
+      app.style.display = 'flex';
+      main.style.paddingBottom = '';
+      nav.classList.remove('visible');
+    }
+  }
+
+  // Run after app is shown (called from init success)
+  window._applyMobileLayout = applyMobileLayout;
+
+  window.addEventListener('resize', applyMobileLayout);
+})();
+
+function mNav(page){
+  // Click the desktop nav item to trigger all existing logic
+  const item = document.querySelector('.nav-item[data-page="'+page+'"]');
+  if(item){ item.click(); }
+  // Update active button
+  document.querySelectorAll('.mnav-btn').forEach(b => {
+    b.style.opacity = '0.5';
+  });
+  const btn = document.getElementById('mb-'+page);
+  if(btn){ btn.style.opacity = '1'; }
+  // Scroll main to top
+  const main = document.querySelector('.main');
+  if(main) main.scrollTo(0,0);
+}
+
 // ============================================================
 //  BOOT
 // ============================================================
 init();
 </script>
+
+
+<nav id="mobile-nav">
+  <button class="mnav-btn" id="mb-dashboard" onclick="mNav('dashboard')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#7c9fe8" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    <span>Accueil</span>
+  </button>
+  <button class="mnav-btn" id="mb-morceaux" onclick="mNav('morceaux')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#5dc8a0" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+    <span>Morceaux</span>
+  </button>
+  <button class="mnav-btn" id="mb-sets" onclick="mNav('sets')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#a87ce8" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+    <span>Répét.</span>
+  </button>
+  <button class="mnav-btn" id="mb-concerts" onclick="mNav('concerts')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#e8a87c" stroke-width="2"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+    <span>Presta.</span>
+  </button>
+  <button class="mnav-btn" id="mb-planning" onclick="mNav('planning')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#e8c87c" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    <span>Planning</span>
+  </button>
+  <button class="mnav-btn" id="mb-membres" onclick="mNav('membres')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#e87c7c" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+    <span>Groupe</span>
+  </button>
+</nav>
 </body>
-</html>
