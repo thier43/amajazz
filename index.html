@@ -1850,57 +1850,59 @@ function renderDashboard(){
     : `<p class="text-xs text-muted">Aucun événement à venir.</p>`;
 
   document.getElementById('dash-next-set').innerHTML = (()=>{
-    // Trouver la prochaine répétition en date
     const todayStr = new Date().toISOString().slice(0,10);
-    const nextEvent = DB.events
-      .filter(e=>e.date>=todayStr && e.set_id)
-      .sort((a,b)=>a.date.localeCompare(b.date))[0];
-
-    // Si pas d'event lié à un set, prendre le premier set existant
-    const set = nextEvent
-      ? DB.sets.find(s=>s.id===nextEvent.set_id)
-      : DB.sets[0];
-
-    if(!set) return `<p class="text-xs text-muted">Aucune répétition programmée.</p>`;
-
-    const eventDate = nextEvent
-      ? new Date(nextEvent.date+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})
-      : null;
-
-    const songRows = DB.set_songs
-      .filter(ss=>ss.set_id===set.id)
-      .sort((a,b)=>(b.priority||0)-(a.priority||0)||(a.position||0)-(b.position||0));
-
-    if(!songRows.length) return `
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px">
-        <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px">${esc(set.name)}</div>
-        <p class="text-xs text-muted">Aucun morceau dans ce set.</p>
-      </div>`;
-
     const prioColors = {0:'var(--border2)', 1:'var(--amber)', 2:'var(--red)'};
-    const rows = songRows.map((ss,i)=>{
-      const s = DB.songs.find(x=>x.id===ss.song_id);
-      if(!s) return '';
-      const prio = ss.priority||0;
-      return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-        <div style="width:8px;height:8px;border-radius:50%;background:${prioColors[prio]};flex-shrink:0"></div>
-        <span style="font-size:11px;color:var(--text3);min-width:18px;font-weight:600">${i+1}.</span>
-        <span style="flex:1;font-size:12px;${prio===2?'font-weight:600;color:var(--text)':prio===1?'color:var(--text)':'color:var(--text2)'}">${esc(s.name)}</span>
-        ${s.key?`<span class="tag tag-key" style="font-size:10px">${esc(s.key)}</span>`:''}
-        ${ss.set_notes?`<span style="font-size:10px;color:var(--amber)" title="${esc(ss.set_notes)}">⚠</span>`:''}
-      </div>`;
-    }).join('');
 
-    return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer" ondblclick="navTo('sets')" title="Double-clic pour ouvrir les répétitions">
-      <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+    function buildCard(ev){
+      const set = DB.sets.find(s=>s.id===ev.set_id);
+      if(!set) return null;
+      const songRows = DB.set_songs
+        .filter(ss=>ss.set_id===set.id)
+        .sort((a,b)=>(b.priority||0)-(a.priority||0)||(a.position||0)-(b.position||0));
+      const dateStr = new Date(ev.date+'T12:00:00')
+        .toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+      const timeStr = ev.time ? ' · '+ev.time.slice(0,5) : '';
+      const header = `<div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(set.name)}</div>
-          ${eventDate?`<div style="font-size:11px;color:var(--accent2);margin-top:2px">📅 ${eventDate}</div>`:''}
+          <div style="font-size:11px;color:var(--accent2);margin-top:2px">📅 ${dateStr}${timeStr}</div>
         </div>
         <span style="font-size:10px;color:var(--text3)">↗</span>
-      </div>
-      <div style="padding:4px 14px 8px">${rows}</div>
-    </div>`;
+      </div>`;
+      if(!songRows.length){
+        return {html:`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;margin-bottom:8px" ondblclick="navTo('sets')">${header}<div style="padding:12px 14px"><p class="text-xs text-muted">Aucun morceau dans ce set.</p></div></div>`, hasSongs:false};
+      }
+      const rows = songRows.map((ss,i)=>{
+        const s = DB.songs.find(x=>x.id===ss.song_id);
+        if(!s) return '';
+        const prio = ss.priority||0;
+        return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+          <div style="width:8px;height:8px;border-radius:50%;background:${prioColors[prio]};flex-shrink:0"></div>
+          <span style="font-size:11px;color:var(--text3);min-width:18px;font-weight:600">${i+1}.</span>
+          <span style="flex:1;font-size:12px;${prio===2?'font-weight:600;color:var(--text)':prio===1?'color:var(--text)':'color:var(--text2)'}">${esc(s.name)}</span>
+          ${s.key?`<span class="tag tag-key" style="font-size:10px">${esc(s.key)}</span>`:''}
+          ${ss.set_notes?`<span style="font-size:10px;color:var(--amber)" title="${esc(ss.set_notes)}">⚠</span>`:''}
+        </div>`;
+      }).join('');
+      return {html:`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;margin-bottom:8px" ondblclick="navTo('sets')" title="Double-clic pour ouvrir les répétitions">${header}<div style="padding:4px 14px 8px">${rows}</div></div>`, hasSongs:true};
+    }
+
+    const futureEvents = DB.events
+      .filter(e=>e.date>=todayStr && e.set_id)
+      .sort((a,b)=>a.date.localeCompare(b.date));
+
+    if(!futureEvents.length)
+      return `<p class="text-xs text-muted">Aucune répétition planifiée avec un set.</p>`;
+
+    // Afficher la 1ère ; si elle n'a pas de morceaux, afficher aussi la 2ème
+    let html = '';
+    for(let i=0; i<Math.min(futureEvents.length,3); i++){
+      const card = buildCard(futureEvents[i]);
+      if(!card) continue;
+      html += card.html;
+      if(card.hasSongs) break; // on s'arrête dès qu'on a une avec des morceaux
+    }
+    return html || `<p class="text-xs text-muted">Aucun morceau dans les prochaines répétitions.</p>`;
   })();
 }
 
