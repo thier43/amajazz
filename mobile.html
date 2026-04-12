@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AMAJAZZ – Mobile</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & ROOT ── */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f5f3ef;
+  --bg2:#eceae4;
+  --card:#ffffff;
+  --border:#dedad2;
+  --text:#1a1814;
+  --text2:#6b6660;
+  --text3:#a09a95;
+  --accent:#c97a3a;
+  --accent2:#2a5fa0;
+  --green:#2a9e78;
+  --red:#c93a3a;
+  --amber:#b8860b;
+  --purple:#7a3ac9;
+  --nav-bg:#1a1814;
+  --nav-h:60px;
+  --radius:14px;
+  --radius-sm:10px;
+  --shadow:0 2px 12px rgba(0,0,0,.08);
+  --shadow-md:0 4px 20px rgba(0,0,0,.12);
+}
+html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text)}
+
+/* ── LAYOUT ── */
+#app{display:none;flex-direction:column;height:100vh}
+#main{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+.page{display:none;padding:0 14px 14px;animation:fadeIn .18s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── HEADER ── */
+.top-bar{
+  background:var(--nav-bg);
+  padding:12px 16px 10px;
+  display:flex;align-items:center;gap:10px;
+  position:sticky;top:0;z-index:100;
+}
+.top-bar-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:22px;letter-spacing:1.5px;
+  color:#fff;flex:1;
+}
+.top-bar-sub{font-size:11px;color:rgba(255,255,255,.45);letter-spacing:.3px}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block}
+.sync-dot.error{background:var(--red)}
+.sync-dot.loading{background:var(--amber);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── BOTTOM NAV ── */
+#bottom-nav{
+  height:var(--nav-h);
+  background:var(--nav-bg);
+  display:flex;
+  align-items:stretch;
+  flex-shrink:0;
+  border-top:1px solid rgba(255,255,255,.06);
+}
+.nav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;background:none;border:none;cursor:pointer;
+  color:rgba(255,255,255,.4);font-size:8px;letter-spacing:.5px;
+  text-transform:uppercase;font-family:'DM Sans',sans-serif;
+  padding:4px 2px;transition:color .15s;position:relative;
+}
+.nav-btn .nav-icon{font-size:20px;line-height:1;transition:transform .15s}
+.nav-btn.active{color:#fff}
+.nav-btn.active .nav-icon{transform:scale(1.1)}
+.nav-btn.active::after{
+  content:'';position:absolute;top:0;left:20%;right:20%;height:2px;
+  background:var(--accent);border-radius:0 0 3px 3px;
+}
+
+/* ── PAGE HEADER ── */
+.page-top{padding:16px 0 10px;border-bottom:2px solid var(--text);margin-bottom:16px}
+.page-top h2{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1.5px;color:var(--text)}
+.page-top p{font-size:11px;color:var(--text3);margin-top:2px;letter-spacing:.3px;text-transform:uppercase}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow)}
+.card-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px}
+.card-sub{font-size:12px;color:var(--text2)}
+
+/* ── STATS GRID ── */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px 14px;text-align:center;box-shadow:var(--shadow);
+}
+.stat-v{font-family:'Bebas Neue',sans-serif;font-size:38px;line-height:1;color:var(--text)}
+.stat-l{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+.stat-card.c1 .stat-v{color:var(--accent2)}
+.stat-card.c2 .stat-v{color:var(--green)}
+.stat-card.c3 .stat-v{color:var(--purple)}
+.stat-card.c4 .stat-v{color:var(--accent)}
+
+/* ── EVENT CARDS ── */
+.event-card{
+  background:var(--nav-bg);color:#fff;
+  border-radius:var(--radius);padding:16px;
+  margin-bottom:10px;box-shadow:var(--shadow-md);
+}
+.event-date{font-size:10px;color:var(--accent);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px;font-weight:600}
+.event-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;line-height:1.2;margin-bottom:4px}
+.event-venue{font-size:12px;color:rgba(255,255,255,.5)}
+.event-badge{display:inline-block;font-size:9px;padding:2px 8px;border-radius:20px;font-weight:600;letter-spacing:.5px;margin-top:6px;text-transform:uppercase}
+.badge-repet{background:rgba(42,95,160,.25);color:#7cb0ff}
+.badge-concert{background:rgba(201,122,58,.25);color:#ffb87c}
+.badge-projet{background:rgba(184,134,11,.2);color:var(--amber)}
+.badge-confirme{background:rgba(42,158,120,.2);color:var(--green)}
+
+/* ── SONG LIST ── */
+.song-row{
+  display:flex;align-items:center;gap:12px;
+  padding:11px 14px;background:var(--card);
+  border:1px solid var(--border);border-radius:var(--radius-sm);
+  margin-bottom:8px;
+}
+.song-num{font-size:12px;color:var(--text3);min-width:22px;font-weight:600}
+.song-info{flex:1;min-width:0}
+.song-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.song-artist{font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.song-notes{font-size:10px;color:var(--amber);margin-top:2px;line-height:1.3}
+.tag{display:inline-block;font-size:9px;padding:2px 7px;border-radius:20px;font-weight:600;letter-spacing:.3px}
+.tag-key{background:rgba(42,95,160,.12);color:var(--accent2)}
+.tag-tempo{background:rgba(42,158,120,.12);color:var(--green)}
+
+/* ── SET CARDS ── */
+.set-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden}
+.set-header{padding:14px 16px 10px;border-bottom:1px solid var(--border)}
+.set-name{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--text)}
+.set-meta{font-size:11px;color:var(--text3);margin-top:2px}
+.set-songs{padding:8px 16px 12px}
+.set-song-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)}
+.set-song-item:last-child{border-bottom:none}
+.set-song-num{font-size:10px;color:var(--text3);min-width:18px;font-weight:600}
+.set-song-name{font-size:12px;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.set-note{font-size:10px;color:var(--amber);padding:2px 0 0 26px;line-height:1.3}
+.set-print-btn{
+  display:block;width:calc(100% - 32px);margin:0 16px 12px;
+  padding:9px;background:var(--nav-bg);color:#fff;
+  border:none;border-radius:var(--radius-sm);font-size:12px;
+  font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;
+  letter-spacing:.3px;
+}
+
+/* ── CONCERT CARDS ── */
+.concert-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden}
+.concert-card.statut-annule{opacity:.55}
+.concert-header{display:flex;gap:12px;padding:14px 16px;align-items:flex-start}
+.concert-date-block{text-align:center;min-width:48px;background:var(--nav-bg);border-radius:var(--radius-sm);padding:6px 8px;color:#fff;flex-shrink:0}
+.concert-day{font-family:'Bebas Neue',sans-serif;font-size:24px;line-height:1;color:#fff}
+.concert-month{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.6)}
+.concert-year{font-size:9px;color:rgba(255,255,255,.4);margin-top:1px}
+.concert-info{flex:1;min-width:0}
+.concert-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}
+.concert-venue{font-size:11px;color:var(--text3)}
+.concert-set-badge{font-size:10px;color:var(--accent);margin-top:4px;font-weight:500}
+.concert-notes-text{font-size:11px;color:var(--text2);margin-top:3px;font-style:italic}
+.concert-songs{padding:0 16px 12px;border-top:1px solid var(--border)}
+.csp-title{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;padding:8px 0 6px;font-weight:600}
+.csp-row{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border)}
+.csp-row:last-child{border-bottom:none}
+.csp-num{font-size:10px;color:var(--text3);min-width:18px;font-weight:600}
+.csp-name{font-size:12px;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.csp-note{font-size:10px;color:var(--amber);padding:2px 0 0 26px;line-height:1.3}
+.concert-print-btn{
+  display:block;width:calc(100% - 32px);margin:4px 16px 12px;
+  padding:9px;background:var(--nav-bg);color:#fff;
+  border:none;border-radius:var(--radius-sm);font-size:12px;
+  font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;
+}
+
+/* ── MEMBERS ── */
+.member-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.member-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 12px;text-align:center}
+.member-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;margin:0 auto 8px;color:#fff}
+.member-name{font-size:13px;font-weight:600;color:var(--text)}
+.member-pseudo{font-size:11px;color:var(--text3);font-style:italic}
+.member-instrument{font-size:10px;color:var(--accent);margin-top:2px;font-weight:500}
+.family-title{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:var(--text);margin:14px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border)}
+
+/* ── CALENDAR ── */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-month-label{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px}
+.cal-nav-btn{background:var(--nav-bg);color:#fff;border:none;border-radius:8px;width:32px;height:32px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-day-name{text-align:center;font-size:9px;font-weight:600;color:var(--text3);text-transform:uppercase;padding:4px 0;letter-spacing:.3px}
+.cal-cell{min-height:44px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:3px;display:flex;flex-direction:column;gap:1px}
+.cal-cell.dim{opacity:.35}
+.cal-date-num{font-size:10px;color:var(--text2);font-weight:500;text-align:center;padding:1px 0}
+.cal-date-num.today{background:var(--nav-bg);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;margin:0 auto}
+.cal-ev{font-size:8px;border-radius:3px;padding:1px 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
+.cal-ev.repet{background:rgba(42,95,160,.15);color:var(--accent2)}
+.cal-ev.concert{background:rgba(201,122,58,.15);color:var(--accent)}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:40px 20px;color:var(--text3)}
+.empty-icon{font-size:36px;margin-bottom:10px}
+.empty p{font-size:13px;line-height:1.6}
+
+/* ── LOADING ── */
+#loading{
+  position:fixed;inset:0;background:var(--nav-bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:9999;
+}
+.loading-logo{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:3px;color:var(--accent)}
+.loading-sub{font-size:11px;color:rgba(255,255,255,.4);letter-spacing:2px;text-transform:uppercase}
+.loading-dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);margin:0 3px;animation:bounce .9s infinite}
+.loading-dots span:nth-child(2){animation-delay:.2s}
+.loading-dots span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,80%,100%{transform:scale(0.8);opacity:.5}40%{transform:scale(1.2);opacity:1}}
+
+/* ── PRINT STYLES ── */
+.print-html{display:none}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="loading-logo">♪ AMAJAZZ</div>
+  <div class="loading-sub">Chargement…</div>
+  <div class="loading-dots"><span></span><span></span><span></span></div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div style="flex:1">
+      <div class="top-bar-title">♪ AMAJAZZ</div>
+    </div>
+    <span class="sync-dot" id="sync-dot"></span>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div id="main">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-top">
+        <h2>Tableau de bord</h2>
+        <p id="today-label"></p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card c1"><div class="stat-v" id="s-morceaux">—</div><div class="stat-l">Morceaux</div></div>
+        <div class="stat-card c2"><div class="stat-v" id="s-membres">—</div><div class="stat-l">Musiciens</div></div>
+        <div class="stat-card c3"><div class="stat-v" id="s-sets">—</div><div class="stat-l">Répétitions</div></div>
+        <div class="stat-card c4"><div class="stat-v" id="s-concerts">—</div><div class="stat-l">Prestations</div></div>
+      </div>
+      <div id="dash-upcoming"></div>
+    </div>
+
+    <!-- MORCEAUX -->
+    <div class="page" id="page-morceaux">
+      <div class="page-top">
+        <h2>Morceaux</h2>
+        <p id="song-count-m"></p>
+      </div>
+      <div id="song-list-m"></div>
+    </div>
+
+    <!-- RÉPÉTITIONS -->
+    <div class="page" id="page-sets">
+      <div class="page-top">
+        <h2>Répétitions</h2>
+        <p id="sets-count-m"></p>
+      </div>
+      <div id="set-list-m"></div>
+    </div>
+
+    <!-- PRESTATIONS -->
+    <div class="page" id="page-concerts">
+      <div class="page-top">
+        <h2>Prestations</h2>
+        <p id="concerts-count-m"></p>
+      </div>
+      <div id="concert-list-m"></div>
+    </div>
+
+    <!-- PLANNING -->
+    <div class="page" id="page-planning">
+      <div class="page-top">
+        <h2>Planning</h2>
+        <p id="planning-sub-m"></p>
+      </div>
+      <div class="cal-header">
+        <button class="cal-nav-btn" onclick="calNav(-1)">‹</button>
+        <div class="cal-month-label" id="cal-label-m"></div>
+        <button class="cal-nav-btn" onclick="calNav(1)">›</button>
+      </div>
+      <div class="cal-grid" id="cal-grid-m"></div>
+    </div>
+
+    <!-- GROUPE -->
+    <div class="page" id="page-membres">
+      <div class="page-top">
+        <h2>Groupe</h2>
+        <p id="membres-count-m"></p>
+      </div>
+      <div id="membre-list-m"></div>
+    </div>
+
+  </div><!-- /main -->
+
+  <!-- BOTTOM NAV -->
+  <nav id="bottom-nav">
+    <button class="nav-btn active" data-page="dashboard" onclick="goTo('dashboard')">
+      <span class="nav-icon">🏠</span>
+      <span>Board</span>
+    </button>
+    <button class="nav-btn" data-page="morceaux" onclick="goTo('morceaux')">
+      <span class="nav-icon">🎵</span>
+      <span>Morceaux</span>
+    </button>
+    <button class="nav-btn" data-page="sets" onclick="goTo('sets')">
+      <span class="nav-icon">📋</span>
+      <span>Répét.</span>
+    </button>
+    <button class="nav-btn" data-page="concerts" onclick="goTo('concerts')">
+      <span class="nav-icon">🎤</span>
+      <span>Presta.</span>
+    </button>
+    <button class="nav-btn" data-page="planning" onclick="goTo('planning')">
+      <span class="nav-icon">📅</span>
+      <span>Planning</span>
+    </button>
+    <button class="nav-btn" data-page="membres" onclick="goTo('membres')">
+      <span class="nav-icon">👥</span>
+      <span>Groupe</span>
+    </button>
+  </nav>
+
+</div><!-- /app -->
+
+<script>
+// ── CONFIG ──
+const SUPABASE_URL  = 'https://hirykfprszvqkeerpbtt.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpcnlrZnByc3p2cWtlZXJwYnR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MTYwMDQsImV4cCI6MjA5MTM5MjAwNH0.W5U0MsMq21j9Dsvw3MD3AyLnrOfyxz1dd31ziXe0wH8';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+let DB = { songs:[], members:[], sets:[], set_songs:[], concerts:[], concert_songs:[], events:[], preferences:[] };
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+
+// ── UTILS ──
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
+function setSyncStatus(s){
+  const d = document.getElementById('sync-dot');
+  if(d) d.className = 'sync-dot'+(s==='loading'?' loading':s==='error'?' error':'');
+}
+const familyColors = {
+  'Soufflants':'#e87c7c','Guitares':'#7c9fe8','Basse':'#7ce8b8',
+  'Batterie':'#e8a87c','Chant':'#a87ce8','Clavier':'#5dc8a0','Autres':'#888'
+};
+
+// ── LOAD ──
+async function loadAll(){
+  const [songs,members,sets,set_songs,concerts,concert_songs,events,preferences] = await Promise.all([
+    sb.from('songs').select('*').order('name'),
+    sb.from('members').select('*').order('prenom'),
+    sb.from('sets').select('*').order('name'),
+    sb.from('set_songs').select('*').order('position'),
+    sb.from('concerts').select('*').order('date'),
+    sb.from('concert_songs').select('*').order('position'),
+    sb.from('events').select('*').order('date'),
+    sb.from('preferences').select('*'),
+  ]);
+  DB.songs          = songs.data          || [];
+  DB.members        = members.data        || [];
+  DB.sets           = sets.data           || [];
+  DB.set_songs      = set_songs.data      || [];
+  DB.concerts       = concerts.data       || [];
+  DB.concert_songs  = concert_songs.data  || [];
+  DB.events         = events.data         || [];
+  DB.preferences    = preferences.data    || [];
+}
+
+// ── NAVIGATION ──
+function goTo(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+page)?.classList.add('active');
+  document.querySelector('.nav-btn[data-page="'+page+'"]')?.classList.add('active');
+  document.getElementById('main')?.scrollTo(0,0);
+  const renders = {
+    dashboard:renderDashboard, morceaux:renderSongs,
+    sets:renderSets, concerts:renderConcerts,
+    planning:renderCalendar, membres:renderMembers,
+  };
+  if(renders[page]) renders[page]();
+}
+
+// ── DASHBOARD ──
+function renderDashboard(){
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0,10);
+
+  document.getElementById('today-label').textContent =
+    now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+  document.getElementById('s-morceaux').textContent  = DB.songs.length;
+  document.getElementById('s-membres').textContent   = DB.members.length;
+  document.getElementById('s-sets').textContent      = DB.sets.length;
+  document.getElementById('s-concerts').textContent  = DB.concerts.length;
+
+  // Prochains événements
+  const nextRepets = DB.events
+    .filter(e=>e.date>=todayStr)
+    .sort((a,b)=>a.date.localeCompare(b.date))
+    .slice(0,2)
+    .map(e=>({
+      date:e.date, time:e.time,
+      label: e.set_id ? DB.sets.find(s=>s.id===e.set_id)?.name||'Répétition' : 'Répétition',
+      venue:e.venue||'', type:'repet'
+    }));
+
+  const nextConcert = DB.concerts
+    .filter(c=>c.status!=='annule'&&c.date&&c.date>=todayStr)
+    .sort((a,b)=>a.date.localeCompare(b.date))[0]
+    || DB.concerts.filter(c=>c.status!=='annule'&&!c.date)[0];
+
+  const items = [...nextRepets];
+  if(nextConcert) items.push({
+    date:nextConcert.date||null, time:nextConcert.time,
+    label:nextConcert.name, venue:nextConcert.venue||'',
+    type:'concert', status:nextConcert.status
+  });
+
+  const container = document.getElementById('dash-upcoming');
+  if(!items.length){
+    container.innerHTML = '<div class="empty"><div class="empty-icon">📅</div><p>Aucun événement à venir.</p></div>';
+    return;
+  }
+  container.innerHTML = items.map(e=>{
+    const d = e.date ? new Date(e.date+'T12:00:00') : null;
+    const dateStr = d
+      ? d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})
+      : 'Date à confirmer';
+    const timeStr = e.time ? ' · '+e.time.slice(0,5) : '';
+    const badge = e.type==='concert'
+      ? `<span class="event-badge badge-${e.status||'projet'}">${e.status==='confirme'?'Confirmé':'Projet'}</span>`
+      : `<span class="event-badge badge-repet">Répétition</span>`;
+    return `<div class="event-card">
+      <div class="event-date">${dateStr}${timeStr}</div>
+      <div class="event-title">${esc(e.label)}</div>
+      ${e.venue?`<div class="event-venue">📍 ${esc(e.venue)}</div>`:''}
+      ${badge}
+    </div>`;
+  }).join('');
+}
+
+// ── MORCEAUX ──
+function renderSongs(){
+  const el = document.getElementById('song-list-m');
+  document.getElementById('song-count-m').textContent = DB.songs.length+' morceau'+(DB.songs.length>1?'x':'');
+  if(!DB.songs.length){
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🎵</div><p>Aucun morceau enregistré.</p></div>';
+    return;
+  }
+  el.innerHTML = DB.songs.map((s,i)=>`
+    <div class="song-row">
+      <div class="song-num">${i+1}</div>
+      <div class="song-info">
+        <div class="song-name">${esc(s.name)}</div>
+        ${s.artist?`<div class="song-artist">${esc(s.artist)}</div>`:''}
+        ${s.notes?`<div class="song-notes">📝 ${esc(s.notes)}</div>`:''}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+        ${s.key?`<span class="tag tag-key">${esc(s.key)}</span>`:''}
+        ${s.tempo?`<span class="tag tag-tempo">♩${s.tempo}</span>`:''}
+        ${s.folder_link?`<a href="${esc(s.folder_link)}" target="_blank" style="font-size:16px;text-decoration:none">📂</a>`:''}
+      </div>
+    </div>`).join('');
+}
+
+// ── RÉPÉTITIONS ──
+function renderSets(){
+  const el = document.getElementById('set-list-m');
+  document.getElementById('sets-count-m').textContent = DB.sets.length+' répétition'+(DB.sets.length>1?'s':'');
+  if(!DB.sets.length){
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>Aucune répétition créée.</p></div>';
+    return;
+  }
+  el.innerHTML = DB.sets.map(set=>{
+    const songRows = DB.set_songs.filter(ss=>ss.set_id===set.id).sort((a,b)=>a.position-b.position);
+    const songs = songRows.map(ss=>DB.songs.find(s=>s.id===ss.song_id)).filter(Boolean);
+    const dur = songs.reduce((a,s)=>a+(s.duration||0),0);
+    const songsHtml = songRows.map((ss,i)=>{
+      const s = DB.songs.find(x=>x.id===ss.song_id);
+      if(!s) return '';
+      return `<div class="set-song-item">
+        <span class="set-song-num">${i+1}.</span>
+        <span class="set-song-name">${esc(s.name)}${s.key?` <span style="color:var(--accent2);font-size:10px">${esc(s.key)}</span>`:''}</span>
+      </div>
+      ${ss.set_notes?`<div class="set-note">⚠ ${esc(ss.set_notes)}</div>`:''}
+      ${s.notes?`<div class="set-note" style="color:var(--text3);font-style:italic">📝 ${esc(s.notes)}</div>`:''}`;
+    }).join('');
+    return `<div class="set-card">
+      <div class="set-header">
+        <div class="set-name">${esc(set.name)}</div>
+        <div class="set-meta">${songs.length} morceau${songs.length>1?'x':''} ${dur?'· ~'+dur+' min':''}</div>
+      </div>
+      ${songsHtml?`<div class="set-songs">${songsHtml}</div>`:''}
+      ${songs.length?`<button class="set-print-btn" onclick="printSet(${set.id})">🖨 Imprimer le programme</button>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ── PRESTATIONS ──
+function getConcertSongs(concertId, setId){
+  const overrides = DB.concert_songs.filter(cs=>cs.concert_id===concertId).sort((a,b)=>a.position-b.position);
+  if(overrides.length) return overrides;
+  if(!setId) return [];
+  return DB.set_songs.filter(ss=>ss.set_id===setId).sort((a,b)=>a.position-b.position)
+    .map(ss=>({concert_id:concertId, song_id:ss.song_id, position:ss.position, notes:ss.set_notes||null}));
+}
+
+function renderConcerts(){
+  const el = document.getElementById('concert-list-m');
+  const total = DB.concerts.filter(c=>c.status!=='annule').length;
+  document.getElementById('concerts-count-m').textContent = DB.concerts.length+' prestation'+(DB.concerts.length>1?'s':'');
+  if(!DB.concerts.length){
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🎤</div><p>Aucune prestation enregistrée.</p></div>';
+    return;
+  }
+  const statusLabel = {projet:'Projet',confirme:'Confirmé',annule:'Annulé'};
+  const sorted = [...DB.concerts].sort((a,b)=>{
+    if(!a.date&&!b.date) return 0;
+    if(!a.date) return 1; if(!b.date) return -1;
+    return a.date.localeCompare(b.date);
+  });
+  el.innerHTML = sorted.map(c=>{
+    const status = c.status||'confirme';
+    const set = c.set_id ? DB.sets.find(s=>s.id===c.set_id) : null;
+    const dateBlock = c.date ? (()=>{
+      const d = new Date(c.date+'T12:00:00');
+      return `<div class="concert-date-block">
+        <div class="concert-day">${d.getDate()}</div>
+        <div class="concert-month">${d.toLocaleDateString('fr-FR',{month:'short'})}</div>
+        <div class="concert-year">${d.getFullYear()}</div>
+      </div>`;
+    })() : `<div class="concert-date-block" style="min-width:48px;display:flex;align-items:center;justify-content:center"><span style="font-size:20px">?</span></div>`;
+
+    const cSongs = getConcertSongs(c.id, c.set_id);
+    const songsHtml = cSongs.length ? `
+      <div class="concert-songs">
+        <div class="csp-title">Programme · ${cSongs.length} morceau${cSongs.length>1?'x':''}</div>
+        ${cSongs.map((cs,i)=>{
+          const s = DB.songs.find(x=>x.id===cs.song_id);
+          if(!s) return '';
+          const allNotes = [s.notes, cs.notes].filter(Boolean).join(' — ');
+          return `<div class="csp-row">
+            <span class="csp-num">${i+1}.</span>
+            <span class="csp-name">${esc(s.name)}${s.key?` <span style="color:var(--accent2);font-size:10px">${esc(s.key)}</span>`:''}</span>
+          </div>
+          ${allNotes?`<div class="csp-note">⚠ ${esc(allNotes)}</div>`:''}`;
+        }).join('')}
+      </div>
+      <button class="concert-print-btn" onclick="printConcert(${c.id})">🖨 Imprimer la prestation</button>
+    ` : '';
+
+    return `<div class="concert-card statut-${status}">
+      <div class="concert-header">
+        ${dateBlock}
+        <div class="concert-info">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <div class="concert-name">${esc(c.name)}</div>
+            <span class="event-badge badge-${status}">${statusLabel[status]||status}</span>
+          </div>
+          <div class="concert-venue">${c.date&&c.time?c.time.slice(0,5)+' · ':''}${esc(c.venue||'Lieu à définir')}</div>
+          ${set?`<div class="concert-set-badge">♪ ${esc(set.name)}</div>`:''}
+          ${c.notes?`<div class="concert-notes-text">${esc(c.notes)}</div>`:''}
+        </div>
+      </div>
+      ${songsHtml}
+    </div>`;
+  }).join('');
+}
+
+// ── PLANNING ──
+function renderCalendar(){
+  const months = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  const days = ['L','M','M','J','V','S','D'];
+  const today = new Date();
+  const firstDay = new Date(calYear, calMonth, 1);
+  const lastDay  = new Date(calYear, calMonth+1, 0);
+  let startDow = firstDay.getDay()-1; if(startDow<0) startDow=6;
+
+  document.getElementById('cal-label-m').textContent = months[calMonth]+' '+calYear;
+  document.getElementById('planning-sub-m').textContent =
+    DB.events.filter(e=>e.date.startsWith(calYear+'-'+String(calMonth+1).padStart(2,'0'))).length+' événement(s) ce mois';
+
+  const allEvts = [
+    ...DB.events.map(e=>({date:e.date, label:'Répét.', css:'repet'})),
+    ...DB.concerts.map(c=>({date:c.date, label:'★ '+c.name, css:'concert'})),
+  ];
+
+  let html = days.map(d=>`<div class="cal-day-name">${d}</div>`).join('');
+  for(let i=0;i<startDow;i++){
+    const d = new Date(calYear, calMonth, -startDow+i+1);
+    html += `<div class="cal-cell dim"><div class="cal-date-num">${d.getDate()}</div></div>`;
+  }
+  for(let d=1;d<=lastDay.getDate();d++){
+    const isToday = d===today.getDate()&&calMonth===today.getMonth()&&calYear===today.getFullYear();
+    const dateStr = calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const evts = allEvts.filter(e=>e.date===dateStr);
+    html += `<div class="cal-cell">
+      <div class="cal-date-num${isToday?' today':''}">${d}</div>
+      ${evts.map(e=>`<div class="cal-ev ${e.css}">${esc(e.label)}</div>`).join('')}
+    </div>`;
+  }
+  const total = startDow + lastDay.getDate();
+  const rem = (7-(total%7))%7;
+  for(let i=1;i<=rem;i++) html += `<div class="cal-cell dim"><div class="cal-date-num">${i}</div></div>`;
+
+  document.getElementById('cal-grid-m').innerHTML = html;
+}
+
+window.calNav = function(dir){
+  calMonth += dir;
+  if(calMonth<0){calMonth=11;calYear--}
+  if(calMonth>11){calMonth=0;calYear++}
+  renderCalendar();
+};
+
+// ── MEMBRES ──
+function renderMembers(){
+  const el = document.getElementById('membre-list-m');
+  document.getElementById('membres-count-m').textContent = DB.members.length+' musicien'+(DB.members.length>1?'s':'');
+  if(!DB.members.length){
+    el.innerHTML = '<div class="empty"><div class="empty-icon">👥</div><p>Aucun musicien enregistré.</p></div>';
+    return;
+  }
+  const families = [...new Set(DB.members.map(m=>m.family))].filter(Boolean);
+  el.innerHTML = families.map(fam=>{
+    const color = familyColors[fam]||'#888';
+    const members = DB.members.filter(m=>m.family===fam);
+    return `<div class="family-title" style="color:${color}">${fam}</div>
+      <div class="member-grid">
+        ${members.map(m=>`<div class="member-card">
+          <div class="member-avatar" style="background:${color}">${esc(m.avatar||(m.prenom||'?').charAt(0).toUpperCase())}</div>
+          <div class="member-name">${esc(m.prenom)}${m.nom?' '+esc(m.nom):''}</div>
+          ${m.pseudo?`<div class="member-pseudo">"${esc(m.pseudo)}"</div>`:''}
+          <div class="member-instrument">${esc(m.instrument||m.family||'')}</div>
+        </div>`).join('')}
+      </div>`;
+  }).join('');
+}
+
+// ── IMPRESSION ──
+function buildPrintRows(songs, notesMap){
+  return songs.map((entry,i)=>{
+    const s = DB.songs.find(x=>x.id===(entry.song_id||entry.id));
+    if(!s) return '';
+    const note = [notesMap?notesMap[s.id]:null, entry.notes, s.notes].filter(Boolean).join(' — ');
+    const improvs = DB.members.filter(m=>{
+      const p = DB.preferences.find(pr=>pr.member_id===m.id&&pr.song_id===s.id);
+      return p?.impro;
+    });
+    return `<tr>
+      <td style="padding:8px;text-align:center;font-size:12px;color:#888">${i+1}</td>
+      <td style="padding:8px">
+        <strong style="font-size:13px">${esc(s.name)}</strong>
+        ${s.artist?`<span style="color:#888;font-size:11px"> — ${esc(s.artist)}</span>`:''}
+        ${note?`<div style="font-size:11px;color:#e6860a;margin-top:3px">⚠ ${esc(note)}</div>`:''}
+      </td>
+      <td style="padding:8px;font-size:12px;font-weight:600">${s.key||''}</td>
+      <td style="padding:8px;font-size:11px;color:#555;text-align:center">${s.tempo||''}</td>
+      <td style="padding:8px;font-size:11px;color:#1a6faf;font-style:italic">${improvs.map(m=>m.prenom).join(', ')}</td>
+    </tr>`;
+  }).join('');
+}
+
+function openPrint(html){
+  const win = window.open('','_blank');
+  if(win){ win.document.write(html); win.document.close(); }
+  else alert('Autorisez les popups pour imprimer.');
+}
+
+function printSet(setId){
+  const set = DB.sets.find(x=>x.id===setId);
+  if(!set) return;
+  const rows = DB.set_songs.filter(ss=>ss.set_id===setId).sort((a,b)=>a.position-b.position);
+  const notesMap = {};
+  rows.forEach(ss=>{ if(ss.set_notes) notesMap[ss.song_id]=ss.set_notes; });
+  openPrint(buildPrintPage(set.name, 'Programme de répétition', '', '', '', buildPrintRows(rows, notesMap)));
+}
+
+function printConcert(concertId){
+  const c = DB.concerts.find(x=>x.id===concertId);
+  if(!c) return;
+  const cSongs = getConcertSongs(concertId, c.set_id);
+  const dateStr = c.date ? new Date(c.date+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) : 'Date à confirmer';
+  openPrint(buildPrintPage(c.name, c.set_id?'♩ '+DB.sets.find(s=>s.id===c.set_id)?.name:'', dateStr, c.time?.slice(0,5)||'', c.venue||'', buildPrintRows(cSongs, null)));
+}
+
+function buildPrintPage(title, subtitle, dateStr, timeStr, venue, rows){
+  return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>${title}</title>
+  <style>
+    body{font-family:'DM Sans',sans-serif;color:#1a1a1a;padding:0;margin:0}
+    @page{size:A4;margin:16mm}
+    .header{display:flex;align-items:center;gap:16px;padding-bottom:12px;border-bottom:2px solid #1a1a1a;margin-bottom:18px}
+    .title{font-family:sans-serif;font-size:22px;font-weight:700}
+    .sub{font-size:12px;color:#888;font-style:italic;margin-top:2px}
+    .meta{font-size:12px;color:#555;margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
+    table{width:100%;border-collapse:collapse}
+    thead tr{background:#1a1a1a;color:#fff}
+    th{padding:8px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.7px}
+    tbody tr{border-bottom:1px solid #e0e0e0}
+    tbody tr:nth-child(even){background:#f9f9f9}
+    .footer{margin-top:16px;padding-top:8px;border-top:1px solid #ccc;font-size:10px;color:#aaa;display:flex;justify-content:space-between}
+    @media print{thead tr{background:#1a1a1a!important;-webkit-print-color-adjust:exact}}
+  </style></head><body>
+  <div class="header">
+    <div>
+      <div class="title">♪ AMAJAZZ — ${title}</div>
+      ${subtitle?`<div class="sub">${subtitle}</div>`:''}
+      <div class="meta">
+        ${dateStr?`<span>📅 ${dateStr}${timeStr?' · '+timeStr:''}</span>`:''}
+        ${venue?`<span>📍 ${venue}</span>`:''}
+      </div>
+    </div>
+  </div>
+  <table>
+    <thead><tr><th>#</th><th>Morceau</th><th>Ton.</th><th>BPM</th><th>Impro</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+  <div class="footer">
+    <span>AMAJAZZ Band Manager</span>
+    <span>Imprimé le ${new Date().toLocaleDateString('fr-FR')}</span>
+  </div>
+  <script>window.onload=()=>window.print()<\/script>
+  </body></html>`;
+}
+
+// ── INIT ──
+async function init(){
+  try {
+    setSyncStatus('loading');
+    await loadAll();
+    setSyncStatus('ok');
+    document.getElementById('loading').style.display='none';
+    document.getElementById('app').style.display='flex';
+    renderDashboard();
+  } catch(e){
+    console.error(e);
+    setSyncStatus('error');
+    document.getElementById('loading').innerHTML =
+      '<div class="loading-logo" style="color:#e87c7c">Erreur</div><div class="loading-sub">Connexion impossible</div>';
+  }
+}
+
+init();
+</script>
+</body>
+</html>
