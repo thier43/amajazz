@@ -25,17 +25,21 @@
   --amber:#b8860b;
   --purple:#7a3ac9;
   --nav-bg:#1a1814;
-  --nav-h:60px;
+  --nav-h:62px;
   --radius:14px;
   --radius-sm:10px;
   --shadow:0 2px 12px rgba(0,0,0,.08);
   --shadow-md:0 4px 20px rgba(0,0,0,.12);
 }
 html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text)}
+/* Safe area pour Android/iOS */
+:root{
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
 
 /* ── LAYOUT ── */
 #app{display:none;flex-direction:column;height:100vh}
-#main{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+#main{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:8px;-webkit-overflow-scrolling:touch}
 .page{display:none;padding:0 14px 14px;animation:fadeIn .18s ease}
 .page.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
@@ -60,12 +64,15 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 
 /* ── BOTTOM NAV ── */
 #bottom-nav{
-  height:var(--nav-h);
+  height:calc(var(--nav-h) + var(--safe-bottom));
+  padding-bottom:var(--safe-bottom);
   background:var(--nav-bg);
   display:flex;
   align-items:stretch;
   flex-shrink:0;
   border-top:1px solid rgba(255,255,255,.06);
+  position:relative;
+  z-index:100;
 }
 .nav-btn{
   flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
