@@ -346,11 +346,34 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 
 /* ── PRINT STYLES ── */
 .print-html{display:none}
+
+/* ===== WELCOME MOBILE ===== */
+#welcome-m{position:fixed;inset:0;background:var(--bg);z-index:3000;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:32px 20px 20px;overflow-y:auto}
+#welcome-m.hidden{display:none}
+.wm-title{font-size:20px;font-weight:700;color:var(--text);text-align:center;margin-bottom:4px}
+.wm-sub{font-size:13px;color:#888;text-align:center;margin-bottom:20px}
+.wm-logo{font-size:48px;margin-bottom:12px}
+.wm-grid{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;width:100%;max-width:400px;margin-bottom:20px}
+.wm-btn{padding:8px 14px;border-radius:20px;border:2px solid var(--border);background:var(--surface);font-size:13px;font-weight:500;color:var(--text);cursor:pointer;transition:all .15s;font-family:inherit}
+.wm-btn.selected{border-color:var(--accent);background:var(--accent);color:#fff}
+.wm-actions{display:flex;flex-direction:column;gap:8px;width:100%;max-width:300px}
 </style>
 </head>
 <body>
 
 <!-- LOADING -->
+<!-- WELCOME MOBILE -->
+<div id="welcome-m" class="hidden">
+  <div class="wm-logo">🎵</div>
+  <div class="wm-title">AMAJAZZ</div>
+  <div class="wm-sub">Qui êtes-vous ?</div>
+  <div class="wm-grid" id="wm-grid"></div>
+  <div class="wm-actions">
+    <button id="wm-confirm" style="padding:12px;border-radius:12px;border:none;background:var(--accent);color:#fff;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;opacity:.5" onclick="confirmUserM()" disabled>Confirmer</button>
+    <button style="padding:10px;border-radius:12px;border:1px solid var(--border);background:none;color:#888;font-size:13px;font-family:inherit;cursor:pointer" onclick="skipWelcomeM()">Continuer sans sélection</button>
+  </div>
+</div>
+
 <div id="loading">
   <div class="loading-logo">♪ AMAJAZZ</div>
   <div class="loading-sub">Chargement…</div>
@@ -365,6 +388,7 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
     <div style="flex:1">
       <div class="top-bar-title">♪ AMAJAZZ</div>
     </div>
+    <span id="user-badge-m" onclick="showWelcomeM()" style="display:none;font-size:12px;font-weight:600;color:rgba(255,255,255,.85);background:rgba(255,255,255,.12);border-radius:12px;padding:3px 10px;cursor:pointer;margin-right:6px"></span>
     <span class="sync-dot" id="sync-dot"></span>
   </div>
 
@@ -890,11 +914,12 @@ function buildPrintPage(title, subtitle, dateStr, timeStr, venue, rows){
 // ── PREFERENCES MOBILE ──
 let _prefSetId = null;
 let _prefMemberId = null;
+let _currentUserId = localStorage.getItem('amajazz_user_id') || null;
 const interestLabels = ['😐 Non','😊 Moyen','🔥 Oui !'];
 
 function openPrefPanel(setId, title){
   _prefSetId = setId;
-  _prefMemberId = DB.members.length ? DB.members[0].id : null;
+  _prefMemberId = _currentUserId || (DB.members.length ? DB.members[0].id : null);
   document.getElementById('pref-sheet-title').textContent = '🎵 ' + title;
   renderPrefMembers();
   renderPrefBody();
@@ -1195,14 +1220,87 @@ async function setPriorityM(setId, songId, current){
 }
 
 // ── INIT ──
+
+// ===== WELCOME MOBILE =====
+const _famColM = {
+  'Cordes':'#e67e22','Cuivres':'#e74c3c','Bois':'#27ae60',
+  'Claviers':'#2980b9','Percussions':'#8e44ad','Voix':'#f39c12'
+};
+
+function showWelcomeM(){
+  const grid = document.getElementById('wm-grid');
+  grid.innerHTML = DB.members.map(m=>{
+    const sel = m.id==_currentUserId ? 'selected' : '';
+    return `<button class="wm-btn ${sel}" onclick="selectUserM('${m.id}',this)"
+      style="border-color:${sel?_famColM[m.family]||'var(--accent)':'var(--border)'};
+             ${sel?'background:'+(_famColM[m.family]||'var(--accent)')+';color:#fff':''}">
+      ${esc(m.prenom)}
+    </button>`;
+  }).join('');
+  if(_currentUserId && DB.members.find(m=>m.id==_currentUserId)){
+    const btn = document.getElementById('wm-confirm');
+    btn.disabled=false; btn.style.opacity='1';
+  }
+  document.getElementById('welcome-m').classList.remove('hidden');
+}
+
+function selectUserM(id, btn){
+  _currentUserId = id;
+  const m = DB.members.find(x=>x.id==id);
+  document.querySelectorAll('.wm-btn').forEach(b=>{
+    b.classList.remove('selected');
+    b.style.borderColor='var(--border)';
+    b.style.background='';
+    b.style.color='';
+  });
+  const col = _famColM[m?.family]||'var(--accent)';
+  btn.classList.add('selected');
+  btn.style.borderColor=col;
+  btn.style.background=col;
+  btn.style.color='#fff';
+  const confirmBtn = document.getElementById('wm-confirm');
+  confirmBtn.disabled=false; confirmBtn.style.opacity='1';
+}
+
+function confirmUserM(){
+  if(!_currentUserId) return;
+  localStorage.setItem('amajazz_user_id', _currentUserId);
+  document.getElementById('welcome-m').classList.add('hidden');
+  document.getElementById('app').style.display='flex';
+  updateUserBadgeM();
+  renderDashboard();
+}
+
+function skipWelcomeM(){
+  _currentUserId = null;
+  localStorage.removeItem('amajazz_user_id');
+  document.getElementById('welcome-m').classList.add('hidden');
+  document.getElementById('app').style.display='flex';
+  renderDashboard();
+}
+
+function updateUserBadgeM(){
+  // Update nav bar or header with current user — lightweight
+  const m = _currentUserId ? DB.members.find(x=>x.id==_currentUserId) : null;
+  const badge = document.getElementById('user-badge-m');
+  if(!badge) return;
+  if(m){ badge.textContent=m.prenom; badge.style.display='inline'; }
+  else { badge.style.display='none'; }
+}
+
 async function init(){
   try {
     setSyncStatus('loading');
     await loadAll();
     setSyncStatus('ok');
     document.getElementById('loading').style.display='none';
-    document.getElementById('app').style.display='flex';
-    renderDashboard();
+    if(!_currentUserId || !DB.members.find(m=>m.id==_currentUserId)){
+      showWelcomeM();
+    } else {
+      document.getElementById('app').style.display='flex';
+      updateUserBadgeM();
+      renderDashboard();
+    }
   } catch(e){
     console.error(e);
     setSyncStatus('error');
