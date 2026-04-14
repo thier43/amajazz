@@ -374,6 +374,58 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 .pref-user-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
 .pref-user-name{font-size:15px;font-weight:700;color:var(--text)}
 .pref-user-change{font-size:11px;color:var(--accent);cursor:pointer;white-space:nowrap}
+
+/* ===== EDIT PANEL (répétitions & prestations) ===== */
+#edit-panel{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:4000;display:none;align-items:flex-end}
+#edit-panel.open{display:flex}
+.edit-sheet{
+  background:var(--bg);border-radius:20px 20px 0 0;
+  width:100%;max-height:90vh;display:flex;flex-direction:column;
+  animation:slideUp .25s ease;
+}
+.edit-sheet-header{
+  padding:16px 18px 12px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
+.edit-sheet-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--text)}
+.edit-sheet-close{background:var(--nav-bg);color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.edit-sheet-body{overflow-y:auto;flex:1;padding:12px 0 80px;-webkit-overflow-scrolling:touch}
+.edit-field-row{padding:10px 18px;border-bottom:1px solid var(--border)}
+.edit-field-label{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:4px}
+.edit-field-input{
+  width:100%;background:var(--surface2);border:1px solid var(--border);
+  border-radius:8px;padding:8px 12px;font-size:14px;color:var(--text);
+  font-family:inherit;box-sizing:border-box;outline:none;
+}
+.edit-field-input:focus{border-color:var(--accent)}
+textarea.edit-field-input{min-height:60px;resize:none}
+.edit-song-list{padding:0}
+.edit-song-row{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 18px;border-bottom:1px solid var(--border);
+}
+.edit-song-num{font-size:11px;color:var(--text3);width:18px;flex-shrink:0;text-align:right}
+.edit-song-name{flex:1;font-size:13px;color:var(--text)}
+.edit-song-note-wrap{padding:2px 18px 8px 48px;border-bottom:1px solid var(--border)}
+.edit-song-note-input{
+  width:100%;background:transparent;border:none;border-bottom:1px solid var(--border2);
+  font-size:12px;color:var(--text2);font-family:inherit;outline:none;
+  padding:2px 0;box-sizing:border-box;
+}
+.edit-song-note-input::placeholder{color:var(--text3)}
+.edit-song-del{background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;padding:4px;flex-shrink:0}
+.edit-add-song-row{padding:12px 18px;border-bottom:1px solid var(--border)}
+.edit-add-select{
+  width:100%;background:var(--surface2);border:1px solid var(--border);
+  border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);
+  font-family:inherit;box-sizing:border-box;outline:none;
+}
+.edit-save-btn{
+  width:calc(100% - 36px);margin:14px 18px 0;padding:13px;
+  border:none;border-radius:12px;background:var(--accent);
+  color:#fff;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;
+}
+.edit-status{padding:6px 18px;font-size:12px;color:var(--green);min-height:24px}
 </style>
 </head>
 <body>
@@ -686,9 +738,12 @@ function renderSets(){
       ${s.notes?`<div class="set-note" style="color:var(--text3);font-style:italic">📝 ${esc(s.notes)}</div>`:''}`;
     }).join('');
     return `<div class="set-card">
-      <div class="set-header">
-        <div class="set-name">${esc(set.name)}</div>
-        <div class="set-meta">${songs.length} morceau${songs.length>1?'x':''} ${dur?'· ~'+dur+' min':''}</div>
+      <div class="set-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+        <div style="flex:1">
+          <div class="set-name">${esc(set.name)}</div>
+          <div class="set-meta">${songs.length} morceau${songs.length>1?'x':''} ${dur?'· ~'+dur+' min':''}</div>
+        </div>
+        <button onclick="openEditPanel('set',${set.id})" style="flex-shrink:0;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:12px;color:var(--text2);cursor:pointer;font-family:inherit">✏️ Modifier</button>
       </div>
       ${songsHtml?`<div class="set-songs">${songsHtml}</div>`:''}
       <button class="pref-btn" onclick="openPrefPanel(${set.id}, '${esc(set.name)}');">🎵 Préférences des musiciens</button>
@@ -757,6 +812,9 @@ function renderConcerts(){
       <div class="concert-header">
         ${dateBlock}
         <div class="concert-info">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:space-between">
+          <button onclick="openEditPanel('concert',${c.id})" style="margin-left:auto;flex-shrink:0;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:12px;color:var(--text2);cursor:pointer;font-family:inherit">✏️ Modifier</button>
+          </div>
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
             <div class="concert-name">${esc(c.name)}</div>
             <span class="event-badge badge-${status}">${statusLabel[status]||status}</span>
@@ -1259,6 +1317,173 @@ async function setPriorityM(setId, songId, current){
 
 // ── INIT ──
 
+
+// ===== EDIT PANEL (répétitions & prestations) =====
+let _editType = null;   // 'set' | 'concert'
+let _editId   = null;
+let _editSongs = [];    // working copy [{song_id, position, notes/set_notes}]
+
+function openEditPanel(type, id){
+  _editType = type;
+  _editId   = id;
+  if(type==='set'){
+    const set = DB.sets.find(s=>s.id===id);
+    if(!set) return;
+    document.getElementById('edit-panel-title').textContent = '✏️ Répétition';
+    _editSongs = DB.set_songs.filter(ss=>ss.set_id===id)
+      .sort((a,b)=>a.position-b.position)
+      .map(ss=>({song_id:ss.song_id, position:ss.position, notes:ss.set_notes||'', priority:ss.priority||0}));
+    buildEditBody({name:set.name, notes:set.notes||''});
+  } else {
+    const c = DB.concerts.find(x=>x.id===id);
+    if(!c) return;
+    document.getElementById('edit-panel-title').textContent = '✏️ Prestation';
+    // use concert_songs if they exist, else inherit from set
+    const overrides = DB.concert_songs.filter(cs=>cs.concert_id===id).sort((a,b)=>a.position-b.position);
+    if(overrides.length){
+      _editSongs = overrides.map(cs=>({song_id:cs.song_id, position:cs.position, notes:cs.notes||''}));
+    } else if(c.set_id){
+      _editSongs = DB.set_songs.filter(ss=>ss.set_id===c.set_id)
+        .sort((a,b)=>a.position-b.position)
+        .map(ss=>({song_id:ss.song_id, position:ss.position, notes:ss.set_notes||''}));
+    } else {
+      _editSongs = [];
+    }
+    buildEditBody({name:c.name, notes:c.notes||''});
+  }
+  document.getElementById('edit-panel').classList.add('open');
+}
+
+function buildEditBody({name, notes}){
+  const usedIds = _editSongs.map(s=>s.song_id);
+  const available = DB.songs.filter(s=>!usedIds.includes(s.id))
+    .sort((a,b)=>a.name.localeCompare(b.name,'fr'));
+
+  const songsHtml = _editSongs.map((ss,i)=>{
+    const s = DB.songs.find(x=>x.id===ss.song_id);
+    if(!s) return '';
+    return `<div class="edit-song-row" id="esr-${i}">
+      <span class="edit-song-num">${i+1}</span>
+      <span class="edit-song-name">${esc(s.name)}${s.key?` <span style="font-size:10px;color:var(--accent2)">${esc(s.key)}</span>`:''}</span>
+      <button class="edit-song-del" onclick="editRemoveSong(${i})" title="Supprimer">🗑</button>
+    </div>
+    <div class="edit-song-note-wrap">
+      <input class="edit-song-note-input" type="text" placeholder="Note pour ce morceau…"
+        value="${esc(ss.notes)}" oninput="editUpdateNote(${i},this.value)">
+    </div>`;
+  }).join('');
+
+  const addOptions = available.length
+    ? `<select class="edit-add-select" id="edit-add-select">
+        <option value="">— Ajouter un morceau —</option>
+        ${available.map(s=>`<option value="${s.id}">${esc(s.name)}${s.key?' ('+esc(s.key)+')':''}</option>`).join('')}
+      </select>`
+    : `<div style="font-size:12px;color:var(--text3);padding:4px 0">Tous les morceaux sont déjà dans ce programme.</div>`;
+
+  document.getElementById('edit-sheet-body').innerHTML = `
+    <div class="edit-field-row">
+      <div class="edit-field-label">Nom</div>
+      <input class="edit-field-input" type="text" id="edit-name-input" value="${esc(name)}">
+    </div>
+    <div class="edit-field-row">
+      <div class="edit-field-label">Notes générales</div>
+      <textarea class="edit-field-input" id="edit-notes-input" placeholder="Notes…">${esc(notes)}</textarea>
+    </div>
+    <div class="edit-field-row" style="padding-bottom:6px">
+      <div class="edit-field-label">Morceaux (${_editSongs.length})</div>
+    </div>
+    <div class="edit-song-list" id="edit-song-list">${songsHtml}</div>
+    <div class="edit-add-song-row">${addOptions}</div>
+    <div id="edit-status" class="edit-status"></div>
+    <button class="edit-save-btn" onclick="saveEdit()">💾 Enregistrer</button>
+  `;
+
+  // Bind add-song select
+  const sel = document.getElementById('edit-add-select');
+  if(sel) sel.addEventListener('change', function(){ if(this.value){ editAddSong(parseInt(this.value)); this.value=''; }});
+}
+
+function editRemoveSong(idx){
+  _editSongs.splice(idx,1);
+  rebuildSongList();
+}
+
+function editAddSong(songId){
+  _editSongs.push({song_id:songId, position:_editSongs.length+1, notes:''});
+  rebuildSongList();
+}
+
+function editUpdateNote(idx, val){
+  if(_editSongs[idx]) _editSongs[idx].notes = val;
+}
+
+function rebuildSongList(){
+  // Re-save note values from DOM before rebuilding
+  _editSongs.forEach((ss,i)=>{
+    const inp = document.querySelector(`#edit-song-list .edit-song-note-wrap:nth-of-type(${(i*2)+2}) .edit-song-note-input`);
+    // safer: iterate all note inputs by order
+  });
+  // Collect current notes before rebuild
+  const noteInputs = document.querySelectorAll('.edit-song-note-input');
+  noteInputs.forEach((inp,i)=>{ if(_editSongs[i]) _editSongs[i].notes = inp.value; });
+  // Rebuild
+  const body = document.getElementById('edit-sheet-body');
+  const name  = document.getElementById('edit-name-input')?.value||'';
+  const notes = document.getElementById('edit-notes-input')?.value||'';
+  buildEditBody({name, notes});
+}
+
+async function saveEdit(){
+  const statusEl = document.getElementById('edit-status');
+  const name  = (document.getElementById('edit-name-input')?.value||'').trim();
+  const notes = (document.getElementById('edit-notes-input')?.value||'').trim();
+
+  // Collect final notes
+  const noteInputs = document.querySelectorAll('.edit-song-note-input');
+  noteInputs.forEach((inp,i)=>{ if(_editSongs[i]) _editSongs[i].notes = inp.value; });
+
+  if(!name){ statusEl.style.color='var(--red)'; statusEl.textContent='Le nom est obligatoire.'; return; }
+  statusEl.textContent='Enregistrement…'; statusEl.style.color='var(--text3)';
+
+  try {
+    if(_editType==='set'){
+      await sb.from('sets').update({name, notes:notes||null}).eq('id',_editId);
+      await sb.from('set_songs').delete().eq('set_id',_editId);
+      if(_editSongs.length){
+        const rows = _editSongs.map((ss,i)=>({
+          set_id:_editId, song_id:ss.song_id, position:i+1,
+          set_notes:ss.notes||null, priority:ss.priority||0
+        }));
+        await sb.from('set_songs').insert(rows);
+      }
+    } else {
+      await sb.from('concerts').update({name, notes:notes||null}).eq('id',_editId);
+      await sb.from('concert_songs').delete().eq('concert_id',_editId);
+      if(_editSongs.length){
+        const rows = _editSongs.map((ss,i)=>({
+          concert_id:_editId, song_id:ss.song_id, position:i+1,
+          notes:ss.notes||null
+        }));
+        await sb.from('concert_songs').insert(rows);
+      }
+    }
+    await loadAll();
+    statusEl.style.color='var(--green)'; statusEl.textContent='✓ Enregistré !';
+    if(_editType==='set') renderSets(); else renderConcerts();
+    setTimeout(()=>closeEditPanelDirect(), 900);
+  } catch(e){
+    console.error(e);
+    statusEl.style.color='var(--red)'; statusEl.textContent='Erreur : ' + e.message;
+  }
+}
+
+function closeEditPanel(e){
+  if(e.target===document.getElementById('edit-panel')) closeEditPanelDirect();
+}
+function closeEditPanelDirect(){
+  document.getElementById('edit-panel').classList.remove('open');
+}
+
 // ===== WELCOME MOBILE =====
 const _famColM = {
   'Cordes':'#e67e22','Cuivres':'#e74c3c','Bois':'#27ae60',
@@ -1350,6 +1575,18 @@ async function init(){
 init();
 </script>
 <!-- PANNEAU PRÉFÉRENCES -->
+
+<!-- EDIT PANEL répétition / prestation -->
+<div id="edit-panel" onclick="closeEditPanel(event)">
+  <div class="edit-sheet" id="edit-sheet">
+    <div class="edit-sheet-header">
+      <div class="edit-sheet-title" id="edit-panel-title">Modifier</div>
+      <button class="edit-sheet-close" onclick="closeEditPanelDirect()">×</button>
+    </div>
+    <div class="edit-sheet-body" id="edit-sheet-body"></div>
+  </div>
+</div>
+
 <div id="pref-panel" onclick="closePrefPanel(event)">
   <div class="pref-sheet" id="pref-sheet">
     <div class="pref-sheet-header">
