@@ -1,10 +1,15 @@
 {
   "version": 2,
   "builds": [
-    { "src": "*.html", "use": "@vercel/static" }
+    { "src": "*.html", "use": "@vercel/static" },
+    { "src": "*.png", "use": "@vercel/static" },
+    { "src": "*.json", "use": "@vercel/static" }
   ],
   "routes": [
     { "src": "/mobile.html", "dest": "/mobile.html" },
+    { "src": "/manifest.json", "dest": "/manifest.json" },
+    { "src": "/icon-192.png", "dest": "/icon-192.png" },
+    { "src": "/icon-512.png", "dest": "/icon-512.png" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
