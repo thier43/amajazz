@@ -334,6 +334,64 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
 
 
 
+
+/* ===== SET DETAIL PANEL ===== */
+.set-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:800;display:none;opacity:0;transition:opacity .2s}
+.set-detail-overlay.open{display:block;opacity:1}
+.set-detail-panel{
+  position:fixed;top:0;right:0;bottom:0;width:620px;max-width:95vw;
+  background:var(--bg);border-left:1px solid var(--border);
+  z-index:801;display:flex;flex-direction:column;
+  transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);
+  box-shadow:-4px 0 24px rgba(0,0,0,.35);
+}
+.set-detail-panel.open{transform:translateX(0)}
+.sdp-header{
+  padding:18px 20px 14px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;flex-shrink:0;
+}
+.sdp-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:var(--accent);flex:1}
+.sdp-close{background:var(--surface2);border:1px solid var(--border);border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text3);transition:color .15s,background .15s}
+.sdp-close:hover{background:var(--surface3);color:var(--text)}
+.sdp-meta{padding:10px 20px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text3);flex-shrink:0;display:flex;align-items:center;gap:12px}
+.sdp-body{overflow-y:auto;flex:1;padding:0}
+.sdp-song-row{
+  padding:14px 20px;border-bottom:1px solid var(--border);
+  display:flex;flex-direction:column;gap:8px;
+  transition:background .15s;
+}
+.sdp-song-row:hover{background:var(--surface)}
+.sdp-song-header{display:flex;align-items:center;gap:8px}
+.sdp-song-num{font-size:11px;color:var(--text3);min-width:22px;text-align:right;flex-shrink:0}
+.sdp-song-name{font-size:14px;font-weight:600;color:var(--text);flex:1}
+.sdp-song-orig{font-size:10px;color:var(--text3);font-style:italic}
+.sdp-fields{display:grid;grid-template-columns:1fr 80px 70px 80px;gap:6px;padding-left:30px}
+.sdp-field{display:flex;flex-direction:column;gap:2px}
+.sdp-field-label{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3)}
+.sdp-field input{
+  background:var(--surface2);border:1px solid var(--border);border-radius:6px;
+  padding:5px 8px;font-size:12px;color:var(--text);font-family:inherit;outline:none;width:100%;box-sizing:border-box;
+}
+.sdp-field input:focus{border-color:var(--accent)}
+.sdp-note-row{padding-left:30px}
+.sdp-note-input{
+  width:100%;background:transparent;border:none;border-bottom:1px solid var(--border2);
+  font-size:12px;color:var(--text2);font-family:inherit;outline:none;padding:3px 0;box-sizing:border-box;
+}
+.sdp-note-input::placeholder{color:var(--text3)}
+.sdp-prio-bar{display:flex;gap:6px;padding-left:30px;align-items:center}
+.sdp-prio-btn{
+  width:26px;height:14px;border-radius:7px;border:2px solid var(--border);cursor:pointer;transition:all .15s;
+}
+.sdp-prio-btn.p0{background:var(--text3)}
+.sdp-prio-btn.p1{background:var(--amber)}
+.sdp-prio-btn.p2{background:var(--red)}
+.sdp-prio-btn.active{transform:scale(1.2);box-shadow:0 0 6px currentColor}
+.sdp-footer{
+  padding:14px 20px;border-top:1px solid var(--border);
+  display:flex;gap:10px;justify-content:flex-end;flex-shrink:0;background:var(--bg);
+}
+.sdp-save-status{font-size:12px;color:var(--green);align-self:center;flex:1}
 </style>
 </head>
 <body>
@@ -1292,6 +1350,170 @@ function getSongIdsForSet(setId){
   return DB.set_songs.filter(ss=>ss.set_id===setId).sort((a,b)=>a.position-b.position).map(ss=>ss.song_id);
 }
 
+
+// ===== SET DETAIL PANEL =====
+let _sdpSetId = null;
+let _sdpSongs = []; // working copy [{song_id, position, set_notes, priority, local_name, local_key, local_bpm, local_tempo}]
+
+function openSDP(setId){
+  _sdpSetId = setId;
+  const set = DB.sets.find(s=>s.id===setId);
+  if(!set) return;
+  _sdpSongs = DB.set_songs.filter(ss=>ss.set_id===setId)
+    .sort((a,b)=>(b.priority||0)-(a.priority||0) || a.position-b.position)
+    .map(ss=>({...ss})); // shallow copy
+
+  document.getElementById('sdp-title').textContent = set.name;
+  const total = _sdpSongs.length;
+  const dur = _sdpSongs.reduce((a,ss)=>{ const s=DB.songs.find(x=>x.id===ss.song_id); return a+(s?.duration||0); },0);
+  document.getElementById('sdp-meta').innerHTML =
+    `<span>${total} morceau${total>1?'x':''}</span>${dur?`<span>~${dur} min</span>`:''}`+
+    `${set.notes?`<span style="color:var(--amber)">⚠ ${esc(set.notes)}</span>`:''}`;
+
+  renderSDPBody();
+  document.getElementById('sdp-overlay').classList.add('open');
+  document.getElementById('sdp-panel').classList.add('open');
+  document.getElementById('sdp-save-status').textContent='';
+}
+
+function renderSDPBody(){
+  const body = document.getElementById('sdp-body');
+  body.innerHTML = _sdpSongs.map((ss,i)=>{
+    const s = DB.songs.find(x=>x.id===ss.song_id);
+    if(!s) return '';
+    const prio = ss.priority||0;
+    const prioLabel = ['Normal','À travailler','Prioritaire'][prio];
+    return `<div class="sdp-song-row" id="sdp-row-${i}">
+      <div class="sdp-song-header">
+        <span class="sdp-song-num">${i+1}</span>
+        <span class="sdp-song-name">${esc(ss.local_name||s.name)}</span>
+        ${ss.local_name?`<span class="sdp-song-orig" title="Nom original">(${esc(s.name)})</span>`:''}
+        ${s.folder_link?`<a href="${esc(s.folder_link)}" target="_blank" title="Ouvrir le dossier" style="color:var(--accent2);font-size:13px;text-decoration:none">🔗</a>`:''}
+        <span style="font-size:11px;color:var(--text3)" title="Durée globale">${s.duration?s.duration+' min':''}</span>
+      </div>
+      <!-- Priorité -->
+      <div class="sdp-prio-bar">
+        <span style="font-size:10px;color:var(--text3)">Priorité :</span>
+        ${[0,1,2].map(p=>`<button class="sdp-prio-btn p${p} ${prio===p?'active':''}"
+          title="${['Normal','À travailler','Prioritaire'][p]}"
+          onclick="sdpSetPrio(${i},${p})"></button>`).join('')}
+        <span id="sdp-prio-label-${i}" style="font-size:10px;color:var(--text3)">${prioLabel}</span>
+      </div>
+      <!-- Champs overrides -->
+      <div class="sdp-fields">
+        <div class="sdp-field">
+          <span class="sdp-field-label">Nom dans ce set</span>
+          <input type="text" placeholder="${esc(s.name)}"
+            value="${esc(ss.local_name||'')}"
+            oninput="sdpUpdate(${i},'local_name',this.value)"
+            title="Remplace le nom uniquement dans ce set">
+        </div>
+        <div class="sdp-field">
+          <span class="sdp-field-label">Tonalité</span>
+          <input type="text" placeholder="${esc(s.key||'—')}"
+            value="${esc(ss.local_key||'')}"
+            oninput="sdpUpdate(${i},'local_key',this.value)">
+        </div>
+        <div class="sdp-field">
+          <span class="sdp-field-label">BPM</span>
+          <input type="number" min="0" max="400" placeholder="${s.bpm||'—'}"
+            value="${ss.local_bpm||''}"
+            oninput="sdpUpdate(${i},'local_bpm',this.value?parseInt(this.value):null)">
+        </div>
+        <div class="sdp-field">
+          <span class="sdp-field-label">Tempo</span>
+          <input type="text" placeholder="${esc(s.tempo||'—')}"
+            value="${esc(ss.local_tempo||'')}"
+            oninput="sdpUpdate(${i},'local_tempo',this.value)">
+        </div>
+      </div>
+      <!-- Note spécifique au set -->
+      <div class="sdp-note-row">
+        <input class="sdp-note-input" type="text"
+          placeholder="⚠ Note spécifique pour ce set (structure, arrangement…)"
+          value="${esc(ss.set_notes||'')}"
+          oninput="sdpUpdate(${i},'set_notes',this.value)">
+      </div>
+      <!-- Infos globales lecture seule -->
+      <div style="padding-left:30px;display:flex;gap:8px;flex-wrap:wrap">
+        ${s.style?`<span class="tag" style="font-size:10px">${esc(s.style)}</span>`:''}
+        ${s.notes?`<span style="font-size:11px;color:var(--text3);font-style:italic">📝 ${esc(s.notes)}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function sdpUpdate(idx, field, value){
+  if(_sdpSongs[idx]) _sdpSongs[idx][field] = value||null;
+  // Live-update le titre si local_name change
+  if(field==='local_name'){
+    const s = DB.songs.find(x=>x.id===_sdpSongs[idx].song_id);
+    const row = document.getElementById(`sdp-row-${idx}`);
+    if(row && s){
+      const nameEl = row.querySelector('.sdp-song-name');
+      let origEl = row.querySelector('.sdp-song-orig');
+      if(nameEl) nameEl.textContent = value || s.name;
+      if(value){
+        if(!origEl){
+          origEl = document.createElement('span');
+          origEl.className='sdp-song-orig';
+          nameEl.after(origEl);
+        }
+        origEl.textContent = '('+s.name+')';
+      } else if(origEl){ origEl.remove(); }
+    }
+  }
+}
+
+function sdpSetPrio(idx, prio){
+  if(_sdpSongs[idx]) _sdpSongs[idx].priority = prio;
+  // Mise à jour visuelle des boutons et label
+  const row = document.getElementById(`sdp-row-${idx}`);
+  if(row){
+    row.querySelectorAll('.sdp-prio-btn').forEach((btn,p)=>{
+      btn.classList.toggle('active', p===prio);
+    });
+    const label = document.getElementById(`sdp-prio-label-${idx}`);
+    if(label) label.textContent = ['Normal','À travailler','Prioritaire'][prio];
+  }
+}
+
+async function saveSDP(){
+  const statusEl = document.getElementById('sdp-save-status');
+  statusEl.style.color='var(--text3)'; statusEl.textContent='Enregistrement…';
+  try {
+    // Sauvegarder chaque ligne modifiée
+    for(const ss of _sdpSongs){
+      await sb.from('set_songs').update({
+        set_notes:  ss.set_notes||null,
+        priority:   ss.priority||0,
+        local_name: ss.local_name||null,
+        local_key:  ss.local_key||null,
+        local_bpm:  ss.local_bpm||null,
+        local_tempo:ss.local_tempo||null,
+      }).eq('set_id', _sdpSetId).eq('song_id', ss.song_id);
+    }
+    await loadAll();
+    renderSets();
+    statusEl.style.color='var(--green)'; statusEl.textContent='✓ Enregistré !';
+    setTimeout(()=>{ statusEl.textContent=''; },2500);
+    // Recharger le panneau avec les nouvelles données
+    _sdpSongs = DB.set_songs.filter(ss=>ss.set_id===_sdpSetId)
+      .sort((a,b)=>(b.priority||0)-(a.priority||0) || a.position-b.position)
+      .map(ss=>({...ss}));
+  } catch(e){
+    console.error(e);
+    statusEl.style.color='var(--red)'; statusEl.textContent='Erreur : '+e.message;
+  }
+}
+
+function closeSDP(){
+  document.getElementById('sdp-overlay').classList.remove('open');
+  document.getElementById('sdp-panel').classList.remove('open');
+  setTimeout(()=>{ document.getElementById('sdp-overlay').style.display='none'; }, 10);
+  setTimeout(()=>{ document.getElementById('sdp-overlay').style.display=''; }, 250);
+}
+
 function renderSets(){
   const list = document.getElementById('set-list');
   if(!DB.sets.length){
@@ -1303,7 +1525,7 @@ function renderSets(){
     const songs = songIds.map(sid=>DB.songs.find(s=>s.id===sid)).filter(Boolean);
     const dur = songs.reduce((a,s)=>a+(s.duration||0),0);
     return `
-      <div class="set-card">
+      <div class="set-card" ondblclick="openSDP(${set.id})" title="Double-clic pour ouvrir le détail" style="cursor:pointer">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
           <div class="set-name">${esc(set.name)}</div>
           <div class="flex gap-8" style="flex-shrink:0">
@@ -2507,6 +2729,25 @@ function buildPrintHtml({title, subtitle, dateStr, timeStr, venue, songsRows, lo
   <span>Imprimé le ${new Date().toLocaleDateString('fr-FR')}</span>
 </div>
 <script>window.onload=()=>{ window.print(); }<\/script>
+
+<!-- SET DETAIL PANEL -->
+<div class="set-detail-overlay" id="sdp-overlay" onclick="closeSDP()"></div>
+<div class="set-detail-panel" id="sdp-panel">
+  <div class="sdp-header">
+    <div class="sdp-title" id="sdp-title">Répétition</div>
+    <button class="btn btn-outline btn-sm" onclick="printSetProgram(_sdpSetId)" title="Imprimer">🖨</button>
+    <button class="btn btn-ghost btn-sm" onclick="openSetModal(_sdpSetId);closeSDP()" title="Modifier le set">✎ Set</button>
+    <button class="sdp-close" onclick="closeSDP()">×</button>
+  </div>
+  <div class="sdp-meta" id="sdp-meta"></div>
+  <div class="sdp-body" id="sdp-body"></div>
+  <div class="sdp-footer">
+    <span class="sdp-save-status" id="sdp-save-status"></span>
+    <button class="btn btn-outline" onclick="closeSDP()">Fermer</button>
+    <button class="btn btn-primary" onclick="saveSDP()">💾 Enregistrer</button>
+  </div>
+</div>
+
 </body></html>`;
 }
 
