@@ -335,63 +335,65 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
 
 
 
-/* ===== SET DETAIL PANEL ===== */
-.set-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:800;display:none;opacity:0;transition:opacity .2s}
-.set-detail-overlay.open{display:block;opacity:1}
-.set-detail-panel{
-  position:fixed;top:0;right:0;bottom:0;width:620px;max-width:95vw;
-  background:var(--bg);border-left:1px solid var(--border);
-  z-index:801;display:flex;flex-direction:column;
-  transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);
-  box-shadow:-4px 0 24px rgba(0,0,0,.35);
+
+.sdp-save-status{font-size:12px;color:var(--green);align-self:center;flex:1}
+
+/* ===== SET DETAIL FLOATING WINDOW ===== */
+#sdp-win{
+  position:fixed;top:80px;left:50%;transform:translateX(-50%);
+  width:700px;max-width:95vw;max-height:85vh;
+  background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:0 8px 40px rgba(0,0,0,.55);
+  display:none;flex-direction:column;z-index:900;
+  overflow:hidden;
 }
-.set-detail-panel.open{transform:translateX(0)}
-.sdp-header{
-  padding:18px 20px 14px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;gap:12px;flex-shrink:0;
+#sdp-win.visible{display:flex}
+#sdp-titlebar{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 16px;background:var(--surface2);border-bottom:1px solid var(--border);
+  cursor:grab;user-select:none;flex-shrink:0;
 }
-.sdp-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:var(--accent);flex:1}
-.sdp-close{background:var(--surface2);border:1px solid var(--border);border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text3);transition:color .15s,background .15s}
-.sdp-close:hover{background:var(--surface3);color:var(--text)}
-.sdp-meta{padding:10px 20px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text3);flex-shrink:0;display:flex;align-items:center;gap:12px}
-.sdp-body{overflow-y:auto;flex:1;padding:0}
-.sdp-song-row{
-  padding:14px 20px;border-bottom:1px solid var(--border);
-  display:flex;flex-direction:column;gap:8px;
-  transition:background .15s;
+#sdp-titlebar:active{cursor:grabbing}
+#sdp-win-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--accent);flex:1}
+#sdp-win-meta{font-size:11px;color:var(--text3);white-space:nowrap}
+.sdp-win-btn{background:var(--surface3);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;color:var(--text2);font-family:inherit;transition:background .15s}
+.sdp-win-btn:hover{background:var(--surface)}
+.sdp-win-close{background:var(--surface3);border:1px solid var(--border);border-radius:50%;width:26px;height:26px;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text3);transition:color .15s,background .15s}
+.sdp-win-close:hover{background:var(--red);color:#fff;border-color:var(--red)}
+#sdp-win-body{overflow-y:auto;flex:1;padding:0}
+.sdp-row{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+.sdp-row:last-child{border-bottom:none}
+.sdp-row:hover{background:var(--surface)}
+.sdp-row-head{display:flex;align-items:center;gap:8px}
+.sdp-num{font-size:11px;color:var(--text3);min-width:20px;text-align:right;flex-shrink:0}
+.sdp-name{font-size:13px;font-weight:600;color:var(--text);flex:1}
+.sdp-orig{font-size:10px;color:var(--text3);font-style:italic}
+.sdp-row-fields{display:grid;grid-template-columns:1fr 72px 64px 74px;gap:6px;padding-left:28px}
+.sdp-label{font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);margin-bottom:1px}
+.sdp-input{
+  width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:5px;
+  padding:4px 7px;font-size:12px;color:var(--text);font-family:inherit;outline:none;box-sizing:border-box;
 }
-.sdp-song-row:hover{background:var(--surface)}
-.sdp-song-header{display:flex;align-items:center;gap:8px}
-.sdp-song-num{font-size:11px;color:var(--text3);min-width:22px;text-align:right;flex-shrink:0}
-.sdp-song-name{font-size:14px;font-weight:600;color:var(--text);flex:1}
-.sdp-song-orig{font-size:10px;color:var(--text3);font-style:italic}
-.sdp-fields{display:grid;grid-template-columns:1fr 80px 70px 80px;gap:6px;padding-left:30px}
-.sdp-field{display:flex;flex-direction:column;gap:2px}
-.sdp-field-label{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3)}
-.sdp-field input{
-  background:var(--surface2);border:1px solid var(--border);border-radius:6px;
-  padding:5px 8px;font-size:12px;color:var(--text);font-family:inherit;outline:none;width:100%;box-sizing:border-box;
-}
-.sdp-field input:focus{border-color:var(--accent)}
-.sdp-note-row{padding-left:30px}
+.sdp-input:focus{border-color:var(--accent)}
 .sdp-note-input{
   width:100%;background:transparent;border:none;border-bottom:1px solid var(--border2);
-  font-size:12px;color:var(--text2);font-family:inherit;outline:none;padding:3px 0;box-sizing:border-box;
+  font-size:11px;color:var(--text2);font-family:inherit;outline:none;padding:2px 0;box-sizing:border-box;
 }
 .sdp-note-input::placeholder{color:var(--text3)}
-.sdp-prio-bar{display:flex;gap:6px;padding-left:30px;align-items:center}
-.sdp-prio-btn{
-  width:26px;height:14px;border-radius:7px;border:2px solid var(--border);cursor:pointer;transition:all .15s;
+.sdp-prio-row{display:flex;align-items:center;gap:6px;padding-left:28px}
+.sdp-prio-dot{width:10px;height:10px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .12s,box-shadow .12s;flex-shrink:0}
+.sdp-prio-dot.sel{transform:scale(1.4);box-shadow:0 0 4px currentColor}
+.sdp-prio-dot.p0{background:var(--text3)}
+.sdp-prio-dot.p1{background:var(--amber)}
+.sdp-prio-dot.p2{background:var(--red)}
+.sdp-song-info{padding-left:28px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+#sdp-win-footer{
+  padding:10px 16px;border-top:1px solid var(--border);background:var(--bg);
+  display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-shrink:0;
 }
-.sdp-prio-btn.p0{background:var(--text3)}
-.sdp-prio-btn.p1{background:var(--amber)}
-.sdp-prio-btn.p2{background:var(--red)}
-.sdp-prio-btn.active{transform:scale(1.2);box-shadow:0 0 6px currentColor}
-.sdp-footer{
-  padding:14px 20px;border-top:1px solid var(--border);
-  display:flex;gap:10px;justify-content:flex-end;flex-shrink:0;background:var(--bg);
-}
-.sdp-save-status{font-size:12px;color:var(--green);align-self:center;flex:1}
+#sdp-status{flex:1;font-size:12px;color:var(--green)}
+#sdp-resize{position:absolute;bottom:0;right:0;width:16px;height:16px;cursor:se-resize;opacity:.3}
+#sdp-resize:hover{opacity:.7}
 </style>
 </head>
 <body>
@@ -994,6 +996,184 @@ function changeUser(){
   showWelcomeScreen();
 }
 
+
+// ===== SET DETAIL FLOATING WINDOW =====
+let _sdpId   = null;
+let _sdpData = []; // copies locales des set_songs
+
+function openSdpWin(setId){
+  _sdpId = setId;
+  const set = DB.sets.find(s=>s.id===setId);
+  if(!set) return;
+
+  _sdpData = DB.set_songs.filter(ss=>ss.set_id===setId)
+    .sort((a,b)=>(b.priority||0)-(a.priority||0) || (a.position||0)-(b.position||0))
+    .map(ss=>({...ss}));
+
+  const dur = _sdpData.reduce((acc,ss)=>{
+    const s=DB.songs.find(x=>x.id===ss.song_id); return acc+(s?.duration||0);
+  },0);
+
+  document.getElementById('sdp-win-title').textContent = set.name;
+  document.getElementById('sdp-win-meta').textContent =
+    _sdpData.length+' morceau'+(_sdpData.length>1?'x':'')+(dur?' · ~'+dur+' min':'');
+  document.getElementById('sdp-status').textContent='';
+
+  buildSdpBody();
+
+  const win = document.getElementById('sdp-win');
+  win.classList.add('visible');
+  // Centrer à l'ouverture
+  win.style.left='50%'; win.style.top='80px'; win.style.transform='translateX(-50%)';
+}
+
+function buildSdpBody(){
+  document.getElementById('sdp-win-body').innerHTML = _sdpData.map((ss,i)=>{
+    const s = DB.songs.find(x=>x.id===ss.song_id);
+    if(!s) return '';
+    const prio = ss.priority||0;
+    const dn   = esc(ss.local_name||s.name);
+    return `<div class="sdp-row">
+      <div class="sdp-row-head">
+        <span class="sdp-num">${i+1}</span>
+        <span class="sdp-name" id="sdp-n-${i}">${dn}</span>
+        ${ss.local_name?`<span class="sdp-orig">(${esc(s.name)})</span>`:''}
+        ${s.folder_link?`<a href="${esc(s.folder_link)}" target="_blank" onclick="event.stopPropagation()" style="color:var(--accent2);font-size:13px;text-decoration:none">🔗</a>`:''}
+        ${s.duration?`<span style="font-size:10px;color:var(--text3)">${s.duration} min</span>`:''}
+      </div>
+      <!-- priorité -->
+      <div class="sdp-prio-row">
+        <span style="font-size:10px;color:var(--text3)">Priorité :</span>
+        ${[0,1,2].map(p=>`<div class="sdp-prio-dot p${p} ${prio===p?'sel':''}"
+          title="${['Normal','À travailler','Prioritaire'][p]}"
+          onclick="sdpPrio(${i},${p})"></div>`).join('')}
+        <span id="sdp-pl-${i}" style="font-size:10px;color:var(--text3)">${['Normal','À travailler','Prioritaire'][prio]}</span>
+      </div>
+      <!-- champs overrides -->
+      <div class="sdp-row-fields">
+        <div><div class="sdp-label">Nom dans ce set</div>
+          <input class="sdp-input" type="text" placeholder="${esc(s.name)}"
+            value="${esc(ss.local_name||'')}"
+            oninput="sdpField(${i},'local_name',this.value)"></div>
+        <div><div class="sdp-label">Tonalité</div>
+          <input class="sdp-input" type="text" placeholder="${esc(s.key||'—')}"
+            value="${esc(ss.local_key||'')}"
+            oninput="sdpField(${i},'local_key',this.value)"></div>
+        <div><div class="sdp-label">BPM</div>
+          <input class="sdp-input" type="number" min="0" max="400" placeholder="${s.bpm||'—'}"
+            value="${ss.local_bpm||''}"
+            oninput="sdpField(${i},'local_bpm',this.value?parseInt(this.value):null)"></div>
+        <div><div class="sdp-label">Tempo</div>
+          <input class="sdp-input" type="text" placeholder="${esc(s.tempo||'—')}"
+            value="${esc(ss.local_tempo||'')}"
+            oninput="sdpField(${i},'local_tempo',this.value)"></div>
+      </div>
+      <!-- note du set -->
+      <div style="padding-left:28px">
+        <input class="sdp-note-input" type="text"
+          placeholder="⚠ Note spécifique pour ce set…"
+          value="${esc(ss.set_notes||'')}"
+          oninput="sdpField(${i},'set_notes',this.value)">
+      </div>
+      <!-- infos globales lecture seule -->
+      <div class="sdp-song-info">
+        ${s.style?`<span class="tag" style="font-size:10px">${esc(s.style)}</span>`:''}
+        ${s.notes?`<span style="font-size:11px;color:var(--text3);font-style:italic">📝 ${esc(s.notes)}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function sdpField(i, key, val){
+  if(_sdpData[i]) _sdpData[i][key] = val||null;
+  if(key==='local_name'){
+    const el = document.getElementById('sdp-n-'+i);
+    const s  = DB.songs.find(x=>x.id===_sdpData[i].song_id);
+    if(el && s) el.textContent = val || s.name;
+  }
+}
+
+function sdpPrio(i, p){
+  if(!_sdpData[i]) return;
+  _sdpData[i].priority = p;
+  const row = document.getElementById('sdp-win-body').querySelectorAll('.sdp-row')[i];
+  if(!row) return;
+  row.querySelectorAll('.sdp-prio-dot').forEach((d,j)=>d.classList.toggle('sel',j===p));
+  const lbl = document.getElementById('sdp-pl-'+i);
+  if(lbl) lbl.textContent = ['Normal','À travailler','Prioritaire'][p];
+}
+
+async function saveSdpWin(){
+  const st = document.getElementById('sdp-status');
+  st.style.color='var(--text3)'; st.textContent='Enregistrement…';
+  try{
+    for(const ss of _sdpData){
+      await sb.from('set_songs').update({
+        set_notes:   ss.set_notes  ||null,
+        priority:    ss.priority   ||0,
+        local_name:  ss.local_name ||null,
+        local_key:   ss.local_key  ||null,
+        local_bpm:   ss.local_bpm  ||null,
+        local_tempo: ss.local_tempo||null,
+      }).eq('set_id',_sdpId).eq('song_id',ss.song_id);
+    }
+    await loadAll(); renderSets();
+    st.style.color='var(--green)'; st.textContent='✓ Enregistré !';
+    setTimeout(()=>{ st.textContent=''; },2500);
+    // Rafraîchir les données dans la fenêtre
+    _sdpData = DB.set_songs.filter(ss=>ss.set_id===_sdpId)
+      .sort((a,b)=>(b.priority||0)-(a.priority||0)||(a.position||0)-(b.position||0))
+      .map(ss=>({...ss}));
+  }catch(e){
+    st.style.color='var(--red)'; st.textContent='Erreur : '+e.message;
+  }
+}
+
+function closeSdpWin(){
+  document.getElementById('sdp-win').classList.remove('visible');
+}
+
+// Déplacement drag ─────────────────────────────────────────
+(function(){
+  let dragging=false, ox=0, oy=0;
+  document.addEventListener('DOMContentLoaded',()=>{
+    const bar = document.getElementById('sdp-titlebar');
+    const win = document.getElementById('sdp-win');
+    if(!bar||!win) return;
+    bar.addEventListener('mousedown',e=>{
+      if(e.target.closest('button')) return;
+      dragging=true;
+      const r=win.getBoundingClientRect();
+      ox=e.clientX-r.left; oy=e.clientY-r.top;
+      win.style.transform='none';
+      e.preventDefault();
+    });
+    document.addEventListener('mousemove',e=>{
+      if(!dragging) return;
+      let nx=e.clientX-ox, ny=e.clientY-oy;
+      nx=Math.max(0,Math.min(nx,window.innerWidth-win.offsetWidth));
+      ny=Math.max(0,Math.min(ny,window.innerHeight-40));
+      win.style.left=nx+'px'; win.style.top=ny+'px';
+    });
+    document.addEventListener('mouseup',()=>{ dragging=false; });
+  });
+})();
+
+// Redimensionnement ─────────────────────────────────────────
+function sdpStartResize(e){
+  e.preventDefault();
+  const win=document.getElementById('sdp-win');
+  const sx=e.clientX, sy=e.clientY;
+  const sw=win.offsetWidth, sh=win.offsetHeight;
+  function onMove(ev){
+    win.style.width  = Math.max(400, sw+(ev.clientX-sx))+'px';
+    win.style.maxHeight = Math.max(200, sh+(ev.clientY-sy))+'px';
+  }
+  function onUp(){ document.removeEventListener('mousemove',onMove); document.removeEventListener('mouseup',onUp); }
+  document.addEventListener('mousemove',onMove);
+  document.addEventListener('mouseup',onUp);
+}
+
 async function init(){
   try {
     await loadAll();
@@ -1351,169 +1531,6 @@ function getSongIdsForSet(setId){
 }
 
 
-// ===== SET DETAIL PANEL =====
-let _sdpSetId = null;
-let _sdpSongs = []; // working copy [{song_id, position, set_notes, priority, local_name, local_key, local_bpm, local_tempo}]
-
-function openSDP(setId){
-  _sdpSetId = setId;
-  const set = DB.sets.find(s=>s.id===setId);
-  if(!set) return;
-  _sdpSongs = DB.set_songs.filter(ss=>ss.set_id===setId)
-    .sort((a,b)=>(b.priority||0)-(a.priority||0) || a.position-b.position)
-    .map(ss=>({...ss})); // shallow copy
-
-  document.getElementById('sdp-title').textContent = set.name;
-  const total = _sdpSongs.length;
-  const dur = _sdpSongs.reduce((a,ss)=>{ const s=DB.songs.find(x=>x.id===ss.song_id); return a+(s?.duration||0); },0);
-  document.getElementById('sdp-meta').innerHTML =
-    `<span>${total} morceau${total>1?'x':''}</span>${dur?`<span>~${dur} min</span>`:''}`+
-    `${set.notes?`<span style="color:var(--amber)">⚠ ${esc(set.notes)}</span>`:''}`;
-
-  renderSDPBody();
-  document.getElementById('sdp-overlay').classList.add('open');
-  document.getElementById('sdp-panel').classList.add('open');
-  document.getElementById('sdp-save-status').textContent='';
-}
-
-function renderSDPBody(){
-  const body = document.getElementById('sdp-body');
-  body.innerHTML = _sdpSongs.map((ss,i)=>{
-    const s = DB.songs.find(x=>x.id===ss.song_id);
-    if(!s) return '';
-    const prio = ss.priority||0;
-    const prioLabel = ['Normal','À travailler','Prioritaire'][prio];
-    return `<div class="sdp-song-row" id="sdp-row-${i}">
-      <div class="sdp-song-header">
-        <span class="sdp-song-num">${i+1}</span>
-        <span class="sdp-song-name">${esc(ss.local_name||s.name)}</span>
-        ${ss.local_name?`<span class="sdp-song-orig" title="Nom original">(${esc(s.name)})</span>`:''}
-        ${s.folder_link?`<a href="${esc(s.folder_link)}" target="_blank" title="Ouvrir le dossier" style="color:var(--accent2);font-size:13px;text-decoration:none">🔗</a>`:''}
-        <span style="font-size:11px;color:var(--text3)" title="Durée globale">${s.duration?s.duration+' min':''}</span>
-      </div>
-      <!-- Priorité -->
-      <div class="sdp-prio-bar">
-        <span style="font-size:10px;color:var(--text3)">Priorité :</span>
-        ${[0,1,2].map(p=>`<button class="sdp-prio-btn p${p} ${prio===p?'active':''}"
-          title="${['Normal','À travailler','Prioritaire'][p]}"
-          onclick="sdpSetPrio(${i},${p})"></button>`).join('')}
-        <span id="sdp-prio-label-${i}" style="font-size:10px;color:var(--text3)">${prioLabel}</span>
-      </div>
-      <!-- Champs overrides -->
-      <div class="sdp-fields">
-        <div class="sdp-field">
-          <span class="sdp-field-label">Nom dans ce set</span>
-          <input type="text" placeholder="${esc(s.name)}"
-            value="${esc(ss.local_name||'')}"
-            oninput="sdpUpdate(${i},'local_name',this.value)"
-            title="Remplace le nom uniquement dans ce set">
-        </div>
-        <div class="sdp-field">
-          <span class="sdp-field-label">Tonalité</span>
-          <input type="text" placeholder="${esc(s.key||'—')}"
-            value="${esc(ss.local_key||'')}"
-            oninput="sdpUpdate(${i},'local_key',this.value)">
-        </div>
-        <div class="sdp-field">
-          <span class="sdp-field-label">BPM</span>
-          <input type="number" min="0" max="400" placeholder="${s.bpm||'—'}"
-            value="${ss.local_bpm||''}"
-            oninput="sdpUpdate(${i},'local_bpm',this.value?parseInt(this.value):null)">
-        </div>
-        <div class="sdp-field">
-          <span class="sdp-field-label">Tempo</span>
-          <input type="text" placeholder="${esc(s.tempo||'—')}"
-            value="${esc(ss.local_tempo||'')}"
-            oninput="sdpUpdate(${i},'local_tempo',this.value)">
-        </div>
-      </div>
-      <!-- Note spécifique au set -->
-      <div class="sdp-note-row">
-        <input class="sdp-note-input" type="text"
-          placeholder="⚠ Note spécifique pour ce set (structure, arrangement…)"
-          value="${esc(ss.set_notes||'')}"
-          oninput="sdpUpdate(${i},'set_notes',this.value)">
-      </div>
-      <!-- Infos globales lecture seule -->
-      <div style="padding-left:30px;display:flex;gap:8px;flex-wrap:wrap">
-        ${s.style?`<span class="tag" style="font-size:10px">${esc(s.style)}</span>`:''}
-        ${s.notes?`<span style="font-size:11px;color:var(--text3);font-style:italic">📝 ${esc(s.notes)}</span>`:''}
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function sdpUpdate(idx, field, value){
-  if(_sdpSongs[idx]) _sdpSongs[idx][field] = value||null;
-  // Live-update le titre si local_name change
-  if(field==='local_name'){
-    const s = DB.songs.find(x=>x.id===_sdpSongs[idx].song_id);
-    const row = document.getElementById(`sdp-row-${idx}`);
-    if(row && s){
-      const nameEl = row.querySelector('.sdp-song-name');
-      let origEl = row.querySelector('.sdp-song-orig');
-      if(nameEl) nameEl.textContent = value || s.name;
-      if(value){
-        if(!origEl){
-          origEl = document.createElement('span');
-          origEl.className='sdp-song-orig';
-          nameEl.after(origEl);
-        }
-        origEl.textContent = '('+s.name+')';
-      } else if(origEl){ origEl.remove(); }
-    }
-  }
-}
-
-function sdpSetPrio(idx, prio){
-  if(_sdpSongs[idx]) _sdpSongs[idx].priority = prio;
-  // Mise à jour visuelle des boutons et label
-  const row = document.getElementById(`sdp-row-${idx}`);
-  if(row){
-    row.querySelectorAll('.sdp-prio-btn').forEach((btn,p)=>{
-      btn.classList.toggle('active', p===prio);
-    });
-    const label = document.getElementById(`sdp-prio-label-${idx}`);
-    if(label) label.textContent = ['Normal','À travailler','Prioritaire'][prio];
-  }
-}
-
-async function saveSDP(){
-  const statusEl = document.getElementById('sdp-save-status');
-  statusEl.style.color='var(--text3)'; statusEl.textContent='Enregistrement…';
-  try {
-    // Sauvegarder chaque ligne modifiée
-    for(const ss of _sdpSongs){
-      await sb.from('set_songs').update({
-        set_notes:  ss.set_notes||null,
-        priority:   ss.priority||0,
-        local_name: ss.local_name||null,
-        local_key:  ss.local_key||null,
-        local_bpm:  ss.local_bpm||null,
-        local_tempo:ss.local_tempo||null,
-      }).eq('set_id', _sdpSetId).eq('song_id', ss.song_id);
-    }
-    await loadAll();
-    renderSets();
-    statusEl.style.color='var(--green)'; statusEl.textContent='✓ Enregistré !';
-    setTimeout(()=>{ statusEl.textContent=''; },2500);
-    // Recharger le panneau avec les nouvelles données
-    _sdpSongs = DB.set_songs.filter(ss=>ss.set_id===_sdpSetId)
-      .sort((a,b)=>(b.priority||0)-(a.priority||0) || a.position-b.position)
-      .map(ss=>({...ss}));
-  } catch(e){
-    console.error(e);
-    statusEl.style.color='var(--red)'; statusEl.textContent='Erreur : '+e.message;
-  }
-}
-
-function closeSDP(){
-  document.getElementById('sdp-overlay').classList.remove('open');
-  document.getElementById('sdp-panel').classList.remove('open');
-  setTimeout(()=>{ document.getElementById('sdp-overlay').style.display='none'; }, 10);
-  setTimeout(()=>{ document.getElementById('sdp-overlay').style.display=''; }, 250);
-}
-
 function renderSets(){
   const list = document.getElementById('set-list');
   if(!DB.sets.length){
@@ -1525,7 +1542,7 @@ function renderSets(){
     const songs = songIds.map(sid=>DB.songs.find(s=>s.id===sid)).filter(Boolean);
     const dur = songs.reduce((a,s)=>a+(s.duration||0),0);
     return `
-      <div class="set-card" ondblclick="openSDP(${set.id})" title="Double-clic pour ouvrir le détail" style="cursor:pointer">
+      <div class="set-card" ondblclick="openSdpWin(${set.id})" title="Double-clic pour ouvrir le détail" style="cursor:default">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
           <div class="set-name">${esc(set.name)}</div>
           <div class="flex gap-8" style="flex-shrink:0">
@@ -2840,22 +2857,23 @@ init();
 </script>
 
 
-<!-- SET DETAIL PANEL -->
-<div class="set-detail-overlay" id="sdp-overlay" onclick="closeSDP()"></div>
-<div class="set-detail-panel" id="sdp-panel">
-  <div class="sdp-header">
-    <div class="sdp-title" id="sdp-title">Répétition</div>
-    <button class="btn btn-outline btn-sm" onclick="printSetProgram(_sdpSetId)" title="Imprimer">🖨</button>
-    <button class="btn btn-ghost btn-sm" onclick="openSetModal(_sdpSetId);closeSDP()" title="Modifier le set">✎ Set</button>
-    <button class="sdp-close" onclick="closeSDP()">×</button>
+
+<!-- SET DETAIL FLOATING WINDOW -->
+<div id="sdp-win">
+  <div id="sdp-titlebar">
+    <div id="sdp-win-title">Répétition</div>
+    <span id="sdp-win-meta"></span>
+    <button class="sdp-win-btn" onclick="printSetProgram(_sdpId)" title="Imprimer">🖨 Imprimer</button>
+    <button class="sdp-win-btn" onclick="openSetModal(_sdpId)">✎ Set</button>
+    <button class="sdp-win-close" onclick="closeSdpWin()">×</button>
   </div>
-  <div class="sdp-meta" id="sdp-meta"></div>
-  <div class="sdp-body" id="sdp-body"></div>
-  <div class="sdp-footer">
-    <span class="sdp-save-status" id="sdp-save-status"></span>
-    <button class="btn btn-outline" onclick="closeSDP()">Fermer</button>
-    <button class="btn btn-primary" onclick="saveSDP()">💾 Enregistrer</button>
+  <div id="sdp-win-body"></div>
+  <div id="sdp-win-footer">
+    <span id="sdp-status"></span>
+    <button class="btn btn-outline" onclick="closeSdpWin()">Fermer</button>
+    <button class="btn btn-primary" onclick="saveSdpWin()">💾 Enregistrer</button>
   </div>
+  <svg id="sdp-resize" viewBox="0 0 16 16" onmousedown="sdpStartResize(event)"><path d="M12 4l-8 8M16 8l-8 8M16 12l-4 4" stroke="currentColor" stroke-width="1.5"/></svg>
 </div>
 
 </body>
