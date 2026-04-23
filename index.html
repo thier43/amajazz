@@ -2730,24 +2730,6 @@ function buildPrintHtml({title, subtitle, dateStr, timeStr, venue, songsRows, lo
 </div>
 <script>window.onload=()=>{ window.print(); }<\/script>
 
-<!-- SET DETAIL PANEL -->
-<div class="set-detail-overlay" id="sdp-overlay" onclick="closeSDP()"></div>
-<div class="set-detail-panel" id="sdp-panel">
-  <div class="sdp-header">
-    <div class="sdp-title" id="sdp-title">Répétition</div>
-    <button class="btn btn-outline btn-sm" onclick="printSetProgram(_sdpSetId)" title="Imprimer">🖨</button>
-    <button class="btn btn-ghost btn-sm" onclick="openSetModal(_sdpSetId);closeSDP()" title="Modifier le set">✎ Set</button>
-    <button class="sdp-close" onclick="closeSDP()">×</button>
-  </div>
-  <div class="sdp-meta" id="sdp-meta"></div>
-  <div class="sdp-body" id="sdp-body"></div>
-  <div class="sdp-footer">
-    <span class="sdp-save-status" id="sdp-save-status"></span>
-    <button class="btn btn-outline" onclick="closeSDP()">Fermer</button>
-    <button class="btn btn-primary" onclick="saveSDP()">💾 Enregistrer</button>
-  </div>
-</div>
-
 </body></html>`;
 }
 
@@ -2856,5 +2838,24 @@ function toggleTheme(){
 // ============================================================
 init();
 </script>
+
+
+<!-- SET DETAIL PANEL -->
+<div class="set-detail-overlay" id="sdp-overlay" onclick="closeSDP()"></div>
+<div class="set-detail-panel" id="sdp-panel">
+  <div class="sdp-header">
+    <div class="sdp-title" id="sdp-title">Répétition</div>
+    <button class="btn btn-outline btn-sm" onclick="printSetProgram(_sdpSetId)" title="Imprimer">🖨</button>
+    <button class="btn btn-ghost btn-sm" onclick="openSetModal(_sdpSetId);closeSDP()" title="Modifier le set">✎ Set</button>
+    <button class="sdp-close" onclick="closeSDP()">×</button>
+  </div>
+  <div class="sdp-meta" id="sdp-meta"></div>
+  <div class="sdp-body" id="sdp-body"></div>
+  <div class="sdp-footer">
+    <span class="sdp-save-status" id="sdp-save-status"></span>
+    <button class="btn btn-outline" onclick="closeSDP()">Fermer</button>
+    <button class="btn btn-primary" onclick="saveSDP()">💾 Enregistrer</button>
+  </div>
+</div>
 
 </body>
