@@ -845,7 +845,11 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 let DB = { songs:[], members:[], sets:[], set_songs:[], concerts:[], concert_songs:[], events:[], preferences:[] };
 let editingId = null;
 let setSelectedSongs = [];
-let setNotesMap = {}; // song_id -> note spécifique au set
+let setNotesMap    = {}; // song_id -> note
+let setLocalName   = {}; // song_id -> nom local au set
+let setLocalKey    = {}; // song_id -> tonalité locale
+let setLocalBpm    = {}; // song_id -> BPM local
+let setLocalTempo  = {}; // song_id -> tempo (texte) local
 let calYear = new Date().getFullYear();
 let calMonth = new Date().getMonth();
 
@@ -1320,8 +1324,11 @@ function renderSets(){
               <div style="display:flex;align-items:center;gap:8px;width:100%">
                 <div class="prio-dot prio-${prio}" onclick="event.stopPropagation();setPriority(${set.id},${s.id},${prio})" title="${prio===0?'Normal — cliquer pour prioriser':prio===1?'À travailler — cliquer pour urgent':'Prioritaire — cliquer pour réinitialiser'}"></div>
                 <span class="set-song-num">${i+1}.</span>
-                <span style="flex:1;font-size:12px${prio===2?';font-weight:600;color:var(--text)':prio===1?';color:var(--text)':''}">${esc(s.name)}</span>
-                ${s.key?`<span class="tag tag-key" style="font-size:10px">${esc(s.key)}</span>`:''}
+                <span style="flex:1;font-size:12px${prio===2?';font-weight:600;color:var(--text)':prio===1?';color:var(--text)':''}">${esc(ss.local_name||s.name)}</span>
+                ${(ss.local_key||s.key)?`<span class="tag tag-key" style="font-size:10px">${esc(ss.local_key||s.key)}</span>`:''}
+                ${(ss.local_bpm||s.bpm)?`<span class="tag" style="font-size:10px;background:rgba(124,159,232,.15);color:var(--accent2)">${ss.local_bpm||s.bpm}</span>`:''}
+                ${(ss.local_tempo||s.tempo)?`<span class="tag" style="font-size:10px;background:rgba(93,200,160,.12);color:var(--green)">${esc(ss.local_tempo||s.tempo)}</span>`:''}
+                ${ss.local_name?`<span style="font-size:9px;color:var(--text3);font-style:italic" title="Nom local: ${esc(ss.local_name)}">✎</span>`:''}
                 ${s.folder_link?`<a href="${esc(s.folder_link)}" target="_blank" onclick="event.stopPropagation()" title="Ouvrir le dossier" style="color:var(--accent2);font-size:13px;text-decoration:none">&#128279;</a>`:''}
               </div>
               ${ss.set_notes?`<div style="font-size:11px;color:var(--amber);padding-left:30px;line-height:1.4">⚠ ${esc(ss.set_notes)}</div>`:''}
@@ -1340,10 +1347,18 @@ function openSetModal(id=null){
   const set = id ? DB.sets.find(x=>x.id===id) : null;
   setVal('f-set-name', set?.name||'');
   setSelectedSongs = id ? getSongIdsForSet(id) : [];
-  setNotesMap = {};
+  setNotesMap  = {};
+  setLocalName = {};
+  setLocalKey  = {};
+  setLocalBpm  = {};
+  setLocalTempo = {};
   if(id){
     DB.set_songs.filter(ss=>ss.set_id===id).forEach(ss=>{
-      if(ss.set_notes) setNotesMap[ss.song_id] = ss.set_notes;
+      if(ss.set_notes)   setNotesMap[ss.song_id]   = ss.set_notes;
+      if(ss.local_name)  setLocalName[ss.song_id]  = ss.local_name;
+      if(ss.local_key)   setLocalKey[ss.song_id]   = ss.local_key;
+      if(ss.local_bpm)   setLocalBpm[ss.song_id]   = ss.local_bpm;
+      if(ss.local_tempo) setLocalTempo[ss.song_id] = ss.local_tempo;
     });
   }
   renderSetBuilder();
@@ -1369,10 +1384,33 @@ function renderSetBuilder(){
       <div class="pick-item pick-remove" style="flex-direction:column;align-items:stretch;gap:6px;cursor:default">
         <div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="toggleInSet(${s.id})">
           <div class="pick-icon">−</div>
-          <span style="flex:1;font-size:12px">${esc(s.name)}</span>
-          ${s.key?`<span class="tag tag-key" style="font-size:10px">${esc(s.key)}</span>`:''}
+          <span style="flex:1;font-size:12px;font-weight:500">${esc(setLocalName[s.id]||s.name)}</span>
+          ${(setLocalKey[s.id]||s.key)?`<span class="tag tag-key" style="font-size:10px">${esc(setLocalKey[s.id]||s.key)}</span>`:''}
         </div>
-        <textarea class="form-input" rows="2" style="font-size:11px;padding:5px 9px;background:var(--surface3);resize:vertical;min-height:38px"
+        <!-- Overrides locaux au set -->
+        <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:6px;padding-left:28px;align-items:center">
+          <input class="form-input" style="font-size:11px;padding:4px 8px" type="text"
+            placeholder="Nom affiché dans ce set (facultatif)"
+            value="${esc(setLocalName[s.id]||'')}"
+            oninput="setLocalName[${s.id}]=this.value"
+            title="Nom local au set — remplace le nom global uniquement dans ce set">
+          <input class="form-input" style="font-size:11px;padding:4px 8px;width:70px" type="text"
+            placeholder="Ton."
+            value="${esc(setLocalKey[s.id]||'')}"
+            oninput="setLocalKey[${s.id}]=this.value"
+            title="Tonalité pour ce set">
+          <input class="form-input" style="font-size:11px;padding:4px 8px;width:64px" type="number" min="0" max="400"
+            placeholder="BPM"
+            value="${setLocalBpm[s.id]||''}"
+            oninput="setLocalBpm[${s.id}]=this.value?parseInt(this.value):null"
+            title="BPM pour ce set">
+          <input class="form-input" style="font-size:11px;padding:4px 8px;width:60px" type="text"
+            placeholder="Tempo"
+            value="${esc(setLocalTempo[s.id]||'')}"
+            oninput="setLocalTempo[${s.id}]=this.value"
+            title="Tempo (ex: Slow, Medium…)">
+        </div>
+        <textarea class="form-input" rows="2" style="font-size:11px;padding:5px 9px;background:var(--surface3);resize:vertical;min-height:38px;margin-left:28px"
           placeholder="&#9888; Note spécifique pour ce set (structure, arrangement…)"
           oninput="setNotesMap[${s.id}]=this.value">${esc(setNotesMap[s.id]||'')}</textarea>
       </div>`).join('')
@@ -2476,22 +2514,28 @@ function buildSongRows(songs, setId, notesMap){
   return songs.map((entry,i)=>{
     const s = DB.songs.find(x=>x.id===(entry.song_id||entry.id));
     if(!s) return '';
+    // Overrides locaux au set
+    const displayName  = entry.local_name  || s.name;
+    const displayKey   = entry.local_key   || s.key   || '';
+    const displayBpm   = entry.local_bpm   || s.bpm   || '';
+    const displayTempo = entry.local_tempo || s.tempo || '';
     const improvs = setId ? DB.members.filter(m=>{
       const p = DB.preferences.find(pr=>pr.set_id===setId && pr.member_id===m.id && pr.song_id===s.id);
       return p?.impro;
     }) : [];
-    const extraNote = notesMap ? (notesMap[s.id]||entry.notes||'') : (entry.notes||'');
+    const extraNote = notesMap ? (notesMap[s.id]||entry.notes||entry.set_notes||'') : (entry.notes||entry.set_notes||'');
     const notes = [extraNote, s.notes].filter(Boolean).join(' — ');
     return `<tr>
       <td class="p-num">${i+1}</td>
       <td class="p-song">
-        <strong>${s.name}</strong>
-        ${s.artist?`<span class="p-artist"> — ${s.artist}</span>`:''}
-        ${notes?`<div class="p-notes">${notes}</div>`:''}
+        <strong>${esc(displayName)}</strong>
+        ${entry.local_name?`<span class="p-artist" style="font-style:italic;font-size:10px"> (${esc(s.name)})</span>`:''}
+        ${s.artist?`<span class="p-artist"> — ${esc(s.artist)}</span>`:''}
+        ${notes?`<div class="p-notes">${esc(notes)}</div>`:''}
       </td>
-      <td class="p-key">${s.key||''}</td>
-      <td class="p-tempo">${s.tempo||''}</td>
-      <td class="p-impro">${improvs.map(m=>m.prenom).join(', ')}</td>
+      <td class="p-key">${esc(displayKey)}</td>
+      <td class="p-tempo">${esc(displayTempo)}${displayBpm?` <span style="font-size:10px;color:#888">${displayBpm}</span>`:''}</td>
+      <td class="p-impro">${improvs.map(m=>esc(m.prenom)).join(', ')}</td>
     </tr>`;
   }).join('');
 }
