@@ -401,6 +401,27 @@ body.theme-dark .sqm-row:nth-child(even) { background:rgba(255,255,255,.08); bor
 }
 .sqm-ni:focus { border-color:var(--accent); background:rgba(185,106,40,.1); }
 .sqm-ni::placeholder { color:var(--text3); font-style:italic; }
+
+/* ===== ATTENDANCE PANEL ===== */
+#att-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
+#att-overlay.open{display:flex}
+#att-modal{background:var(--surface);border:1px solid var(--border2);border-radius:16px;width:440px;max-width:94vw;max-height:85vh;display:flex;flex-direction:column;box-shadow:var(--shadow);overflow:hidden}
+#att-header{padding:14px 18px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}
+#att-title{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:1px;color:var(--accent);flex:1}
+#att-body{overflow-y:auto;flex:1;padding:0}
+.att-row{display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid var(--border);transition:background .15s}
+.att-row:last-child{border-bottom:none}
+.att-row.me{background:rgba(185,106,40,.07);border-left:3px solid var(--accent)}
+.att-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.att-name{flex:1;font-size:13px;font-weight:500;color:var(--text)}
+.att-btns{display:flex;gap:4px}
+.att-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .15s;opacity:.45}
+.att-btn:hover{opacity:.8}
+.att-btn.active{opacity:1;border-color:transparent}
+.att-btn.active.present{background:rgba(39,174,96,.2);border-color:var(--green)}
+.att-btn.active.maybe{background:rgba(243,156,18,.2);border-color:var(--amber)}
+.att-btn.active.absent{background:rgba(231,76,60,.2);border-color:var(--red)}
+.att-badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:2px 6px;border-radius:10px;background:var(--surface2)}
 </style>
 </head>
 <body>
@@ -909,7 +930,7 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 // ============================================================
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-let DB = { songs:[], members:[], sets:[], set_songs:[], concerts:[], concert_songs:[], events:[], preferences:[] };
+let DB = { songs:[], members:[], sets:[], set_songs:[], concerts:[], concert_songs:[], events:[], preferences:[], set_attendance:[] };
 let editingId = null;
 let setSelectedSongs = [];
 let setNotesMap    = {}; // song_id -> note
@@ -1104,6 +1125,74 @@ function closeQuickSetModal(){
   document.getElementById('set-quick-modal-overlay').classList.remove('open');
 }
 
+
+// ===== ATTENDANCE =====
+let _attSetId = null;
+const ATT_ICONS = {present:'✅', maybe:'❓', absent:'❌', unknown:'○'};
+const FAM_COLS = {
+  'Cordes':['#e67e22','rgba(230,126,34,.18)'],
+  'Cuivres':['#e74c3c','rgba(231,76,60,.18)'],
+  'Bois':['#27ae60','rgba(39,174,96,.18)'],
+  'Claviers':['#2980b9','rgba(41,128,185,.18)'],
+  'Percussions':['#8e44ad','rgba(142,68,173,.18)'],
+  'Voix':['#f39c12','rgba(243,156,18,.18)'],
+};
+
+function openAtt(setId){
+  _attSetId = setId;
+  const set = DB.sets.find(s=>s.id===setId); if(!set) return;
+  document.getElementById('att-title').textContent = set.name;
+  renderAtt();
+  document.getElementById('att-overlay').classList.add('open');
+}
+
+function renderAtt(){
+  // Résumé
+  const rows = DB.set_attendance.filter(a=>a.set_id===_attSetId);
+  const cnt = {present:0, maybe:0, absent:0};
+  rows.forEach(r=>{ if(cnt[r.status]!==undefined) cnt[r.status]++; });
+  document.getElementById('att-summary').innerHTML =
+    (cnt.present?`<span class="att-badge">✅ ${cnt.present}</span>`:'')+
+    (cnt.maybe  ?`<span class="att-badge">❓ ${cnt.maybe}</span>`  :'')+
+    (cnt.absent ?`<span class="att-badge">❌ ${cnt.absent}</span>` :'');
+
+  // Corps
+  document.getElementById('att-body').innerHTML = DB.members.map(m=>{
+    const att = rows.find(r=>r.member_id===m.id);
+    const status = att?.status || 'unknown';
+    const isMe = m.id == currentUserId;
+    const [col,bg] = FAM_COLS[m.family]||['#888','rgba(136,136,136,.15)'];
+    return `<div class="att-row${isMe?' me':''}">
+      <div class="att-avatar" style="background:${bg};color:${col}">${m.avatar||(m.prenom?m.prenom[0]:'?')}</div>
+      <span class="att-name">${esc(m.prenom)} ${esc(m.nom||'')}</span>
+      ${isMe ? `
+        <div class="att-btns">
+          <button class="att-btn present ${status==='present'?'active present':''}" onclick="setAtt('present')" title="Présent">✅</button>
+          <button class="att-btn maybe  ${status==='maybe'  ?'active maybe'  :''}" onclick="setAtt('maybe')"   title="Peut-être">❓</button>
+          <button class="att-btn absent ${status==='absent' ?'active absent' :''}" onclick="setAtt('absent')"  title="Absent">❌</button>
+        </div>` :
+        `<span style="font-size:18px;opacity:${status==='unknown'?.25:1}">${ATT_ICONS[status]}</span>`
+      }
+    </div>`;
+  }).join('');
+}
+
+async function setAtt(status){
+  if(!currentUserId || !_attSetId) return;
+  const existing = DB.set_attendance.find(a=>a.set_id===_attSetId && a.member_id==currentUserId);
+  if(existing){
+    await sb.from('set_attendance').update({status}).eq('id', existing.id);
+  } else {
+    await sb.from('set_attendance').insert({set_id:_attSetId, member_id:currentUserId, status});
+  }
+  await loadAll();
+  renderAtt();
+  renderSets();
+}
+
+function closeAtt(e){ if(e.target===document.getElementById('att-overlay')) closeAttDirect(); }
+function closeAttDirect(){ document.getElementById('att-overlay').classList.remove('open'); }
+
 async function init(){
   try {
     await loadAll();
@@ -1126,7 +1215,7 @@ async function init(){
 }
 
 async function loadAll(){
-  const [songs, members, sets, set_songs, concerts, concert_songs, events, preferences] = await Promise.all([
+  const [songs, members, sets, set_songs, concerts, concert_songs, events, preferences, set_attendance] = await Promise.all([
     sb.from('songs').select('*').order('name'),
     sb.from('members').select('*').order('prenom'),
     sb.from('sets').select('*').order('name'),
@@ -1135,6 +1224,7 @@ async function loadAll(){
     sb.from('concert_songs').select('*').order('position'),
     sb.from('events').select('*').order('date'),
     sb.from('preferences').select('*'),
+    sb.from('set_attendance').select('*'),
   ]);
   DB.songs          = songs.data          || [];
   DB.members        = members.data        || [];
@@ -1144,6 +1234,7 @@ async function loadAll(){
   DB.concert_songs  = concert_songs.data  || [];
   DB.events         = events.data         || [];
   DB.preferences    = preferences.data    || [];
+  DB.set_attendance = set_attendance.data || [];
 }
 
 // ============================================================
@@ -1477,11 +1568,24 @@ function renderSets(){
           <div class="set-name">${esc(set.name)}</div>
           <div class="flex gap-8" style="flex-shrink:0">
             ${songs.length?`<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();printSetProgram(${set.id})" title="Imprimer">🖨</button>`:''}
+            <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openAtt(${set.id})" title="Présences">👥</button>
             <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openSetModal(${set.id})">✎</button>
             <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteSet(${set.id})">✕</button>
           </div>
         </div>
-        <div class="set-count">${songs.length} morceau${songs.length>1?'x':''} ${dur?'· ~'+dur+' min':''}</div>
+        <div class="set-count" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span>${songs.length} morceau${songs.length>1?'x':''} ${dur?'· ~'+dur+' min':''}</span>
+          ${(()=>{
+            const atts=DB.set_attendance.filter(a=>a.set_id===set.id);
+            const p=atts.filter(a=>a.status==='present').length;
+            const q=atts.filter(a=>a.status==='maybe').length;
+            const ab=atts.filter(a=>a.status==='absent').length;
+            const me=atts.find(a=>a.member_id==currentUserId);
+            const meBadge=me?`<span style="font-size:11px;padding:1px 6px;border-radius:8px;background:rgba(185,106,40,.15);color:var(--accent)">${{'present':'✅ Présent','maybe':'❓ Incertain','absent':'❌ Absent'}[me.status]||''}</span>`:'';
+            const summary=(p||q||ab)?`<span style="font-size:11px;color:var(--text3)">${p?'✅'+p+' ':''} ${q?'❓'+q+' ':''} ${ab?'❌'+ab:''}</span>`:'';
+            return meBadge+summary;
+          })()}
+        </div>
         <div class="set-songs-list">
           ${DB.set_songs.filter(ss=>ss.set_id===set.id)
             .sort((a,b)=>(b.priority||0)-(a.priority||0) || a.position-b.position)
@@ -2816,4 +2920,16 @@ init();
         </div>
       </div>
     </div>
+
+<!-- ATTENDANCE PANEL -->
+<div id="att-overlay" onclick="closeAtt(event)">
+  <div id="att-modal" onclick="event.stopPropagation()">
+    <div id="att-header">
+      <span id="att-title">Présences</span>
+      <div id="att-summary" style="display:flex;gap:6px"></div>
+      <button class="modal-close" onclick="closeAttDirect()">×</button>
+    </div>
+    <div id="att-body"></div>
+  </div>
+</div>
 </body>
