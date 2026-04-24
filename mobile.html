@@ -1602,8 +1602,8 @@ const _evattmColors = {
 const _evattmIcons = {present:'✅',maybe:'❓',absent:'❌',unknown:'⬜'};
 
 function evattmOpen(eventId){
-  _evattmId = eventId;
-  const e = DB.events.find(x=>x.id===eventId); if(!e) return;
+  _evattmId = parseInt(eventId);
+  const e = DB.events.find(x=>x.id===_evattmId); if(!e) return;
   const setName = e.set_id ? DB.sets.find(s=>s.id===e.set_id)?.name : null;
   document.getElementById('evattm-title').textContent = setName||'Répétition';
   const d = new Date(e.date+'T12:00:00');
@@ -1622,11 +1622,11 @@ function evattmRender(){
     (p?`<span style="font-size:11px;padding:2px 7px;border-radius:8px;background:var(--surface2)">✅ ${p}</span>`:'')+
     (q?`<span style="font-size:11px;padding:2px 7px;border-radius:8px;background:var(--surface2)">❓ ${q}</span>`:'')+
     (ab?`<span style="font-size:11px;padding:2px 7px;border-radius:8px;background:var(--surface2)">❌ ${ab}</span>`:'');
-  const myId = String(_currentUserId||'');
+  const myId = parseInt(_currentUserId||0);
   document.getElementById('evattm-list').innerHTML = DB.members.map(m=>{
-    const att = rows.find(r=>String(r.member_id)===String(m.id));
+    const att = rows.find(r=>parseInt(r.member_id)===parseInt(m.id));
     const st  = att?.status||'unknown';
-    const isMe = String(m.id)===myId;
+    const isMe = parseInt(m.id)===myId;
     const [col,bg] = _evattmColors[m.family]||['#888','rgba(136,136,136,.12)'];
     const av = m.avatar||(m.prenom?m.prenom[0].toUpperCase():'?');
     return `<div class="evattm-row${isMe?' me':''}">
@@ -1644,12 +1644,12 @@ function evattmRender(){
 }
 
 async function evattmSet(status){
-  const myId = _currentUserId;
+  const myId = parseInt(_currentUserId);
   if(!myId||!_evattmId) return;
-  const ex = DB.event_attendance.find(a=>a.event_id===_evattmId && String(a.member_id)===String(myId));
+  const ex = DB.event_attendance.find(a=>parseInt(a.event_id)===_evattmId && parseInt(a.member_id)===myId);
   try{
     if(ex) await sb.from('event_attendance').update({status}).eq('id',ex.id);
-    else   await sb.from('event_attendance').insert({event_id:_evattmId, member_id:myId, status});
+    else   await sb.from('event_attendance').insert({event_id:_evattmId, member_id:parseInt(myId), status});
     await loadAll(); evattmRender();
   }catch(err){ console.error(err); }
 }

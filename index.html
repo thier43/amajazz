@@ -404,29 +404,23 @@ body.theme-dark .sqm-row:nth-child(even) { background:rgba(255,255,255,.08); bor
 
 
 
-/* ===== EVENT ATTENDANCE ===== */
-#evatt-wrap{position:fixed;inset:0;z-index:9999;display:none;background:rgba(0,0,0,.65);align-items:center;justify-content:center}
+
+/* ===== EVENT ATTENDANCE (bottom-sheet style) ===== */
+#evatt-wrap{position:fixed;inset:0;z-index:9999;display:none;background:rgba(0,0,0,.6);align-items:flex-end}
 #evatt-wrap.on{display:flex}
-#evatt-box{background:var(--surface);border:1px solid var(--border2);border-radius:14px;width:440px;max-width:92vw;max-height:82vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.5);overflow:hidden}
-#evatt-head{padding:13px 16px 11px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;background:var(--surface2)}
-#evatt-htitle{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;color:var(--accent);flex:1}
-#evatt-hdate{font-size:11px;color:var(--text3)}
-#evatt-hsum{display:flex;gap:5px}
-#evatt-note{padding:8px 16px;font-size:11px;color:var(--text3);border-bottom:1px solid var(--border);flex-shrink:0;font-style:italic}
-#evatt-list{overflow-y:auto;flex:1}
-.evarow{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border)}
+#evatt-sheet{background:var(--bg);border-radius:20px 20px 0 0;width:100%;max-height:88vh;display:flex;flex-direction:column;animation:slideUp .22s ease}
+.evarow{display:flex;align-items:center;gap:10px;padding:11px 22px;border-bottom:1px solid var(--border)}
 .evarow:last-child{border-bottom:none}
-.evarow.me{background:rgba(185,106,40,.08);border-left:3px solid var(--accent)}
-.evaav{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
-.evanm{flex:1;font-size:13px;color:var(--text)}
-.evabts{display:flex;gap:4px}
-.evabt{width:30px;height:30px;border-radius:7px;border:1px solid var(--border);background:var(--surface3);cursor:pointer;font-size:14px;opacity:.35;transition:all .12s}
-.evabt:hover{opacity:.7}
+.evarow.me{background:rgba(185,106,40,.08);border-left:4px solid var(--accent)}
+.evaav{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.evanm{flex:1;font-size:13px;color:var(--text);font-weight:500}
+.evabts{display:flex;gap:6px}
+.evabt{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:16px;opacity:.35;transition:all .12s}
+.evabt:hover{opacity:.75;transform:scale(1.05)}
 .evabt.sel{opacity:1;border-color:transparent}
 .evabt.sel.p{background:rgba(39,174,96,.25)}
 .evabt.sel.q{background:rgba(243,156,18,.25)}
 .evabt.sel.a{background:rgba(231,76,60,.25)}
-.evabadge{font-size:11px;padding:2px 7px;border-radius:8px;background:var(--surface3)}
 </style>
 </head>
 <body>
@@ -1135,6 +1129,8 @@ function closeQuickSetModal(){
 
 
 
+
+
 // ===== EVENT ATTENDANCE =====
 let _evattId = null;
 const _evattColors = {
@@ -1145,33 +1141,31 @@ const _evattColors = {
 const _evattIcons = {present:'✅',maybe:'❓',absent:'❌',unknown:'⬜'};
 
 function evattOpen(eventId){
-  _evattId = eventId;
-  const e = DB.events.find(x=>x.id===eventId); if(!e) return;
+  _evattId = parseInt(eventId);
+  const e = DB.events.find(x=>x.id===_evattId); if(!e) return;
   const setName = e.set_id ? DB.sets.find(s=>s.id===e.set_id)?.name : null;
-  document.getElementById('evatt-htitle').textContent = setName || 'Répétition';
-  document.getElementById('evatt-hdate').textContent = formatDate(e.date)+(e.time?' · '+e.time.slice(0,5):'');
-  const noteEl = document.getElementById('evatt-note');
-  if(e.notes){ noteEl.textContent = e.notes; noteEl.style.display='block'; }
-  else noteEl.style.display='none';
+  document.getElementById('evatt-title').textContent = setName||'Répétition';
+  const d = new Date(e.date+'T12:00:00');
+  document.getElementById('evatt-date').textContent =
+    d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+(e.time?' · '+e.time.slice(0,5):'');
   evattRender();
   document.getElementById('evatt-wrap').classList.add('on');
 }
 
 function evattRender(){
-  const rows = DB.event_attendance.filter(a=>a.event_id===_evattId);
+  const rows = DB.event_attendance.filter(a=>parseInt(a.event_id)===_evattId);
   const p=rows.filter(r=>r.status==='present').length;
   const q=rows.filter(r=>r.status==='maybe').length;
   const ab=rows.filter(r=>r.status==='absent').length;
-  document.getElementById('evatt-hsum').innerHTML =
-    (p?`<span class="evabadge">✅ ${p}</span>`:'')+
-    (q?`<span class="evabadge">❓ ${q}</span>`:'')+
-    (ab?`<span class="evabadge">❌ ${ab}</span>`:'');
-
-  const myId = String(currentUserId||'');
+  document.getElementById('evatt-sum').innerHTML =
+    (p?`<span style="font-size:12px;padding:2px 8px;border-radius:8px;background:var(--surface3)">✅ ${p}</span>`:'')+
+    (q?`<span style="font-size:12px;padding:2px 8px;border-radius:8px;background:var(--surface3)">❓ ${q}</span>`:'')+
+    (ab?`<span style="font-size:12px;padding:2px 8px;border-radius:8px;background:var(--surface3)">❌ ${ab}</span>`:'');
+  const myId = parseInt(currentUserId||0);
   document.getElementById('evatt-list').innerHTML = DB.members.map(m=>{
-    const att  = rows.find(r=>String(r.member_id)===String(m.id));
-    const st   = att?.status||'unknown';
-    const isMe = String(m.id)===myId;
+    const att = rows.find(r=>parseInt(r.member_id)===parseInt(m.id));
+    const st  = att?.status||'unknown';
+    const isMe = parseInt(m.id)===myId;
     const [col,bg] = _evattColors[m.family]||['#888','rgba(136,136,136,.12)'];
     const av = m.avatar||(m.prenom?m.prenom[0].toUpperCase():'?');
     return `<div class="evarow${isMe?' me':''}">
@@ -1183,22 +1177,20 @@ function evattRender(){
             <button class="evabt q${st==='maybe'  ?' sel q':''}" onclick="evattSet('maybe')"   title="Incertain">❓</button>
             <button class="evabt a${st==='absent' ?' sel a':''}" onclick="evattSet('absent')"  title="Absent">❌</button>
            </div>`
-        : `<span style="font-size:16px;opacity:${st==='unknown'?.2:.9}">${_evattIcons[st]}</span>`
+        : `<span style="font-size:18px;opacity:${st==='unknown'?.2:.9}">${_evattIcons[st]}</span>`
       }
     </div>`;
   }).join('');
 }
 
 async function evattSet(status){
-  const myId = currentUserId;
+  const myId = parseInt(currentUserId);
   if(!myId||!_evattId) return;
-  const ex = DB.event_attendance.find(a=>a.event_id===_evattId && String(a.member_id)===String(myId));
+  const ex = DB.event_attendance.find(a=>parseInt(a.event_id)===_evattId && parseInt(a.member_id)===myId);
   try{
     if(ex) await sb.from('event_attendance').update({status}).eq('id',ex.id);
     else   await sb.from('event_attendance').insert({event_id:_evattId, member_id:myId, status});
-    await loadAll();
-    evattRender();
-    renderCalendar();
+    await loadAll(); evattRender();
   }catch(err){ console.error(err); }
 }
 
@@ -1583,7 +1575,30 @@ function renderSets(){
             <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteSet(${set.id})">✕</button>
           </div>
         </div>
-        <div class="set-count">${songs.length} morceau${songs.length>1?'x':''} ${dur?'· ~'+dur+' min':''}</div>
+        <div class="set-count">
+          <div>${songs.length} morceau${songs.length>1?'x':''} ${dur?'· ~'+dur+' min':''}</div>
+          ${(()=>{
+            const today=new Date().toISOString().slice(0,10);
+            const next2=DB.events.filter(e=>e.set_id===set.id&&e.date>=today).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,2);
+            if(!next2.length) return '';
+            return '<div style="display:flex;flex-direction:column;gap:3px;margin-top:5px">'+
+              next2.map(e=>{
+                const d=new Date(e.date+'T12:00:00');
+                const label=d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})+(e.time?' '+e.time.slice(0,5):'');
+                const atts=DB.event_attendance.filter(a=>parseInt(a.event_id)===e.id);
+                const p=atts.filter(a=>a.status==='present').length;
+                const ab=atts.filter(a=>a.status==='absent').length;
+                const me=atts.find(a=>parseInt(a.member_id)===parseInt(currentUserId));
+                const meDot=me&&me.status!=='unknown'?` <span>${{present:'✅',maybe:'❓',absent:'❌'}[me.status]}</span>`:'';
+                const sum=(p||ab)?` <span style="font-size:10px;color:var(--text3)">${p?'✅'+p+' ':''} ${ab?'❌'+ab:''}</span>`:'';
+                return `<div style="display:flex;align-items:center;gap:6px">
+                  <span style="font-size:11px;color:var(--text2);flex:1">📅 ${label}${meDot}${sum}</span>
+                  <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();evattOpen(${e.id})" style="font-size:11px;padding:1px 7px">👥</button>
+                </div>`;
+              }).join('')+
+            '</div>';
+          })()}
+        </div>
         <div class="set-songs-list">
           ${DB.set_songs.filter(ss=>ss.set_id===set.id)
             .sort((a,b)=>(b.priority||0)-(a.priority||0) || a.position-b.position)
@@ -2037,16 +2052,7 @@ function renderCalendar(){
     const evts = allEvts.filter(e=>e.date===dateStr);
     html += `<div class="cal-cell">
       <div class="cal-date-num ${isToday?'today':''}">${d}</div>
-      ${evts.map(e=>{
-        if(e.evType!=='planning') return `<div class="cal-ev ${e.css}" title="${esc(e.title)}" onclick="openEventDetail(${e.id},'${e.evType}')" style="cursor:pointer">${esc(e.label)}</div>`;
-        const atts = DB.event_attendance.filter(a=>a.event_id===e.id);
-        const p=atts.filter(a=>a.status==='present').length;
-        const ab=atts.filter(a=>a.status==='absent').length;
-        const me=atts.find(a=>String(a.member_id)===String(currentUserId));
-        const meDot=me&&me.status!=='unknown'?`<span style="margin-left:2px">${{present:'✅',maybe:'❓',absent:'❌'}[me.status]}</span>`:'';
-        const sum=(p||ab)?`<span style="font-size:9px;opacity:.7"> ${p?'✅'+p:''} ${ab?'❌'+ab:''}</span>`:'';
-        return `<div class="cal-ev ${e.css}" title="${esc(e.title)}" onclick="openEventDetail(${e.id},'${e.evType}')" style="cursor:pointer">${esc(e.label)}${meDot}${sum}</div>`;
-      }).join('')}
+      ${evts.map(e=>`<div class="cal-ev ${e.css}" title="${esc(e.title)}" onclick="openEventDetail(${e.id},'${e.evType}')" style="cursor:pointer">${esc(e.label)}</div>`).join('')}
     </div>`;
   }
 
@@ -2621,7 +2627,7 @@ function openEventDetail(id, evType){
     </div>
 
     <div class="evdet-actions">
-      ${!isPresta?`<button class="btn btn-outline" style="grid-column:1/-1;border-color:rgba(185,106,40,.4);color:var(--accent)" onclick="closeModal();evattOpen(${id})">👥 Présences à cette répétition</button>`:''}
+      ${!isPresta?`<button class="btn btn-outline" style="grid-column:1/-1;border-color:rgba(185,106,40,.5);color:var(--accent);font-weight:600" onclick="closeModal();evattOpen(${id})">👥 Présences à cette répétition</button>`:''}
       <button class="btn btn-outline" onclick="editPlanningEvent(${id})">✎ Modifier cette date</button>
       <button class="btn btn-danger" onclick="deletePlanningEvent(${id}, false)">✕ Supprimer cette date</button>
       ${isSerie?`
@@ -2931,18 +2937,18 @@ init();
 
 
 
+
 <div id="evatt-wrap" onclick="if(event.target===this)evattClose()">
-  <div id="evatt-box">
-    <div id="evatt-head">
+  <div id="evatt-sheet">
+    <div style="padding:16px 22px 12px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:12px;flex-shrink:0;background:var(--surface2)">
       <div style="flex:1">
-        <div id="evatt-htitle">Présences</div>
-        <div id="evatt-hdate"></div>
+        <div id="evatt-title" style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--accent)">Présences</div>
+        <div id="evatt-date" style="font-size:12px;color:var(--text3);margin-top:2px"></div>
       </div>
-      <div id="evatt-hsum"></div>
-      <button onclick="evattClose()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text3);padding:0 4px;margin-left:6px">×</button>
+      <div id="evatt-sum" style="display:flex;gap:6px;align-items:center"></div>
+      <button onclick="evattClose()" style="background:var(--nav-bg,#1a1814);color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:18px;cursor:pointer;flex-shrink:0">×</button>
     </div>
-    <div id="evatt-note"></div>
-    <div id="evatt-list"></div>
+    <div id="evatt-list" style="overflow-y:auto;flex:1"></div>
   </div>
 </div>
 </body>
