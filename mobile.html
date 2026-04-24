@@ -456,21 +456,23 @@ textarea.edit-field-input{min-height:60px;resize:none}
 #sqm-sheet-body{overflow-y:auto;flex:1;padding:0 0 20px}
 #sqm-sheet-footer{padding:10px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-shrink:0;background:var(--bg)}
 
+
 /* ATTENDANCE MOBILE */
-#att-panel-m{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:5000;display:none;align-items:flex-end}
-#att-panel-m.open{display:flex}
-#att-sheet-m{background:var(--bg);border-radius:20px 20px 0 0;width:100%;max-height:88vh;display:flex;flex-direction:column;animation:slideUp .25s ease}
-.att-row-m{display:flex;align-items:center;gap:10px;padding:11px 18px;border-bottom:1px solid var(--border)}
-.att-row-m:last-child{border-bottom:none}
-.att-row-m.me-m{background:rgba(185,106,40,.07);border-left:3px solid var(--accent)}
-.att-av-m{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
-.att-nm-m{flex:1;font-size:13px;font-weight:500;color:var(--text)}
-.att-bts-m{display:flex;gap:5px}
-.att-b-m{width:34px;height:34px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;opacity:.4;transition:all .15s}
-.att-b-m.on{opacity:1;border-color:transparent}
-.att-b-m.on.p{background:rgba(39,174,96,.2);border-color:#27ae60}
-.att-b-m.on.q{background:rgba(243,156,18,.2);border-color:#f39c12}
-.att-b-m.on.a{background:rgba(231,76,60,.2);border-color:#e74c3c}
+#attm-wrap{position:fixed;inset:0;z-index:9999;display:none;background:rgba(0,0,0,.6);align-items:flex-end}
+#attm-wrap.on{display:flex}
+#attm-sheet{background:var(--bg);border-radius:20px 20px 0 0;width:100%;max-height:88vh;display:flex;flex-direction:column;animation:slideUp .22s ease}
+.attm-row{display:flex;align-items:center;gap:10px;padding:11px 18px;border-bottom:1px solid var(--border)}
+.attm-row:last-child{border-bottom:none}
+.attm-row.me{background:rgba(185,106,40,.08);border-left:3px solid var(--accent)}
+.attm-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.attm-nm{flex:1;font-size:13px;color:var(--text)}
+.attm-bts{display:flex;gap:5px}
+.attm-bt{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:16px;opacity:.4;transition:all .12s}
+.attm-bt:active{transform:scale(.9)}
+.attm-bt.sel{opacity:1;border-color:transparent}
+.attm-bt.sel.p{background:rgba(39,174,96,.25)}
+.attm-bt.sel.q{background:rgba(243,156,18,.25)}
+.attm-bt.sel.a{background:rgba(231,76,60,.25)}
 </style>
 </head>
 <body>
@@ -791,18 +793,18 @@ function renderSets(){
           <div class="set-meta" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
         <span>${songs.length} morceau${songs.length>1?'x':''} ${dur?'· ~'+dur+' min':''}</span>
         ${(()=>{
-          const atts=DB.set_attendance.filter(a=>a.set_id===set.id);
-          const p=atts.filter(a=>a.status==='present').length;
-          const q=atts.filter(a=>a.status==='maybe').length;
-          const ab=atts.filter(a=>a.status==='absent').length;
-          const me=atts.find(a=>a.member_id==_currentUserId);
-          const meBadge=me&&me.status!=='unknown'?`<span style="font-size:11px;padding:1px 6px;border-radius:8px;background:rgba(185,106,40,.15);color:var(--accent)">${{present:'✅',maybe:'❓',absent:'❌'}[me.status]}</span>`:'';
-          const sum=(p||q||ab)?`<span style="font-size:11px;color:var(--text3)">${p?'✅'+p+' ':''} ${q?'❓'+q+' ':''} ${ab?'❌'+ab:''}</span>`:'';
-          return meBadge+sum;
+          const aa=DB.set_attendance.filter(a=>a.set_id===set.id);
+          const me=aa.find(a=>String(a.member_id)===String(_currentUserId));
+          const p=aa.filter(a=>a.status==='present').length;
+          const q=aa.filter(a=>a.status==='maybe').length;
+          const ab=aa.filter(a=>a.status==='absent').length;
+          return (me&&me.status!=='unknown'?`<span style="font-size:11px;padding:1px 6px;border-radius:8px;background:rgba(185,106,40,.15);color:var(--accent)">${{present:'✅',maybe:'❓',absent:'❌'}[me.status]}</span>`:'')+
+            ((p||q||ab)?`<span style="font-size:11px;color:var(--text3)">${p?'✅'+p+' ':''} ${q?'❓'+q+' ':''} ${ab?'❌'+ab:''}</span>`:'');
         })()}
       </div>
         </div>
         <button onclick="openAttM(${set.id})" style="flex-shrink:0;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:14px;cursor:pointer">👥</button>
+        <button onclick="attmOpen(${set.id})" style="flex-shrink:0;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:14px;cursor:pointer">👥</button>
         <button onclick="openEditPanel('set',${set.id})" style="flex-shrink:0;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:12px;color:var(--text2);cursor:pointer;font-family:inherit">✏️ Modifier</button>
       </div>
       ${songsHtml?`<div class="set-songs">${songsHtml}</div>`:''}
@@ -1575,74 +1577,71 @@ function closeEditPanelDirect(){
 
 
 
-// ===== ATTENDANCE MOBILE =====
-let _attMId = null;
-const _famColsM2 = {
-  'Cordes':['#e67e22','rgba(230,126,34,.18)'],
-  'Cuivres':['#e74c3c','rgba(231,76,60,.18)'],
-  'Bois':['#27ae60','rgba(39,174,96,.18)'],
-  'Claviers':['#2980b9','rgba(41,128,185,.18)'],
-  'Percussions':['#8e44ad','rgba(142,68,173,.18)'],
-  'Voix':['#f39c12','rgba(243,156,18,.18)'],
-};
 
-function openAttM(setId){
-  _attMId = setId;
+
+// ===== ATTENDANCE MOBILE =====
+let _attmId = null;
+const _attmColors = {
+  'Cordes':['#e67e22','rgba(230,126,34,.15)'],'Cuivres':['#e74c3c','rgba(231,76,60,.15)'],
+  'Bois':['#27ae60','rgba(39,174,96,.15)'],'Claviers':['#2980b9','rgba(41,128,185,.15)'],
+  'Percussions':['#8e44ad','rgba(142,68,173,.15)'],'Voix':['#f39c12','rgba(243,156,18,.15)'],
+};
+const _attmIcons = {present:'✅',maybe:'❓',absent:'❌',unknown:'⬜'};
+
+function attmOpen(setId){
+  _attmId = setId;
   const set = DB.sets.find(s=>s.id===setId); if(!set) return;
-  if(!_currentUserId){
-    // Avertir si pas identifié
-    const banner = document.createElement('div');
-    banner.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;z-index:9999';
-    banner.textContent='Identifiez-vous pour indiquer votre présence';
-    document.body.appendChild(banner);
-    setTimeout(()=>banner.remove(),2500);
-  }
-  document.getElementById('att-title-m').textContent = set.name;
-  renderAttM();
-  document.getElementById('att-panel-m').classList.add('open');
+  document.getElementById('attm-title').textContent = set.name;
+  attmRender();
+  document.getElementById('attm-wrap').classList.add('on');
 }
 
-function renderAttM(){
-  const rows = DB.set_attendance.filter(a=>a.set_id===_attMId);
+function attmRender(){
+  const rows = DB.set_attendance.filter(a=>a.set_id===_attmId);
   const p=rows.filter(r=>r.status==='present').length;
   const q=rows.filter(r=>r.status==='maybe').length;
   const ab=rows.filter(r=>r.status==='absent').length;
-  document.getElementById('att-sum-m').innerHTML =
-    (p ?`<span style="font-size:11px;padding:2px 7px;border-radius:10px;background:var(--surface2)">✅ ${p}</span>`:'')+
-    (q ?`<span style="font-size:11px;padding:2px 7px;border-radius:10px;background:var(--surface2)">❓ ${q}</span>`:'')+
-    (ab?`<span style="font-size:11px;padding:2px 7px;border-radius:10px;background:var(--surface2)">❌ ${ab}</span>`:'');
+  document.getElementById('attm-sum').innerHTML =
+    (p?`<span style="font-size:11px;padding:2px 7px;border-radius:8px;background:var(--surface2)">✅ ${p}</span>`:'')+
+    (q?`<span style="font-size:11px;padding:2px 7px;border-radius:8px;background:var(--surface2)">❓ ${q}</span>`:'')+
+    (ab?`<span style="font-size:11px;padding:2px 7px;border-radius:8px;background:var(--surface2)">❌ ${ab}</span>`:'');
 
-  const icons = {present:'✅',maybe:'❓',absent:'❌',unknown:'○'};
-  document.getElementById('att-body-m').innerHTML = DB.members.map(m=>{
-    const att = rows.find(r=>r.member_id===m.id);
-    const status = att?.status||'unknown';
-    const isMe = String(m.id) === String(_currentUserId);
-    const [col,bg] = _famColsM2[m.family]||['#888','rgba(136,136,136,.15)'];
-    return `<div class="att-row-m${isMe?' me-m':''}">
-      <div class="att-av-m" style="background:${bg};color:${col}">${m.avatar||(m.prenom?m.prenom[0]:'?')}</div>
-      <span class="att-nm-m">${esc(m.prenom)} ${esc(m.nom||'')}</span>
-      ${isMe ? `<div class="att-bts-m">
-        <button class="att-b-m p ${status==='present'?'on p':''}" onclick="setAttM('present')" title="Présent">✅</button>
-        <button class="att-b-m q ${status==='maybe'  ?'on q':''}" onclick="setAttM('maybe')"   title="Peut-être">❓</button>
-        <button class="att-b-m a ${status==='absent' ?'on a':''}" onclick="setAttM('absent')"  title="Absent">❌</button>
-      </div>` : `<span style="font-size:20px;opacity:${status==='unknown'?.2:1}">${icons[status]}</span>`}
+  const myId = String(_currentUserId||'');
+  document.getElementById('attm-list').innerHTML = DB.members.map(m=>{
+    const att = rows.find(r=>String(r.member_id)===String(m.id));
+    const st  = att?.status||'unknown';
+    const isMe = String(m.id)===myId;
+    const [col,bg] = _attmColors[m.family]||['#888','rgba(136,136,136,.12)'];
+    const av = m.avatar||(m.prenom?m.prenom[0].toUpperCase():'?');
+    return `<div class="attm-row${isMe?' me':''}">
+      <div class="attm-av" style="background:${bg};color:${col}">${av}</div>
+      <span class="attm-nm">${esc(m.prenom||'')} ${esc(m.nom||'')}</span>
+      ${isMe
+        ? `<div class="attm-bts">
+            <button class="attm-bt p${st==='present'?' sel p':''}" onclick="attmSet('present')">✅</button>
+            <button class="attm-bt q${st==='maybe'  ?' sel q':''}" onclick="attmSet('maybe')">❓</button>
+            <button class="attm-bt a${st==='absent' ?' sel a':''}" onclick="attmSet('absent')">❌</button>
+           </div>`
+        : `<span style="font-size:18px;opacity:${st==='unknown'?.2:.9}">${_attmIcons[st]}</span>`
+      }
     </div>`;
   }).join('');
 }
 
-async function setAttM(status){
-  if(!_currentUserId||!_attMId) return;
-  const existing = DB.set_attendance.find(a=>a.set_id===_attMId && String(a.member_id)===String(_currentUserId));
-  if(existing){
-    await sb.from('set_attendance').update({status}).eq('id',existing.id);
-  } else {
-    await sb.from('set_attendance').insert({set_id:_attMId, member_id:_currentUserId, status});
-  }
-  await loadAll(); renderSets(); renderAttM();
+async function attmSet(status){
+  const myId = _currentUserId;
+  if(!myId||!_attmId) return;
+  const ex = DB.set_attendance.find(a=>a.set_id===_attmId && String(a.member_id)===String(myId));
+  try{
+    if(ex) await sb.from('set_attendance').update({status}).eq('id',ex.id);
+    else   await sb.from('set_attendance').insert({set_id:_attmId, member_id:myId, status});
+    await loadAll();
+    attmRender();
+    renderSets();
+  }catch(e){ console.error(e); }
 }
 
-function closeAttM(e){ if(e.target===document.getElementById('att-panel-m')) closeAttMDirect(); }
-function closeAttMDirect(){ document.getElementById('att-panel-m').classList.remove('open'); }
+function attmClose(){ document.getElementById('attm-wrap').classList.remove('on'); }
 
 // ===== SQM QUICK MODAL MOBILE =====
 let _sqmMId   = null;
@@ -1967,17 +1966,16 @@ init();
 </div>
 
 
-<!-- ATTENDANCE PANEL MOBILE -->
-<div id="att-panel-m" onclick="closeAttM(event)">
-  <div id="att-sheet-m">
+
+<div id="attm-wrap" onclick="if(event.target===this)attmClose()">
+  <div id="attm-sheet">
     <div style="padding:14px 18px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--accent);flex:1" id="att-title-m">Présences</div>
-      <div id="att-sum-m" style="display:flex;gap:6px"></div>
-      <button onclick="closeAttMDirect()" style="background:var(--nav-bg);color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">×</button>
+      <span id="attm-title" style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--accent);flex:1">Présences</span>
+      <div id="attm-sum" style="display:flex;gap:5px"></div>
+      <button onclick="attmClose()" style="background:var(--nav-bg);color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:18px;cursor:pointer">×</button>
     </div>
-    <div style="overflow-y:auto;flex:1" id="att-body-m"></div>
+    <div id="attm-list" style="overflow-y:auto;flex:1"></div>
   </div>
 </div>
-
 </body>
 </html>
