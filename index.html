@@ -1608,7 +1608,6 @@ function renderSets(){
                 ${(ss.local_key||s.key)?`<span class="tag tag-key" style="font-size:10px">${esc(ss.local_key||s.key)}</span>`:''}
                 ${(ss.local_bpm||s.bpm)?`<span class="tag" style="font-size:10px;background:rgba(124,159,232,.15);color:var(--accent2)">${ss.local_bpm||s.bpm} BPM</span>`:''}
                 ${ss.local_struct?`<span class="tag" style="font-size:10px;background:rgba(93,200,160,.12);color:var(--green);font-family:monospace">${esc(ss.local_struct)}</span>`:''}
-                ${s.tempo?`<span class="tag" style="font-size:10px;background:rgba(93,200,160,.12);color:var(--green)">${esc(s.tempo)}</span>`:''}
                 ${s.folder_link?`<a href="${esc(s.folder_link)}" target="_blank" onclick="event.stopPropagation()" title="Ouvrir le dossier" style="color:var(--accent2);font-size:13px;text-decoration:none">&#128279;</a>`:''}
               </div>
               ${ss.set_notes?`<div style="font-size:11px;color:var(--amber);padding-left:30px;line-height:1.4">⚠ ${esc(ss.set_notes)}</div>`:''}
