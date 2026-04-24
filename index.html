@@ -339,46 +339,68 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
 
 
 
+
 /* ===== SET QUICK EDIT MODAL ===== */
-.sqm-row{
-  padding:10px 14px 10px 12px;
-  border-left:4px solid transparent;
-  transition:background .15s;
+#set-quick-modal { max-width:680px !important; width:94vw !important; }
+.sqm-row {
+  padding:14px 18px 12px;
+  border-left:5px solid transparent;
+  border-bottom:1px solid var(--border);
 }
-.sqm-row:nth-child(odd){ background:var(--surface); border-left-color:var(--border2); }
-.sqm-row:nth-child(even){ background:var(--surface2); border-left-color:var(--border); }
-.sqm-row:hover{ filter:brightness(1.04); }
-.sqm-row.prio1{ border-left-color:var(--amber) !important; }
-.sqm-row.prio2{ border-left-color:var(--red) !important; }
-.sqm-title-line{
-  display:flex;align-items:center;gap:8px;
-  margin-bottom:7px;
-}
-.sqm-num{ font-size:11px;color:var(--text3);min-width:22px;text-align:right;flex-shrink:0;font-weight:600; }
-.sqm-name{ font-size:13px;font-weight:700;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
-.sqm-prio-dot{ width:8px;height:8px;border-radius:50%;flex-shrink:0; }
-.sqm-fields-line{
+.sqm-row:last-child { border-bottom:none; }
+.sqm-row:nth-child(odd)  { background:#f7f3ee; border-left-color:#d4c9bc; }
+.sqm-row:nth-child(even) { background:#ede8e1; border-left-color:#c5b9aa; }
+body.theme-dark .sqm-row:nth-child(odd)  { background:rgba(255,255,255,.04); border-left-color:rgba(255,255,255,.1); }
+body.theme-dark .sqm-row:nth-child(even) { background:rgba(255,255,255,.08); border-left-color:rgba(255,255,255,.15); }
+.sqm-row.prio1 { border-left-color:var(--amber) !important; }
+.sqm-row.prio2 { border-left-color:var(--red)   !important; }
+/* ligne titre */
+.sqm-title-line { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.sqm-num  { font-size:12px; color:var(--text3); min-width:24px; text-align:right; flex-shrink:0; font-weight:700; }
+.sqm-name { font-size:14px; font-weight:700; color:var(--text); flex:1; }
+.sqm-prio-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+/* ligne champs */
+.sqm-fields-line {
   display:grid;
-  grid-template-columns:58px 52px 1fr;
-  gap:8px;
-  padding-left:30px;
-  margin-bottom:6px;
+  grid-template-columns:64px 60px 1fr;
+  gap:10px;
+  padding-left:34px;
   align-items:end;
+  margin-bottom:10px;
 }
-.sqm-fc{ display:flex;flex-direction:column;gap:2px; }
-.sqm-fl{ font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3); }
-.sqm-fi{
-  background:var(--bg);border:1px solid var(--border);border-radius:5px;
-  padding:4px 7px;font-size:12px;color:var(--text);font-family:inherit;outline:none;
-  width:100%;box-sizing:border-box;
+.sqm-fc { display:flex; flex-direction:column; gap:3px; }
+.sqm-fl { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:var(--text3); }
+.sqm-fi {
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:5px 8px;
+  font-size:13px;
+  color:var(--text);
+  font-family:inherit;
+  outline:none;
+  width:100%;
+  box-sizing:border-box;
+  transition:border-color .15s;
 }
-.sqm-fi:focus{ border-color:var(--accent); }
-.sqm-ni{
-  width:100%;background:transparent;border:none;border-bottom:1px dashed var(--border2);
-  font-size:11px;color:var(--text2);font-family:inherit;outline:none;
-  padding:2px 0;box-sizing:border-box;margin-left:30px;width:calc(100% - 30px);
+.sqm-fi:focus { border-color:var(--accent); box-shadow:0 0 0 2px rgba(185,106,40,.15); }
+/* ligne note */
+.sqm-note-line { padding-left:34px; }
+.sqm-ni {
+  width:100%;
+  background:rgba(185,106,40,.06);
+  border:1px dashed rgba(185,106,40,.3);
+  border-radius:6px;
+  font-size:12px;
+  color:var(--text2);
+  font-family:inherit;
+  outline:none;
+  padding:6px 10px;
+  box-sizing:border-box;
+  transition:border-color .15s, background .15s;
 }
-.sqm-ni::placeholder{ color:var(--text3);font-style:italic; }
+.sqm-ni:focus { border-color:var(--accent); background:rgba(185,106,40,.1); }
+.sqm-ni::placeholder { color:var(--text3); font-style:italic; }
 </style>
 </head>
 <body>
@@ -1011,13 +1033,11 @@ function renderQuickSetModal(){
     if(!s) return '';
     const prio = ss.priority||0;
     return `<div class="sqm-row prio${prio}">
-      <!-- Ligne 1 : numéro + titre + pastille priorité -->
       <div class="sqm-title-line">
         <span class="sqm-num">${i+1}</span>
         <span class="sqm-name">${esc(s.name)}</span>
         <span class="sqm-prio-dot" style="background:${prioColors[prio]}" title="${['Normal','Attention','Prioritaire'][prio]}"></span>
       </div>
-      <!-- Ligne 2 : Tonalité | BPM | Structure -->
       <div class="sqm-fields-line">
         <div class="sqm-fc">
           <span class="sqm-fl">Tonalité</span>
@@ -1030,7 +1050,7 @@ function renderQuickSetModal(){
           <input class="sqm-fi" type="number" min="0" max="999"
             placeholder="${s.bpm||'—'}" value="${ss.local_bpm||''}"
             oninput="_sqmRows[${i}].local_bpm=this.value?parseInt(this.value):null"
-            style="appearance:textfield;-moz-appearance:textfield">
+            style="-moz-appearance:textfield;appearance:textfield">
         </div>
         <div class="sqm-fc">
           <span class="sqm-fl">Structure</span>
@@ -1039,11 +1059,12 @@ function renderQuickSetModal(){
             oninput="_sqmRows[${i}].local_struct=this.value||null">
         </div>
       </div>
-      <!-- Ligne 3 : Note -->
-      <input class="sqm-ni" type="text"
-        placeholder="⚠ Note pour ce set…"
-        value="${esc(ss.set_notes||'')}"
-        oninput="_sqmRows[${i}].set_notes=this.value||null">
+      <div class="sqm-note-line">
+        <input class="sqm-ni" type="text"
+          placeholder="⚠ Note spécifique pour ce set…"
+          value="${esc(ss.set_notes||'')}"
+          oninput="_sqmRows[${i}].set_notes=this.value||null">
+      </div>
     </div>`;
   }).join('');
 }
