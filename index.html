@@ -405,22 +405,38 @@ body.theme-dark .sqm-row:nth-child(even) { background:rgba(255,255,255,.08); bor
 
 
 
-/* ===== EVENT ATTENDANCE (bottom-sheet style) ===== */
-#evatt-wrap{position:fixed;inset:0;z-index:9999;display:none;background:rgba(0,0,0,.6);align-items:flex-end}
-#evatt-wrap.on{display:flex}
-#evatt-sheet{background:var(--bg);border-radius:20px 20px 0 0;width:100%;max-height:88vh;display:flex;flex-direction:column;animation:slideUp .22s ease}
-.evarow{display:flex;align-items:center;gap:10px;padding:11px 22px;border-bottom:1px solid var(--border)}
-.evarow:last-child{border-bottom:none}
-.evarow.me{background:rgba(185,106,40,.08);border-left:4px solid var(--accent)}
-.evaav{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
-.evanm{flex:1;font-size:13px;color:var(--text);font-weight:500}
-.evabts{display:flex;gap:6px}
-.evabt{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:16px;opacity:.35;transition:all .12s}
-.evabt:hover{opacity:.75;transform:scale(1.05)}
-.evabt.sel{opacity:1;border-color:transparent}
-.evabt.sel.p{background:rgba(39,174,96,.25)}
-.evabt.sel.q{background:rgba(243,156,18,.25)}
-.evabt.sel.a{background:rgba(231,76,60,.25)}
+
+/* ===== FEUILLE PRÉSENTIELLE ===== */
+.fp-overlay{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;padding:20px}
+.fp-overlay.open{display:flex}
+.fp-modal{background:var(--surface);border:1px solid var(--border2);border-radius:14px;box-shadow:0 8px 40px rgba(0,0,0,.5);display:flex;flex-direction:column;overflow:hidden}
+.fp-header{padding:14px 20px 12px;border-bottom:1px solid var(--border);background:var(--surface2);flex-shrink:0}
+.fp-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--accent)}
+.fp-subtitle{font-size:12px;color:var(--text3);margin-top:2px}
+.fp-body{overflow-y:auto;flex:1}
+.fp-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;align-items:center;background:var(--surface);flex-shrink:0}
+/* Modale 1 : liste des dates */
+#fp-dates-modal{width:460px;max-width:94vw;max-height:78vh}
+.fp-date-row{display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s}
+.fp-date-row:last-child{border-bottom:none}
+.fp-date-row:hover{background:var(--surface3)}
+.fp-date-label{flex:1;font-size:13px;font-weight:600;color:var(--text)}
+.fp-date-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.fp-att-summary{display:flex;gap:5px;font-size:12px}
+/* Modale 2 : liste des musiciens */
+#fp-members-modal{width:440px;max-width:94vw;max-height:82vh}
+.fp-member-row{display:flex;align-items:center;gap:10px;padding:11px 20px;border-bottom:1px solid var(--border)}
+.fp-member-row:last-child{border-bottom:none}
+.fp-member-row.me{background:rgba(185,106,40,.08);border-left:3px solid var(--accent)}
+.fp-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.fp-name{flex:1;font-size:13px;font-weight:500;color:var(--text)}
+.fp-btns{display:flex;gap:4px}
+.fp-btn{width:32px;height:32px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:14px;opacity:.35;transition:all .12s}
+.fp-btn:hover{opacity:.75}
+.fp-btn.sel{opacity:1;border-color:transparent}
+.fp-btn.sel.p{background:rgba(39,174,96,.25);border-color:#27ae60}
+.fp-btn.sel.q{background:rgba(243,156,18,.25);border-color:#f39c12}
+.fp-btn.sel.a{background:rgba(231,76,60,.25);border-color:#e74c3c}
 </style>
 </head>
 <body>
@@ -1131,116 +1147,143 @@ function closeQuickSetModal(){
 
 
 
-// ===== EVENT ATTENDANCE =====
-let _evattId = null;
-const _evattColors = {
-  'Cordes':['#e67e22','rgba(230,126,34,.15)'],'Cuivres':['#e74c3c','rgba(231,76,60,.15)'],
-  'Bois':['#27ae60','rgba(39,174,96,.15)'],'Claviers':['#2980b9','rgba(41,128,185,.15)'],
-  'Percussions':['#8e44ad','rgba(142,68,173,.15)'],'Voix':['#f39c12','rgba(243,156,18,.15)'],
+
+
+// ===== FEUILLE PRÉSENTIELLE =====
+let _fpSetId   = null;
+let _fpEventId = null;
+let _fpChanges = {}; // member_id -> status (pending save)
+
+const _fpColors = {
+  'Cordes':['#e67e22','rgba(230,126,34,.15)'],
+  'Cuivres':['#e74c3c','rgba(231,76,60,.15)'],
+  'Bois':['#27ae60','rgba(39,174,96,.15)'],
+  'Claviers':['#2980b9','rgba(41,128,185,.15)'],
+  'Percussions':['#8e44ad','rgba(142,68,173,.15)'],
+  'Voix':['#f39c12','rgba(243,156,18,.15)'],
 };
-const _evattIcons = {present:'✅',maybe:'❓',absent:'❌',unknown:'⬜'};
+const _fpIcons = {present:'✅', maybe:'❓', absent:'❌', unknown:'⬜'};
 
-function evattOpenSet(setId){
-  // Afficher les prochaines dates pour ce set, permettre de choisir
+// ── Ouverture modale 1 : liste des dates ──────────────────────────────
+function fpOpen(setId){
+  _fpSetId = setId;
+  const set = DB.sets.find(s=>s.id===setId); if(!set) return;
   const today = new Date().toISOString().slice(0,10);
-  const events = DB.events.filter(e=>e.set_id===setId && e.date>=today)
-    .sort((a,b)=>a.date.localeCompare(b.date)).slice(0,6);
-  const set = DB.sets.find(s=>s.id===setId);
-  if(!set) return;
+  const events = DB.events
+    .filter(e=>e.set_id===setId && e.type!=='prestation')
+    .sort((a,b)=>a.date.localeCompare(b.date));
+  const future = events.filter(e=>e.date>=today);
+  const past   = events.filter(e=>e.date<today).slice(-2).reverse();
+  const shown  = [...future.slice(0,8), ...past];
 
-  if(events.length===0){
-    // Pas de date à venir : ouvrir quand même sur la dernière date passée
-    const past = DB.events.filter(e=>e.set_id===setId)
-      .sort((a,b)=>b.date.localeCompare(a.date));
-    if(past.length) evattOpen(past[0].id);
-    else alert('Aucune date planifiée pour ce set.');
-    return;
-  }
-  if(events.length===1){ evattOpen(events[0].id); return; }
+  document.getElementById('fp-dates-title').textContent = set.name;
+  document.getElementById('fp-dates-subtitle').textContent =
+    'Feuille présentielle — '+shown.length+' date'+(shown.length>1?'s':'');
 
-  // Plusieurs dates → afficher sélecteur dans la bottom-sheet
-  _evattId = null;
-  document.getElementById('evatt-title').textContent = set.name;
-  document.getElementById('evatt-date').textContent = 'Choisissez une date';
-  document.getElementById('evatt-sum').innerHTML = '';
-  document.getElementById('evatt-list').innerHTML =
-    '<div style="padding:8px 0">'+
-    events.map(e=>{
-      const d = new Date(e.date+'T12:00:00');
-      const label = d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})+(e.time?' · '+e.time.slice(0,5):'');
-      const atts = DB.event_attendance.filter(a=>parseInt(a.event_id)===e.id);
-      const p=atts.filter(a=>a.status==='present').length;
-      const q=atts.filter(a=>a.status==='maybe').length;
-      const ab=atts.filter(a=>a.status==='absent').length;
-      const me=atts.find(a=>parseInt(a.member_id)===parseInt(currentUserId));
-      const meDot=me&&me.status!=='unknown'?` ${{'present':'✅','maybe':'❓','absent':'❌'}[me.status]}`:'';
-      return `<div onclick="evattOpen(${e.id})" style="display:flex;align-items:center;gap:12px;padding:13px 22px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background=''">
-        <div style="flex:1">
-          <div style="font-size:13px;font-weight:600;color:var(--text)">📅 ${label}${meDot}</div>
-          ${(p||q||ab)?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${p?'✅'+p+' ':''} ${q?'❓'+q+' ':''} ${ab?'❌'+ab:''}</div>`:'<div style="font-size:11px;color:var(--text3);margin-top:2px">Aucune réponse</div>'}
-        </div>
-        <span style="color:var(--text3);font-size:16px">›</span>
-      </div>`;
-    }).join('')+
-    '</div>';
-  document.getElementById('evatt-wrap').classList.add('on');
+  document.getElementById('fp-dates-body').innerHTML = shown.length
+    ? shown.map(e=>{
+        const d = new Date(e.date+'T12:00:00');
+        const label = d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+        const time  = e.time?e.time.slice(0,5)+(e.time_end?' – '+e.time_end.slice(0,5):''):'';
+        const atts  = DB.event_attendance.filter(a=>parseInt(a.event_id)===e.id);
+        const p=atts.filter(a=>a.status==='present').length;
+        const q=atts.filter(a=>a.status==='maybe').length;
+        const ab=atts.filter(a=>a.status==='absent').length;
+        const isPast = e.date < today;
+        return `<div class="fp-date-row" onclick="fpOpenMembers(${e.id})">
+          <div style="flex:1">
+            <div class="fp-date-label" style="${isPast?'color:var(--text3)':''}">${isPast?'↩ ':'📅 '}${label}</div>
+            <div class="fp-date-sub">${time||'Horaire non défini'}${isPast?' · passée':''}</div>
+          </div>
+          <div class="fp-att-summary">
+            ${p?`<span>✅${p}</span>`:''}${q?`<span>❓${q}</span>`:''}${ab?`<span>❌${ab}</span>`:''}
+            ${!p&&!q&&!ab?`<span style="color:var(--text3);font-size:11px">Aucune réponse</span>`:''}
+          </div>
+          <span style="color:var(--text3);margin-left:8px">›</span>
+        </div>`;
+      }).join('')
+    : '<div style="padding:24px;text-align:center;color:var(--text3)">Aucune date planifiée pour ce set.</div>';
+
+  document.getElementById('fp-dates-overlay').classList.add('open');
 }
 
-function evattOpen(eventId){
-  _evattId = parseInt(eventId);
-  const e = DB.events.find(x=>x.id===_evattId); if(!e) return;
-  const setName = e.set_id ? DB.sets.find(s=>s.id===e.set_id)?.name : null;
-  document.getElementById('evatt-title').textContent = setName||'Répétition';
-  const d = new Date(e.date+'T12:00:00');
-  document.getElementById('evatt-date').textContent =
-    d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+(e.time?' · '+e.time.slice(0,5):'');
-  evattRender();
-  document.getElementById('evatt-wrap').classList.add('on');
+function fpDatesClose(){
+  document.getElementById('fp-dates-overlay').classList.remove('open');
 }
 
-function evattRender(){
-  const rows = DB.event_attendance.filter(a=>parseInt(a.event_id)===_evattId);
-  const p=rows.filter(r=>r.status==='present').length;
-  const q=rows.filter(r=>r.status==='maybe').length;
-  const ab=rows.filter(r=>r.status==='absent').length;
-  document.getElementById('evatt-sum').innerHTML =
-    (p?`<span style="font-size:12px;padding:2px 8px;border-radius:8px;background:var(--surface3)">✅ ${p}</span>`:'')+
-    (q?`<span style="font-size:12px;padding:2px 8px;border-radius:8px;background:var(--surface3)">❓ ${q}</span>`:'')+
-    (ab?`<span style="font-size:12px;padding:2px 8px;border-radius:8px;background:var(--surface3)">❌ ${ab}</span>`:'');
+// ── Ouverture modale 2 : musiciens pour une date ──────────────────────
+function fpOpenMembers(eventId){
+  _fpEventId = parseInt(eventId);
+  _fpChanges = {};
+  const e   = DB.events.find(x=>x.id===_fpEventId); if(!e) return;
+  const set = e.set_id ? DB.sets.find(s=>s.id===e.set_id) : null;
+  const d   = new Date(e.date+'T12:00:00');
+  const dateLabel = d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const time = e.time?e.time.slice(0,5)+(e.time_end?' – '+e.time_end.slice(0,5):''):'';
+
+  document.getElementById('fp-members-title').textContent = set?.name||'Répétition';
+  document.getElementById('fp-members-subtitle').textContent = dateLabel+(time?' · '+time:'');
+  document.getElementById('fp-save-status').textContent = '';
+
+  fpRenderMembers();
+  document.getElementById('fp-members-overlay').classList.add('open');
+}
+
+function fpRenderMembers(){
+  const atts = DB.event_attendance.filter(a=>parseInt(a.event_id)===_fpEventId);
   const myId = parseInt(currentUserId||0);
-  document.getElementById('evatt-list').innerHTML = DB.members.map(m=>{
-    const att = rows.find(r=>parseInt(r.member_id)===parseInt(m.id));
-    const st  = att?.status||'unknown';
-    const isMe = parseInt(m.id)===myId;
-    const [col,bg] = _evattColors[m.family]||['#888','rgba(136,136,136,.12)'];
-    const av = m.avatar||(m.prenom?m.prenom[0].toUpperCase():'?');
-    return `<div class="evarow${isMe?' me':''}">
-      <div class="evaav" style="background:${bg};color:${col}">${av}</div>
-      <span class="evanm">${esc(m.prenom||'')} ${esc(m.nom||'')}</span>
+
+  document.getElementById('fp-members-body').innerHTML = DB.members.map(m=>{
+    const att    = atts.find(r=>parseInt(r.member_id)===parseInt(m.id));
+    const saved  = att?.status||'unknown';
+    const st     = _fpChanges[m.id]!==undefined ? _fpChanges[m.id] : saved;
+    const isMe   = parseInt(m.id)===myId;
+    const [col,bg] = _fpColors[m.family]||['#888','rgba(136,136,136,.12)'];
+    const av     = m.avatar||(m.prenom?m.prenom[0].toUpperCase():'?');
+    return `<div class="fp-member-row${isMe?' me':''}">
+      <div class="fp-avatar" style="background:${bg};color:${col}">${av}</div>
+      <span class="fp-name">${esc(m.prenom||'')} ${esc(m.nom||'')}</span>
       ${isMe
-        ? `<div class="evabts">
-            <button class="evabt p${st==='present'?' sel p':''}" onclick="evattSet('present')" title="Présent">✅</button>
-            <button class="evabt q${st==='maybe'  ?' sel q':''}" onclick="evattSet('maybe')"   title="Incertain">❓</button>
-            <button class="evabt a${st==='absent' ?' sel a':''}" onclick="evattSet('absent')"  title="Absent">❌</button>
+        ? `<div class="fp-btns">
+            <button class="fp-btn${st==='present'?' sel p':''}" onclick="fpMark(${m.id},'present')" title="Présent">✅</button>
+            <button class="fp-btn${st==='maybe'  ?' sel q':''}" onclick="fpMark(${m.id},'maybe')"   title="Incertain">❓</button>
+            <button class="fp-btn${st==='absent' ?' sel a':''}" onclick="fpMark(${m.id},'absent')"  title="Absent">❌</button>
            </div>`
-        : `<span style="font-size:18px;opacity:${st==='unknown'?.2:.9}">${_evattIcons[st]}</span>`
+        : `<span style="font-size:16px;opacity:${st==='unknown'?.2:.9}">${_fpIcons[st]}</span>`
       }
     </div>`;
   }).join('');
 }
 
-async function evattSet(status){
-  const myId = parseInt(currentUserId);
-  if(!myId||!_evattId) return;
-  const ex = DB.event_attendance.find(a=>parseInt(a.event_id)===_evattId && parseInt(a.member_id)===myId);
-  try{
-    if(ex) await sb.from('event_attendance').update({status}).eq('id',ex.id);
-    else   await sb.from('event_attendance').insert({event_id:_evattId, member_id:myId, status});
-    await loadAll(); evattRender();
-  }catch(err){ console.error(err); }
+function fpMark(memberId, status){
+  _fpChanges[memberId] = status;
+  fpRenderMembers();
 }
 
-function evattClose(){ document.getElementById('evatt-wrap').classList.remove('on'); }
+async function fpSave(){
+  const st = document.getElementById('fp-save-status');
+  st.style.color='var(--text3)'; st.textContent='Enregistrement…';
+  try{
+    for(const [mid, status] of Object.entries(_fpChanges)){
+      const ex = DB.event_attendance.find(a=>parseInt(a.event_id)===_fpEventId && parseInt(a.member_id)===parseInt(mid));
+      if(ex) await sb.from('event_attendance').update({status}).eq('id',ex.id);
+      else   await sb.from('event_attendance').insert({event_id:_fpEventId, member_id:parseInt(mid), status});
+    }
+    await loadAll();
+    _fpChanges={};
+    fpRenderMembers();
+    renderSets();
+    renderDashboard();
+    st.style.color='var(--green)'; st.textContent='✓ Enregistré !';
+    setTimeout(()=>{ st.textContent=''; },2500);
+  }catch(err){
+    st.style.color='var(--red)'; st.textContent='Erreur : '+err.message;
+  }
+}
+
+function fpMembersClose(){
+  document.getElementById('fp-members-overlay').classList.remove('open');
+}
 
 async function init(){
   try {
@@ -1614,10 +1657,19 @@ function renderSets(){
     return `
       <div class="set-card" ondblclick="openQuickSetModal(${set.id})" title="Double-clic : édition rapide" style="cursor:pointer">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
-          <div class="set-name">${esc(set.name)}</div>
+          <div class="set-name" style="display:flex;align-items:center;gap:6px">
+          ${esc(set.name)}
+          ${(()=>{
+            const today=new Date().toISOString().slice(0,10);
+            const next2=DB.events.filter(e=>e.set_id===set.id&&e.date>=today&&e.type!=='prestation')
+              .sort((a,b)=>a.date.localeCompare(b.date)).slice(0,2);
+            const absent=next2.some(e=>DB.event_attendance.filter(a=>parseInt(a.event_id)===e.id&&a.status==='absent').length>0);
+            return absent?'<span title="Absence(s) signalée(s)" style="font-size:14px">⚠️</span>':'';
+          })()}
+        </div>
           <div class="flex gap-8" style="flex-shrink:0">
             ${songs.length?`<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();printSetProgram(${set.id})" title="Imprimer">🖨</button>`:''}
-            <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();evattOpenSet(${set.id})" title="Présences">👥</button>
+            <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();fpOpen(${set.id})" title="Feuille présentielle" style="color:var(--accent)">👥</button>
             <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openSetModal(${set.id})">✎</button>
             <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteSet(${set.id})">✕</button>
           </div>
@@ -2229,6 +2281,40 @@ async function saveRepet(){
 // ============================================================
 //  DASHBOARD
 // ============================================================
+
+function renderAbsentsWidget(){
+  const today = new Date().toISOString().slice(0,10);
+  const lines = [];
+  DB.sets.forEach(set=>{
+    const next2 = DB.events
+      .filter(e=>e.set_id===set.id && e.date>=today && e.type!=='prestation')
+      .sort((a,b)=>a.date.localeCompare(b.date)).slice(0,2);
+    next2.forEach(e=>{
+      const absents = DB.event_attendance
+        .filter(a=>parseInt(a.event_id)===e.id && a.status==='absent')
+        .map(a=>DB.members.find(m=>m.id===a.member_id))
+        .filter(Boolean);
+      if(absents.length){
+        const d = new Date(e.date+'T12:00:00');
+        const label = d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
+        lines.push({setName:set.name, date:label, absents});
+      }
+    });
+  });
+  const el = document.getElementById('dash-absents');
+  if(!el) return;
+  if(!lines.length){
+    el.innerHTML='<div style="color:var(--text3);font-size:12px;font-style:italic">Aucune absence signalée pour les prochaines répétitions.</div>';
+    return;
+  }
+  el.innerHTML = lines.map(l=>
+    `<div style="margin-bottom:8px">
+      <div style="font-size:12px;font-weight:600;color:var(--text)">❌ ${esc(l.setName)} · ${l.date}</div>
+      <div style="font-size:12px;color:var(--red);padding-left:12px">${l.absents.map(m=>esc(m.prenom+' '+(m.nom||''))).join(', ')}</div>
+    </div>`
+  ).join('');
+}
+
 function renderDashboard(){
   document.getElementById('stats-bar').innerHTML = [
     {v:DB.songs.length,   l:'Morceaux',    p:'morceaux'},
@@ -2651,7 +2737,6 @@ function openEventDetail(id, evType){
     </div>
 
     <div class="evdet-actions">
-      ${!isPresta?`<button class="btn btn-outline" style="grid-column:1/-1;border-color:rgba(185,106,40,.5);color:var(--accent);font-weight:600" onclick="closeModal();evattOpen(${id})">👥 Présences à cette répétition</button>`:''}
       <button class="btn btn-outline" onclick="editPlanningEvent(${id})">✎ Modifier cette date</button>
       <button class="btn btn-danger" onclick="deletePlanningEvent(${id}, false)">✕ Supprimer cette date</button>
       ${isSerie?`
@@ -2948,17 +3033,34 @@ init();
       </div>
     </div>
 
-<div id="evatt-wrap" onclick="if(event.target===this)evattClose()" style="position:fixed;inset:0;z-index:9999;display:none;background:rgba(0,0,0,.6);align-items:flex-end">
-  <div id="evatt-sheet" style="background:var(--bg);border-radius:20px 20px 0 0;width:100%;max-height:88vh;display:flex;flex-direction:column;animation:slideUp .22s ease">
-    <div style="padding:16px 22px 12px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:12px;flex-shrink:0;background:var(--surface2)">
-      <div style="flex:1">
-        <div id="evatt-title" style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--accent)">Présences</div>
-        <div id="evatt-date" style="font-size:12px;color:var(--text3);margin-top:2px"></div>
-      </div>
-      <div id="evatt-sum" style="display:flex;gap:6px;align-items:center"></div>
-      <button onclick="evattClose()" style="background:var(--surface3);border:1px solid var(--border);border-radius:50%;width:30px;height:30px;font-size:18px;cursor:pointer;flex-shrink:0;color:var(--text)">×</button>
+
+<!-- FEUILLE PRÉSENTIELLE - Modale 1 : dates -->
+<div class="fp-overlay" id="fp-dates-overlay" onclick="if(event.target===this)fpDatesClose()">
+  <div class="fp-modal" id="fp-dates-modal">
+    <div class="fp-header">
+      <div class="fp-title" id="fp-dates-title">Feuille présentielle</div>
+      <div class="fp-subtitle" id="fp-dates-subtitle">Dates à venir</div>
     </div>
-    <div id="evatt-list" style="overflow-y:auto;flex:1"></div>
+    <div class="fp-body" id="fp-dates-body"></div>
+    <div class="fp-footer">
+      <button class="btn btn-outline" onclick="fpDatesClose()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- FEUILLE PRÉSENTIELLE - Modale 2 : musiciens -->
+<div class="fp-overlay" id="fp-members-overlay" onclick="if(event.target===this)fpMembersClose()">
+  <div class="fp-modal" id="fp-members-modal">
+    <div class="fp-header">
+      <div class="fp-title" id="fp-members-title">Présences</div>
+      <div class="fp-subtitle" id="fp-members-subtitle"></div>
+    </div>
+    <div class="fp-body" id="fp-members-body"></div>
+    <div class="fp-footer">
+      <span id="fp-save-status" style="flex:1;font-size:12px;color:var(--green)"></span>
+      <button class="btn btn-outline" onclick="fpMembersClose()">← Retour</button>
+      <button class="btn btn-primary" onclick="fpSave()">💾 Enregistrer</button>
+    </div>
   </div>
 </div>
 </body>
