@@ -447,32 +447,22 @@ textarea.edit-field-input{min-height:60px;resize:none}
 }
 .edit-status{padding:6px 18px;font-size:12px;color:var(--green);min-height:24px}
 
-/* SQM quick modal mobile */
-#sqm-overlay-m{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:4000;display:none;align-items:flex-end}
-#sqm-overlay-m.open{display:flex}
-#sqm-sheet-m{background:var(--bg);border-radius:20px 20px 0 0;width:100%;max-height:92vh;display:flex;flex-direction:column;animation:slideUp .25s ease}
-#sqm-sheet-header{padding:14px 18px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}
-#sqm-sheet-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--accent);flex:1}
-#sqm-sheet-body{overflow-y:auto;flex:1;padding:0 0 20px}
-#sqm-sheet-footer{padding:10px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-shrink:0;background:var(--bg)}
 
 
 
-/* EVENT ATTENDANCE MOBILE */
-#evattm-wrap{position:fixed;inset:0;z-index:9999;display:none;background:rgba(0,0,0,.6);align-items:flex-end}
-#evattm-wrap.on{display:flex}
-#evattm-sheet{background:var(--bg);border-radius:20px 20px 0 0;width:100%;max-height:88vh;display:flex;flex-direction:column;animation:slideUp .22s ease}
-.evattm-row{display:flex;align-items:center;gap:10px;padding:11px 18px;border-bottom:1px solid var(--border)}
-.evattm-row:last-child{border-bottom:none}
-.evattm-row.me{background:rgba(185,106,40,.08);border-left:3px solid var(--accent)}
-.evattm-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
-.evattm-nm{flex:1;font-size:13px;color:var(--text)}
-.evattm-bts{display:flex;gap:5px}
-.evattm-bt{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:16px;opacity:.35;transition:all .12s}
-.evattm-bt.sel{opacity:1;border-color:transparent}
-.evattm-bt.sel.p{background:rgba(39,174,96,.25)}
-.evattm-bt.sel.q{background:rgba(243,156,18,.25)}
-.evattm-bt.sel.a{background:rgba(231,76,60,.25)}
+
+/* FP mobile */
+.fp-row-m{padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:10px}
+.fp-row-m:active{background:var(--surface2)}
+.fp-mrow-m{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--border)}
+.fp-mrow-m.me{background:rgba(185,106,40,.08);border-left:3px solid var(--accent)}
+.fp-av-m{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.fp-nm-m{flex:1;font-size:13px;font-weight:500;color:var(--text)}
+.fp-bt-m{width:34px;height:34px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:15px;opacity:.3;transition:all .12s}
+.fp-bt-m.on{opacity:1;border-color:transparent}
+.fp-bt-m.on.p{background:rgba(39,174,96,.25);border-color:#27ae60}
+.fp-bt-m.on.q{background:rgba(243,156,18,.25);border-color:#f39c12}
+.fp-bt-m.on.a{background:rgba(231,76,60,.25);border-color:#e74c3c}
 </style>
 </head>
 <body>
@@ -637,7 +627,7 @@ const familyColors = {
 
 // ── LOAD ──
 async function loadAll(){
-  const [songs,members,sets,set_songs,concerts,concert_songs,events,preferences,event_attendance] = await Promise.all([
+  const [songs,members,sets,set_songs,concerts,concert_songs,events,preferences,ev_att] = await Promise.all([
     sb.from('songs').select('*').order('name'),
     sb.from('members').select('*').order('prenom'),
     sb.from('sets').select('*').order('name'),
@@ -656,7 +646,7 @@ async function loadAll(){
   DB.concert_songs  = concert_songs.data  || [];
   DB.events         = events.data         || [];
   DB.preferences    = preferences.data    || [];
-  DB.event_attendance = event_attendance.data || [];
+  DB.event_attendance = ev_att.data || [];
 }
 
 // ── NAVIGATION ──
@@ -800,22 +790,16 @@ function renderSets(){
           next2.map(e=>{
             const d=new Date(e.date+'T12:00:00');
             const label=d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})+(e.time?' '+e.time.slice(0,5):'');
-            const atts=DB.event_attendance.filter(a=>a.event_id===e.id);
-            const p=atts.filter(a=>a.status==='present').length;
-            const ab=atts.filter(a=>a.status==='absent').length;
-            const me=atts.find(a=>String(a.member_id)===String(_currentUserId));
-            const meDot=me&&me.status!=='unknown'?` <span>${{present:'✅',maybe:'❓',absent:'❌'}[me.status]}</span>`:'';
-            const sum=(p||ab)?` <span style="font-size:10px;color:var(--text3)">${p?'✅'+p+' ':''} ${ab?'❌'+ab:''}</span>`:'';
             return `<div style="display:flex;align-items:center;gap:6px">
               <span style="font-size:11px;color:var(--text2);flex:1">📅 ${label}${meDot}${sum}</span>
-              <button onclick="event.stopPropagation();evattmOpen(${e.id})" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer">👥</button>
+              <button onclick="event.stopPropagation();" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer">👥</button>
             </div>`;
           }).join('')+
         '</div>';
       })()}
         </div>
         <button onclick="openAttM(${set.id})" style="flex-shrink:0;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:14px;cursor:pointer">👥</button>
-        <button onclick="attmOpen(${set.id})" style="flex-shrink:0;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:14px;cursor:pointer">👥</button>
+        <button onclick="fpmOpen(${set.id})" style="flex-shrink:0;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:14px;cursor:pointer" title="Feuille présentielle">👥</button>
         <button onclick="openEditPanel('set',${set.id})" style="flex-shrink:0;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:12px;color:var(--text2);cursor:pointer;font-family:inherit">✏️ Modifier</button>
       </div>
       ${songsHtml?`<div class="set-songs">${songsHtml}</div>`:''}
@@ -1592,164 +1576,103 @@ function closeEditPanelDirect(){
 
 
 
-// ===== EVENT ATTENDANCE MOBILE =====
-let _evattmId = null;
-const _evattmColors = {
-  'Cordes':['#e67e22','rgba(230,126,34,.15)'],'Cuivres':['#e74c3c','rgba(231,76,60,.15)'],
-  'Bois':['#27ae60','rgba(39,174,96,.15)'],'Claviers':['#2980b9','rgba(41,128,185,.15)'],
-  'Percussions':['#8e44ad','rgba(142,68,173,.15)'],'Voix':['#f39c12','rgba(243,156,18,.15)'],
-};
-const _evattmIcons = {present:'✅',maybe:'❓',absent:'❌',unknown:'⬜'};
 
-function evattmOpen(eventId){
-  _evattmId = parseInt(eventId);
-  const e = DB.events.find(x=>x.id===_evattmId); if(!e) return;
-  const setName = e.set_id ? DB.sets.find(s=>s.id===e.set_id)?.name : null;
-  document.getElementById('evattm-title').textContent = setName||'Répétition';
-  const d = new Date(e.date+'T12:00:00');
-  document.getElementById('evattm-date').textContent =
-    d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})+(e.time?' · '+e.time.slice(0,5):'');
-  evattmRender();
-  document.getElementById('evattm-wrap').classList.add('on');
+
+
+// ===== FEUILLE PRÉSENTIELLE MOBILE =====
+let _fpmSetId=null,_fpmEId=null,_fpmCh={};
+const _fpmC={'Cordes':['#e67e22','rgba(230,126,34,.15)'],'Cuivres':['#e74c3c','rgba(231,76,60,.15)'],'Bois':['#27ae60','rgba(39,174,96,.15)'],'Claviers':['#2980b9','rgba(41,128,185,.15)'],'Percussions':['#8e44ad','rgba(142,68,173,.15)'],'Voix':['#f39c12','rgba(243,156,18,.15)']};
+
+function fpmOpen(sid){
+  _fpmSetId=sid;
+  const set=DB.sets.find(s=>s.id===sid); if(!set) return;
+  const today=new Date().toISOString().slice(0,10);
+  const evts=DB.events.filter(e=>e.set_id===sid&&e.type!=='prestation').sort((a,b)=>a.date.localeCompare(b.date));
+  const shown=[...evts.filter(e=>e.date>=today).slice(0,8),...evts.filter(e=>e.date<today).slice(-2).reverse()];
+  document.getElementById('fpm-title').textContent=set.name;
+  document.getElementById('fpm-sub').textContent='Feuille présentielle';
+  document.getElementById('fpm-sum').innerHTML='';
+  document.getElementById('fpm-back-btn').style.display='none';
+  document.getElementById('fpm-save-btn').style.display='none';
+  document.getElementById('fpm-body').innerHTML=shown.length?shown.map(e=>{
+    const d=new Date(e.date+'T12:00:00');
+    const lbl=d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    const time=e.time?' · '+e.time.slice(0,5):'';
+    const isPast=e.date<today;
+    const atts=DB.event_attendance.filter(a=>parseInt(a.event_id)===e.id);
+    const p=atts.filter(a=>a.status==='present').length,q=atts.filter(a=>a.status==='maybe').length,ab=atts.filter(a=>a.status==='absent').length;
+    return `<div class="fp-row-m" onclick="fpmOpenDate(${e.id})">
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:600;color:${isPast?'var(--text3)':'var(--text)'}">${isPast?'↩ ':'📅 '}${lbl}${time}</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px">${(p||q||ab)?`${p?'✅'+p+' ':''}${q?'❓'+q+' ':''}${ab?'❌'+ab:''}`:'<i>Aucune réponse</i>'}</div>
+      </div><span style="color:var(--text3);font-size:20px">›</span>
+    </div>`;
+  }).join(''):'<div style="padding:24px;text-align:center;color:var(--text3);font-style:italic">Aucune date planifiée.</div>';
+  document.getElementById('fpm-wrap').style.display='flex';
 }
 
-function evattmRender(){
-  const rows = DB.event_attendance.filter(a=>a.event_id===_evattmId);
-  const p=rows.filter(r=>r.status==='present').length;
-  const q=rows.filter(r=>r.status==='maybe').length;
-  const ab=rows.filter(r=>r.status==='absent').length;
-  document.getElementById('evattm-sum').innerHTML =
+function fpmShowDates(){
+  _fpmEId=null; _fpmCh={};
+  fpmOpen(_fpmSetId);
+}
+
+function fpmOpenDate(eid){
+  _fpmEId=parseInt(eid); _fpmCh={};
+  const e=DB.events.find(x=>x.id===_fpmEId); if(!e) return;
+  const set=e.set_id?DB.sets.find(s=>s.id===e.set_id):null;
+  const d=new Date(e.date+'T12:00:00');
+  document.getElementById('fpm-title').textContent=set?.name||'Répétition';
+  document.getElementById('fpm-sub').textContent=d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+(e.time?' · '+e.time.slice(0,5):'');
+  document.getElementById('fpm-st').textContent='';
+  document.getElementById('fpm-back-btn').style.display='block';
+  document.getElementById('fpm-save-btn').style.display='block';
+  fpmRM();
+}
+
+function fpmRM(){
+  const atts=DB.event_attendance.filter(a=>parseInt(a.event_id)===_fpmEId);
+  const p=atts.filter(a=>a.status==='present').length,q=atts.filter(a=>a.status==='maybe').length,ab=atts.filter(a=>a.status==='absent').length;
+  document.getElementById('fpm-sum').innerHTML=
     (p?`<span style="font-size:11px;padding:2px 7px;border-radius:8px;background:var(--surface2)">✅ ${p}</span>`:'')+
     (q?`<span style="font-size:11px;padding:2px 7px;border-radius:8px;background:var(--surface2)">❓ ${q}</span>`:'')+
     (ab?`<span style="font-size:11px;padding:2px 7px;border-radius:8px;background:var(--surface2)">❌ ${ab}</span>`:'');
-  const myId = parseInt(_currentUserId||0);
-  document.getElementById('evattm-list').innerHTML = DB.members.map(m=>{
-    const att = rows.find(r=>parseInt(r.member_id)===parseInt(m.id));
-    const st  = att?.status||'unknown';
-    const isMe = parseInt(m.id)===myId;
-    const [col,bg] = _evattmColors[m.family]||['#888','rgba(136,136,136,.12)'];
-    const av = m.avatar||(m.prenom?m.prenom[0].toUpperCase():'?');
-    return `<div class="evattm-row${isMe?' me':''}">
-      <div class="evattm-av" style="background:${bg};color:${col}">${av}</div>
-      <span class="evattm-nm">${esc(m.prenom||'')} ${esc(m.nom||'')}</span>
-      ${isMe
-        ? `<div class="evattm-bts">
-            <button class="evattm-bt p${st==='present'?' sel p':''}" onclick="evattmSet('present')">✅</button>
-            <button class="evattm-bt q${st==='maybe'  ?' sel q':''}" onclick="evattmSet('maybe')">❓</button>
-            <button class="evattm-bt a${st==='absent' ?' sel a':''}" onclick="evattmSet('absent')">❌</button>
-           </div>`
-        : `<span style="font-size:18px;opacity:${st==='unknown'?.2:.9}">${_evattmIcons[st]}</span>`}
+  const myId=parseInt(_currentUserId||0);
+  const icons={present:'✅',maybe:'❓',absent:'❌',unknown:'⬜'};
+  document.getElementById('fpm-body').innerHTML=DB.members.map(m=>{
+    const att=atts.find(r=>parseInt(r.member_id)===parseInt(m.id));
+    const saved=att?.status||'unknown';
+    const st=_fpmCh[m.id]!==undefined?_fpmCh[m.id]:saved;
+    const isMe=parseInt(m.id)===myId;
+    const [col,bg]=_fpmC[m.family]||['#888','rgba(136,136,136,.12)'];
+    const av=m.avatar||(m.prenom?m.prenom[0].toUpperCase():'?');
+    return `<div class="fp-mrow-m${isMe?' me':''}">
+      <div class="fp-av-m" style="background:${bg};color:${col}">${av}</div>
+      <span class="fp-nm-m">${esc(m.prenom||'')} ${esc(m.nom||'')}</span>
+      ${isMe?`<div style="display:flex;gap:5px">
+        <button class="fp-bt-m${st==='present'?' on p':''}" onclick="fpmMk(${m.id},'present')">✅</button>
+        <button class="fp-bt-m${st==='maybe'  ?' on q':''}" onclick="fpmMk(${m.id},'maybe')">❓</button>
+        <button class="fp-bt-m${st==='absent' ?' on a':''}" onclick="fpmMk(${m.id},'absent')">❌</button>
+      </div>`:`<span style="font-size:18px;opacity:${st==='unknown'?.2:.9}">${icons[st]}</span>`}
     </div>`;
   }).join('');
 }
 
-async function evattmSet(status){
-  const myId = parseInt(_currentUserId);
-  if(!myId||!_evattmId) return;
-  const ex = DB.event_attendance.find(a=>parseInt(a.event_id)===_evattmId && parseInt(a.member_id)===myId);
+function fpmMk(id,st){_fpmCh[id]=st;fpmRM();}
+
+async function fpmSave(){
+  const stEl=document.getElementById('fpm-st');
+  stEl.style.color='var(--text3)';stEl.textContent='Enregistrement…';
   try{
-    if(ex) await sb.from('event_attendance').update({status}).eq('id',ex.id);
-    else   await sb.from('event_attendance').insert({event_id:_evattmId, member_id:parseInt(myId), status});
-    await loadAll(); evattmRender();
-  }catch(err){ console.error(err); }
-}
-
-function evattmClose(){ document.getElementById('evattm-wrap').classList.remove('on'); }
-
-// ===== SQM QUICK MODAL MOBILE =====
-let _sqmMId   = null;
-let _sqmMRows = [];
-// Double-tap detection
-let _sqmLastTap = {};
-function handleSetTap(setId, e){
-  const now = Date.now();
-  if(_sqmLastTap[setId] && now - _sqmLastTap[setId] < 350){
-    e.stopPropagation();
-    openSqmM(setId);
-    _sqmLastTap[setId] = 0;
-  } else {
-    _sqmLastTap[setId] = now;
-  }
-}
-
-function openSqmM(setId){
-  _sqmMId = setId;
-  const set = DB.sets.find(s=>s.id===setId); if(!set) return;
-  _sqmMRows = DB.set_songs.filter(ss=>ss.set_id===setId)
-    .sort((a,b)=>(b.priority||0)-(a.priority||0)||(a.position||0)-(b.position||0))
-    .map(ss=>Object.assign({},ss));
-  document.getElementById('sqm-sheet-title').textContent = set.name;
-  document.getElementById('sqm-status-m').textContent = '';
-  renderSqmM();
-  document.getElementById('sqm-overlay-m').classList.add('open');
-}
-
-function renderSqmM(){
-  const prioColors = ['var(--text3)','var(--amber)','var(--red)'];
-  document.getElementById('sqm-sheet-body').innerHTML = _sqmMRows.map((ss,i)=>{
-    const s = DB.songs.find(x=>x.id===ss.song_id); if(!s) return '';
-    const prio = ss.priority||0;
-    return `<div style="padding:12px 18px 12px;border-bottom:1px solid var(--border);background:${i%2===0?'var(--surface)':'var(--surface2)'};border-left:4px solid ${prioColors[prio]}">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">
-        <span style="font-size:11px;color:var(--text3);min-width:20px;text-align:right;font-weight:700">${i+1}</span>
-        <span style="font-size:14px;font-weight:700;color:var(--text);flex:1">${esc(s.name)}</span>
-        <span style="width:9px;height:9px;border-radius:50%;background:${prioColors[prio]};flex-shrink:0"></span>
-      </div>
-      <div style="display:grid;grid-template-columns:60px 56px 1fr;gap:8px;padding-left:28px;margin-bottom:8px;align-items:end">
-        <div>
-          <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:2px">Tonalité</div>
-          <input type="text" maxlength="5" placeholder="${esc(s.key||'—')}" value="${esc(ss.local_key||'')}"
-            oninput="_sqmMRows[${i}].local_key=this.value||null"
-            style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 7px;font-size:14px;color:var(--text);font-family:inherit;outline:none;box-sizing:border-box">
-        </div>
-        <div>
-          <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:2px">BPM</div>
-          <input type="number" min="0" max="999" placeholder="${s.bpm||'—'}" value="${ss.local_bpm||''}"
-            oninput="_sqmMRows[${i}].local_bpm=this.value?parseInt(this.value):null"
-            style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 7px;font-size:14px;color:var(--text);font-family:inherit;outline:none;box-sizing:border-box;-moz-appearance:textfield;appearance:textfield">
-        </div>
-        <div>
-          <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:2px">Structure</div>
-          <input type="text" placeholder="ex : A/A/B/A" value="${esc(ss.local_struct||'')}"
-            oninput="_sqmMRows[${i}].local_struct=this.value||null"
-            style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 7px;font-size:14px;color:var(--text);font-family:inherit;outline:none;box-sizing:border-box">
-        </div>
-      </div>
-      <div style="padding-left:28px">
-        <input type="text" placeholder="⚠ Note pour ce set…" value="${esc(ss.set_notes||'')}"
-          oninput="_sqmMRows[${i}].set_notes=this.value||null"
-          style="width:100%;background:rgba(185,106,40,.06);border:1px dashed rgba(185,106,40,.4);border-radius:6px;font-size:13px;color:var(--text2);font-family:inherit;outline:none;padding:7px 10px;box-sizing:border-box">
-      </div>
-    </div>`;
-  }).join('');
-}
-
-async function saveSqmM(){
-  const st = document.getElementById('sqm-status-m');
-  st.style.color='var(--text3)'; st.textContent='Enregistrement…';
-  try{
-    for(const ss of _sqmMRows){
-      await sb.from('set_songs').update({
-        set_notes:   ss.set_notes   ||null,
-        local_key:   ss.local_key   ||null,
-        local_bpm:   ss.local_bpm   ||null,
-        local_struct:ss.local_struct||null,
-      }).eq('set_id',_sqmMId).eq('song_id',ss.song_id);
+    for(const [mid,status] of Object.entries(_fpmCh)){
+      const ex=DB.event_attendance.find(a=>parseInt(a.event_id)===_fpmEId&&parseInt(a.member_id)===parseInt(mid));
+      if(ex) await sb.from('event_attendance').update({status}).eq('id',ex.id);
+      else   await sb.from('event_attendance').insert({event_id:_fpmEId,member_id:parseInt(mid),status});
     }
-    await loadAll(); renderSets();
-    st.style.color='var(--green)'; st.textContent='✓ Enregistré !';
-    setTimeout(()=>{ st.textContent=''; },2500);
-    _sqmMRows = DB.set_songs.filter(ss=>ss.set_id===_sqmMId)
-      .sort((a,b)=>(b.priority||0)-(a.priority||0)||(a.position||0)-(b.position||0))
-      .map(ss=>Object.assign({},ss));
-    renderSqmM();
-  }catch(e){
-    st.style.color='var(--red)'; st.textContent='Erreur : '+e.message;
-  }
+    await loadAll();_fpmCh={};fpmRM();renderSets();
+    stEl.style.color='var(--green)';stEl.textContent='✓ Enregistré !';
+    setTimeout(()=>{stEl.textContent='';},2500);
+  }catch(err){stEl.style.color='var(--red)';stEl.textContent='Erreur: '+err.message;}
 }
-
-function closeSqmM(e){ if(e.target===document.getElementById('sqm-overlay-m')) closeSqmMDirect(); }
-function closeSqmMDirect(){ document.getElementById('sqm-overlay-m').classList.remove('open'); }
 
 // ===== WELCOME MOBILE =====
 const _famColM = {
@@ -1845,24 +1768,6 @@ init();
 
 <!-- EDIT PANEL répétition / prestation -->
 
-<!-- SQM QUICK MODAL MOBILE -->
-<div id="sqm-overlay-m" onclick="closeSqmM(event)">
-  <div id="sqm-sheet-m">
-    <div id="sqm-sheet-header">
-      <div id="sqm-sheet-title">Répétition</div>
-      <button onclick="closeSqmMDirect()" style="background:var(--nav-bg);color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">×</button>
-    </div>
-    <div style="padding:6px 18px 2px;font-size:11px;color:var(--text3);flex-shrink:0;border-bottom:1px solid var(--border)">
-      Attributs pour <strong>cette répétition uniquement</strong>
-    </div>
-    <div id="sqm-sheet-body"></div>
-    <div id="sqm-sheet-footer">
-      <span id="sqm-status-m" style="flex:1;font-size:12px;color:var(--green)"></span>
-      <button onclick="closeSqmMDirect()" style="padding:10px 18px;border-radius:10px;border:1px solid var(--border);background:none;color:var(--text);font-size:13px;font-family:inherit;cursor:pointer">Fermer</button>
-      <button onclick="saveSqmM()" style="padding:10px 18px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer">💾 Enregistrer</button>
-    </div>
-  </div>
-</div>
 
 <div id="edit-panel" onclick="closeEditPanel(event)">
   <div class="edit-sheet" id="edit-sheet">
@@ -1977,21 +1882,25 @@ init();
     </div>
   </div>
 </div>
-
-
-
-
-<div id="evattm-wrap" onclick="if(event.target===this)evattmClose()">
-  <div id="evattm-sheet">
-    <div style="padding:14px 18px 10px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;flex-shrink:0">
-      <div style="flex:1">
-        <div id="evattm-title" style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--accent)">Présences</div>
-        <div id="evattm-date" style="font-size:11px;color:var(--text3)"></div>
       </div>
-      <div id="evattm-sum" style="display:flex;gap:5px;align-items:center"></div>
-      <button onclick="evattmClose()" style="background:var(--nav-bg);color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:18px;cursor:pointer;flex-shrink:0">×</button>
+
+<!-- FEUILLE PRÉSENTIELLE MOBILE -->
+<div id="fpm-wrap" style="position:fixed;inset:0;z-index:9999;display:none;background:rgba(0,0,0,.55);align-items:flex-end" onclick="if(event.target===this){document.getElementById('fpm-wrap').style.display='none'}">
+  <div id="fpm-sheet" style="background:var(--bg);border-radius:20px 20px 0 0;width:100%;max-height:88vh;display:flex;flex-direction:column;animation:slideUp .22s ease">
+    <div style="padding:14px 16px 10px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;flex-shrink:0">
+      <div style="flex:1">
+        <div id="fpm-title" style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--accent)">Feuille présentielle</div>
+        <div id="fpm-sub" style="font-size:11px;color:var(--text3)"></div>
+      </div>
+      <div id="fpm-sum" style="display:flex;gap:5px"></div>
+      <button onclick="document.getElementById('fpm-wrap').style.display='none'" style="background:var(--nav-bg);color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:18px;cursor:pointer;flex-shrink:0">×</button>
     </div>
-    <div id="evattm-list" style="overflow-y:auto;flex:1"></div>
+    <div id="fpm-body" style="overflow-y:auto;flex:1"></div>
+    <div id="fpm-footer" style="padding:10px 16px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-shrink:0;background:var(--bg)">
+      <span id="fpm-st" style="flex:1;font-size:12px;color:var(--green)"></span>
+      <button id="fpm-back-btn" onclick="fpmShowDates()" style="display:none;padding:9px 16px;border-radius:10px;border:1px solid var(--border);background:none;color:var(--text);font-size:13px;font-family:inherit;cursor:pointer">← Retour</button>
+      <button id="fpm-save-btn" onclick="fpmSave()" style="display:none;padding:9px 16px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer">💾 Enregistrer</button>
+    </div>
   </div>
 </div>
 </body>
