@@ -446,6 +446,15 @@ textarea.edit-field-input{min-height:60px;resize:none}
   display:block;
 }
 .edit-status{padding:6px 18px;font-size:12px;color:var(--green);min-height:24px}
+
+/* SQM quick modal mobile */
+#sqm-overlay-m{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:4000;display:none;align-items:flex-end}
+#sqm-overlay-m.open{display:flex}
+#sqm-sheet-m{background:var(--bg);border-radius:20px 20px 0 0;width:100%;max-height:92vh;display:flex;flex-direction:column;animation:slideUp .25s ease}
+#sqm-sheet-header{padding:14px 18px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}
+#sqm-sheet-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--accent);flex:1}
+#sqm-sheet-body{overflow-y:auto;flex:1;padding:0 0 20px}
+#sqm-sheet-footer{padding:10px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-shrink:0;background:var(--bg)}
 </style>
 </head>
 <body>
@@ -757,7 +766,7 @@ function renderSets(){
       ${ss.set_notes?`<div class="set-note">⚠ ${esc(ss.set_notes)}</div>`:''}
       ${s.notes?`<div class="set-note" style="color:var(--text3);font-style:italic">📝 ${esc(s.notes)}</div>`:''}`;
     }).join('');
-    return `<div class="set-card">
+    return `<div class="set-card" onclick="handleSetTap(${set.id},event)">
       <div class="set-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
         <div style="flex:1">
           <div class="set-name">${esc(set.name)}</div>
@@ -1352,7 +1361,7 @@ function openEditPanel(type, id){
     document.getElementById('edit-panel-title').textContent = '✏️ Répétition';
     _editSongs = DB.set_songs.filter(ss=>ss.set_id===id)
       .sort((a,b)=>a.position-b.position)
-      .map(ss=>({song_id:ss.song_id, position:ss.position, notes:ss.set_notes||'', priority:ss.priority||0}));
+      .map(ss=>({song_id:ss.song_id, position:ss.position, notes:ss.set_notes||'', priority:ss.priority||0, local_key:ss.local_key||'', local_bpm:ss.local_bpm||'', local_struct:ss.local_struct||''}));
     buildEditBody({name:set.name, notes:set.notes||''});
   } else {
     const c = DB.concerts.find(x=>x.id===id);
@@ -1382,14 +1391,44 @@ function buildEditBody({name, notes}){
   const songsHtml = _editSongs.map((ss,i)=>{
     const s = DB.songs.find(x=>x.id===ss.song_id);
     if(!s) return '';
-    return `<div class="edit-song-row" id="esr-${i}">
-      <span class="edit-song-num">${i+1}</span>
-      <span class="edit-song-name">${esc(s.name)}${s.key?` <span style="font-size:10px;color:var(--accent2)">${esc(s.key)}</span>`:''}</span>
-      <button class="edit-song-del" onclick="editRemoveSong(${i})" title="Supprimer">🗑</button>
-    </div>
-    <div class="edit-song-note-wrap">
-      <input class="edit-song-note-input" type="text" placeholder="Note pour ce morceau…"
-        value="${esc(ss.notes)}" oninput="editUpdateNote(${i},this.value)">
+    return `<div style="border-bottom:1px solid var(--border);padding:10px 18px 12px;background:${i%2===0?'var(--surface)':'var(--surface2)'}">
+      <!-- Titre -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="font-size:11px;color:var(--text3);min-width:18px;text-align:right">${i+1}</span>
+        <span style="font-size:13px;font-weight:700;color:var(--text);flex:1">${esc(s.name)}</span>
+        <button class="edit-song-del" onclick="editRemoveSong(${i})" title="Supprimer">🗑</button>
+      </div>
+      <!-- Tonalité / BPM / Structure -->
+      <div style="display:grid;grid-template-columns:64px 58px 1fr;gap:8px;padding-left:26px;margin-bottom:8px;align-items:end">
+        <div>
+          <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:2px">Tonalité</div>
+          <input type="text" maxlength="5" placeholder="${esc(s.key||'—')}"
+            value="${esc(ss.local_key||'')}"
+            oninput="_editSongs[${i}].local_key=this.value||''"
+            style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 7px;font-size:13px;color:var(--text);font-family:inherit;outline:none;box-sizing:border-box">
+        </div>
+        <div>
+          <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:2px">BPM</div>
+          <input type="number" min="0" max="999" placeholder="${s.bpm||'—'}"
+            value="${ss.local_bpm||''}"
+            oninput="_editSongs[${i}].local_bpm=this.value?parseInt(this.value):''"
+            style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 7px;font-size:13px;color:var(--text);font-family:inherit;outline:none;box-sizing:border-box;-moz-appearance:textfield;appearance:textfield">
+        </div>
+        <div>
+          <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:2px">Structure</div>
+          <input type="text" placeholder="ex : A/A/B/A"
+            value="${esc(ss.local_struct||'')}"
+            oninput="_editSongs[${i}].local_struct=this.value||''"
+            style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 7px;font-size:13px;color:var(--text);font-family:inherit;outline:none;box-sizing:border-box">
+        </div>
+      </div>
+      <!-- Note -->
+      <div style="padding-left:26px">
+        <input type="text" placeholder="⚠ Note pour ce set…"
+          value="${esc(ss.notes)}"
+          oninput="editUpdateNote(${i},this.value)"
+          style="width:100%;background:rgba(185,106,40,.06);border:1px dashed rgba(185,106,40,.4);border-radius:6px;font-size:12px;color:var(--text2);font-family:inherit;outline:none;padding:6px 10px;box-sizing:border-box">
+      </div>
     </div>`;
   }).join('');
 
@@ -1458,9 +1497,7 @@ async function saveEdit(){
   const name  = (document.getElementById('edit-name-input')?.value||'').trim();
   const notes = (document.getElementById('edit-notes-input')?.value||'').trim();
 
-  // Collect final notes
-  const noteInputs = document.querySelectorAll('.edit-song-note-input');
-  noteInputs.forEach((inp,i)=>{ if(_editSongs[i]) _editSongs[i].notes = inp.value; });
+  // Les valeurs sont déjà dans _editSongs via oninput
 
   if(!name){ statusEl.style.color='var(--red)'; statusEl.textContent='Le nom est obligatoire.'; return; }
   statusEl.textContent='Enregistrement…'; statusEl.style.color='var(--text3)';
@@ -1472,7 +1509,8 @@ async function saveEdit(){
       if(_editSongs.length){
         const rows = _editSongs.map((ss,i)=>({
           set_id:_editId, song_id:ss.song_id, position:i+1,
-          set_notes:ss.notes||null, priority:ss.priority||0
+          set_notes:ss.notes||null, priority:ss.priority||0,
+          local_key:ss.local_key||null, local_bpm:ss.local_bpm||null, local_struct:ss.local_struct||null
         }));
         await sb.from('set_songs').insert(rows);
       }
@@ -1503,6 +1541,102 @@ function closeEditPanel(e){
 function closeEditPanelDirect(){
   document.getElementById('edit-panel').classList.remove('open');
 }
+
+
+// ===== SQM QUICK MODAL MOBILE =====
+let _sqmMId   = null;
+let _sqmMRows = [];
+// Double-tap detection
+let _sqmLastTap = {};
+function handleSetTap(setId, e){
+  const now = Date.now();
+  if(_sqmLastTap[setId] && now - _sqmLastTap[setId] < 350){
+    e.stopPropagation();
+    openSqmM(setId);
+    _sqmLastTap[setId] = 0;
+  } else {
+    _sqmLastTap[setId] = now;
+  }
+}
+
+function openSqmM(setId){
+  _sqmMId = setId;
+  const set = DB.sets.find(s=>s.id===setId); if(!set) return;
+  _sqmMRows = DB.set_songs.filter(ss=>ss.set_id===setId)
+    .sort((a,b)=>(b.priority||0)-(a.priority||0)||(a.position||0)-(b.position||0))
+    .map(ss=>Object.assign({},ss));
+  document.getElementById('sqm-sheet-title').textContent = set.name;
+  document.getElementById('sqm-status-m').textContent = '';
+  renderSqmM();
+  document.getElementById('sqm-overlay-m').classList.add('open');
+}
+
+function renderSqmM(){
+  const prioColors = ['var(--text3)','var(--amber)','var(--red)'];
+  document.getElementById('sqm-sheet-body').innerHTML = _sqmMRows.map((ss,i)=>{
+    const s = DB.songs.find(x=>x.id===ss.song_id); if(!s) return '';
+    const prio = ss.priority||0;
+    return `<div style="padding:12px 18px 12px;border-bottom:1px solid var(--border);background:${i%2===0?'var(--surface)':'var(--surface2)'};border-left:4px solid ${prioColors[prio]}">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">
+        <span style="font-size:11px;color:var(--text3);min-width:20px;text-align:right;font-weight:700">${i+1}</span>
+        <span style="font-size:14px;font-weight:700;color:var(--text);flex:1">${esc(s.name)}</span>
+        <span style="width:9px;height:9px;border-radius:50%;background:${prioColors[prio]};flex-shrink:0"></span>
+      </div>
+      <div style="display:grid;grid-template-columns:60px 56px 1fr;gap:8px;padding-left:28px;margin-bottom:8px;align-items:end">
+        <div>
+          <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:2px">Tonalité</div>
+          <input type="text" maxlength="5" placeholder="${esc(s.key||'—')}" value="${esc(ss.local_key||'')}"
+            oninput="_sqmMRows[${i}].local_key=this.value||null"
+            style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 7px;font-size:14px;color:var(--text);font-family:inherit;outline:none;box-sizing:border-box">
+        </div>
+        <div>
+          <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:2px">BPM</div>
+          <input type="number" min="0" max="999" placeholder="${s.bpm||'—'}" value="${ss.local_bpm||''}"
+            oninput="_sqmMRows[${i}].local_bpm=this.value?parseInt(this.value):null"
+            style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 7px;font-size:14px;color:var(--text);font-family:inherit;outline:none;box-sizing:border-box;-moz-appearance:textfield;appearance:textfield">
+        </div>
+        <div>
+          <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:2px">Structure</div>
+          <input type="text" placeholder="ex : A/A/B/A" value="${esc(ss.local_struct||'')}"
+            oninput="_sqmMRows[${i}].local_struct=this.value||null"
+            style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 7px;font-size:14px;color:var(--text);font-family:inherit;outline:none;box-sizing:border-box">
+        </div>
+      </div>
+      <div style="padding-left:28px">
+        <input type="text" placeholder="⚠ Note pour ce set…" value="${esc(ss.set_notes||'')}"
+          oninput="_sqmMRows[${i}].set_notes=this.value||null"
+          style="width:100%;background:rgba(185,106,40,.06);border:1px dashed rgba(185,106,40,.4);border-radius:6px;font-size:13px;color:var(--text2);font-family:inherit;outline:none;padding:7px 10px;box-sizing:border-box">
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function saveSqmM(){
+  const st = document.getElementById('sqm-status-m');
+  st.style.color='var(--text3)'; st.textContent='Enregistrement…';
+  try{
+    for(const ss of _sqmMRows){
+      await sb.from('set_songs').update({
+        set_notes:   ss.set_notes   ||null,
+        local_key:   ss.local_key   ||null,
+        local_bpm:   ss.local_bpm   ||null,
+        local_struct:ss.local_struct||null,
+      }).eq('set_id',_sqmMId).eq('song_id',ss.song_id);
+    }
+    await loadAll(); renderSets();
+    st.style.color='var(--green)'; st.textContent='✓ Enregistré !';
+    setTimeout(()=>{ st.textContent=''; },2500);
+    _sqmMRows = DB.set_songs.filter(ss=>ss.set_id===_sqmMId)
+      .sort((a,b)=>(b.priority||0)-(a.priority||0)||(a.position||0)-(b.position||0))
+      .map(ss=>Object.assign({},ss));
+    renderSqmM();
+  }catch(e){
+    st.style.color='var(--red)'; st.textContent='Erreur : '+e.message;
+  }
+}
+
+function closeSqmM(e){ if(e.target===document.getElementById('sqm-overlay-m')) closeSqmMDirect(); }
+function closeSqmMDirect(){ document.getElementById('sqm-overlay-m').classList.remove('open'); }
 
 // ===== WELCOME MOBILE =====
 const _famColM = {
@@ -1597,6 +1731,26 @@ init();
 <!-- PANNEAU PRÉFÉRENCES -->
 
 <!-- EDIT PANEL répétition / prestation -->
+
+<!-- SQM QUICK MODAL MOBILE -->
+<div id="sqm-overlay-m" onclick="closeSqmM(event)">
+  <div id="sqm-sheet-m">
+    <div id="sqm-sheet-header">
+      <div id="sqm-sheet-title">Répétition</div>
+      <button onclick="closeSqmMDirect()" style="background:var(--nav-bg);color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">×</button>
+    </div>
+    <div style="padding:6px 18px 2px;font-size:11px;color:var(--text3);flex-shrink:0;border-bottom:1px solid var(--border)">
+      Attributs pour <strong>cette répétition uniquement</strong>
+    </div>
+    <div id="sqm-sheet-body"></div>
+    <div id="sqm-sheet-footer">
+      <span id="sqm-status-m" style="flex:1;font-size:12px;color:var(--green)"></span>
+      <button onclick="closeSqmMDirect()" style="padding:10px 18px;border-radius:10px;border:1px solid var(--border);background:none;color:var(--text);font-size:13px;font-family:inherit;cursor:pointer">Fermer</button>
+      <button onclick="saveSqmM()" style="padding:10px 18px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer">💾 Enregistrer</button>
+    </div>
+  </div>
+</div>
+
 <div id="edit-panel" onclick="closeEditPanel(event)">
   <div class="edit-sheet" id="edit-sheet">
     <div class="edit-sheet-header">
