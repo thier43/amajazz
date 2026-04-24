@@ -338,6 +338,24 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
 
 
 
+
+/* ===== SET QUICK EDIT MODAL ===== */
+#set-quick-modal .modal-body { padding: 16px 20px 20px; }
+.sqm-song-row {
+  display:flex;flex-direction:column;gap:6px;
+  padding:10px 0;border-bottom:1px solid var(--border);
+}
+.sqm-song-row:last-child { border-bottom:none; }
+.sqm-song-header { display:flex;align-items:center;gap:8px; }
+.sqm-num { font-size:11px;color:var(--text3);min-width:20px;text-align:right;flex-shrink:0; }
+.sqm-name { font-size:13px;font-weight:600;color:var(--text);flex:1; }
+.sqm-fields { display:grid;grid-template-columns:72px 72px 1fr;gap:6px;padding-left:28px; }
+.sqm-field-label { font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);margin-bottom:2px; }
+.sqm-note-input {
+  width:100%;background:transparent;border:none;border-bottom:1px solid var(--border2);
+  font-size:11px;color:var(--text2);font-family:inherit;outline:none;padding:2px 0;box-sizing:border-box;
+}
+.sqm-note-input::placeholder { color:var(--text3); }
 </style>
 </head>
 <body>
@@ -940,6 +958,103 @@ function changeUser(){
 }
 
 
+
+
+// ===== SET QUICK EDIT MODAL =====
+let _sqmId   = null;
+let _sqmRows = []; // copies de set_songs
+
+function openQuickSetModal(setId){
+  _sqmId = setId;
+  const set = DB.sets.find(s=>s.id===setId);
+  if(!set) return;
+
+  _sqmRows = DB.set_songs
+    .filter(ss=>ss.set_id===setId)
+    .sort((a,b)=>(b.priority||0)-(a.priority||0)||(a.position||0)-(b.position||0))
+    .map(ss=>Object.assign({},ss));
+
+  document.getElementById('sqm-title').textContent = set.name;
+  document.getElementById('sqm-status').textContent = '';
+  renderQuickSetModal();
+
+  document.getElementById('set-quick-modal-overlay').classList.add('active');
+}
+
+function renderQuickSetModal(){
+  document.getElementById('sqm-list').innerHTML = _sqmRows.map((ss,i)=>{
+    const s = DB.songs.find(x=>x.id===ss.song_id);
+    if(!s) return '';
+    const prio = ss.priority||0;
+    const prioColors = ['var(--text3)','var(--amber)','var(--red)'];
+    return `<div class="sqm-song-row">
+      <div class="sqm-song-header">
+        <span class="sqm-num">${i+1}</span>
+        <span class="sqm-name">${esc(s.name)}</span>
+        <span style="width:8px;height:8px;border-radius:50%;background:${prioColors[prio]};flex-shrink:0" title="${['Normal','Attention','Prioritaire'][prio]}"></span>
+        ${s.key?`<span class="tag tag-key" style="font-size:10px">${esc(ss.local_key||s.key)}</span>`:''}
+        ${(ss.local_bpm||s.bpm)?`<span class="tag" style="font-size:10px;background:rgba(124,159,232,.15);color:var(--accent2)">${ss.local_bpm||s.bpm} BPM</span>`:''}
+        ${ss.local_struct?`<span class="tag" style="font-size:10px;background:rgba(93,200,160,.12);color:var(--green);font-family:monospace">${esc(ss.local_struct)}</span>`:''}
+      </div>
+      <div class="sqm-fields">
+        <div>
+          <div class="sqm-field-label">Tonalité</div>
+          <input class="form-input" style="font-size:11px;padding:4px 8px;width:100%" type="text"
+            placeholder="${esc(s.key||'—')}" value="${esc(ss.local_key||'')}"
+            oninput="_sqmRows[${i}].local_key=this.value||null">
+        </div>
+        <div>
+          <div class="sqm-field-label">BPM</div>
+          <input class="form-input" style="font-size:11px;padding:4px 8px;width:100%" type="number" min="0" max="400"
+            placeholder="${s.bpm||'—'}" value="${ss.local_bpm||''}"
+            oninput="_sqmRows[${i}].local_bpm=this.value?parseInt(this.value):null">
+        </div>
+        <div>
+          <div class="sqm-field-label">Structure</div>
+          <input class="form-input" style="font-size:11px;padding:4px 8px;width:100%" type="text"
+            placeholder="ex : A/A/B/A" value="${esc(ss.local_struct||'')}"
+            oninput="_sqmRows[${i}].local_struct=this.value||null">
+        </div>
+      </div>
+      <div style="padding-left:28px">
+        <input class="sqm-note-input" type="text"
+          placeholder="⚠ Note spécifique pour ce set…"
+          value="${esc(ss.set_notes||'')}"
+          oninput="_sqmRows[${i}].set_notes=this.value||null">
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function saveQuickSetModal(){
+  const st = document.getElementById('sqm-status');
+  st.style.color='var(--text3)'; st.textContent='Enregistrement…';
+  try{
+    for(const ss of _sqmRows){
+      await sb.from('set_songs').update({
+        set_notes:   ss.set_notes   ||null,
+        local_key:   ss.local_key   ||null,
+        local_bpm:   ss.local_bpm   ||null,
+        local_struct:ss.local_struct||null,
+      }).eq('set_id',_sqmId).eq('song_id',ss.song_id);
+    }
+    await loadAll(); renderSets();
+    st.style.color='var(--green)'; st.textContent='✓ Enregistré !';
+    setTimeout(()=>{ st.textContent=''; },2500);
+    // Rafraîchir les données locales
+    _sqmRows = DB.set_songs
+      .filter(ss=>ss.set_id===_sqmId)
+      .sort((a,b)=>(b.priority||0)-(a.priority||0)||(a.position||0)-(b.position||0))
+      .map(ss=>Object.assign({},ss));
+    renderQuickSetModal();
+  }catch(e){
+    st.style.color='var(--red)'; st.textContent='Erreur : '+e.message;
+  }
+}
+
+function closeQuickSetModal(){
+  document.getElementById('set-quick-modal-overlay').classList.remove('active');
+}
 
 async function init(){
   try {
