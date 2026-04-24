@@ -5,7 +5,7 @@
       <div style="overflow-y:auto;flex:1"><div id="fp-members-list"></div></div>
       <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-shrink:0">
         <span id="fp-save-st" style="flex:1;font-size:12px;color:var(--green)"></span>
-        <button class="btn btn-outline" onclick="showModal('fp-dates')">← Retour</button>
+        <button class="btn btn-outline" onclick="document.querySelectorAll('.modal').forEach(m=>m.style.display='none');document.getElementById('modal-fp-dates').style.display='flex';document.getElementById('modal-fp-dates').style.flexDirection='column';">← Retour</button>
         <button class="btn btn-primary" onclick="fpSave()">💾 Enregistrer</button>
       </div>
     </div>
@@ -859,7 +859,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
     <div class="modal-body" id="detail-body"></div>
 
     <!-- FP étape 1 : dates -->
-    <div class="modal" id="modal-fp-dates" data-flex="1" style="max-width:500px;width:94vw;max-height:80vh;display:flex;flex-direction:column;overflow:hidden">
+    <div id="modal-fp-dates" data-flex="1" style="background:var(--surface);border:1px solid var(--border2);border-radius:16px;box-shadow:var(--shadow);max-width:500px;width:94vw;max-height:80vh;display:flex;flex-direction:column;overflow:hidden">
       <div class="modal-header">
         <h3 class="modal-title" id="fp-dates-title">Feuille présentielle</h3>
         <button class="modal-close" onclick="closeModal()">×</button>
@@ -868,11 +868,11 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
     </div>
 
     <!-- FP étape 2 : musiciens -->
-    <div class="modal" id="modal-fp-members" data-flex="1" style="max-width:460px;width:94vw;max-height:82vh;display:flex;flex-direction:column;overflow:hidden">
+    <div id="modal-fp-members" data-flex="1" style="background:var(--surface);border:1px solid var(--border2);border-radius:16px;box-shadow:var(--shadow);max-width:460px;width:94vw;max-height:82vh;display:flex;flex-direction:column;overflow:hidden">
       <div class="modal-header" style="flex-direction:column;align-items:stretch;gap:4px">
         <div style="display:flex;align-items:center;justify-content:space-between">
           <h3 class="modal-title" id="fp-members-title">Présences</h3>
-          <button class="modal-close" onclick="showModal('fp-dates')">×</button>
+          <button class="modal-close" onclick="document.querySelectorAll('.modal').forEach(m=>m.style.display='none');document.getElementById('modal-fp-dates').style.display='flex';document.getElementById('modal-fp-dates').style.flexDirection='column';">×</button>
         </div>
         <div id="fp-members-subtitle" style="font-size:12px;color:var(--text3)"></div>
         <div id="fp-members-sum" style="display:flex;gap:5px;margin-top:4px"></div>
@@ -880,7 +880,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
       <div style="overflow-y:auto;flex:1"><div id="fp-members-list"></div></div>
       <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-shrink:0">
         <span id="fp-save-st" style="flex:1;font-size:12px;color:var(--green)"></span>
-        <button class="btn btn-outline" onclick="showModal('fp-dates')">← Retour</button>
+        <button class="btn btn-outline" onclick="document.querySelectorAll('.modal').forEach(m=>m.style.display='none');document.getElementById('modal-fp-dates').style.display='flex';document.getElementById('modal-fp-dates').style.flexDirection='column';">← Retour</button>
         <button class="btn btn-primary" onclick="fpSave()">💾 Enregistrer</button>
       </div>
     </div>
@@ -1003,7 +1003,8 @@ const _fpC={'Cordes':['#e67e22','rgba(230,126,34,.15)'],'Cuivres':['#e74c3c','rg
 
 function fpOpen(setId){
   _fpSetId=setId;
-  const set=DB.sets.find(s=>s.id===setId); if(!set) return;
+  const set=DB.sets.find(s=>s.id===setId); if(!set){ console.error('set not found',setId); return; }
+  console.log('fpOpen called for set:', set.name);
   const today=new Date().toISOString().slice(0,10);
   const evts=DB.events.filter(e=>e.set_id===setId&&e.type!=='prestation').sort((a,b)=>a.date.localeCompare(b.date));
   const shown=[...evts.filter(e=>e.date>=today).slice(0,8),...evts.filter(e=>e.date<today).slice(-2).reverse()];
@@ -1027,7 +1028,11 @@ function fpOpen(setId){
       </div>`;
     }).join('')
     :'<div style="padding:24px;text-align:center;color:var(--text3);font-style:italic">Aucune date planifiée.</div>';
-  showModal('fp-dates');
+  document.querySelectorAll('.modal').forEach(m=>m.style.display='none');
+  const elDates = document.getElementById('modal-fp-dates');
+  console.log('fp-dates el:', elDates);
+  if(elDates){ elDates.style.display='flex'; elDates.style.flexDirection='column'; }
+  document.getElementById('modal-overlay').classList.add('open');
 }
 
 function fpOpenDate(eventId){
@@ -1041,7 +1046,10 @@ function fpOpenDate(eventId){
   document.getElementById('fp-members-subtitle').textContent=dateStr+time;
   document.getElementById('fp-save-st').textContent='';
   fpRenderMembers();
-  showModal('fp-members');
+  document.querySelectorAll('.modal').forEach(m=>m.style.display='none');
+  const elMembers = document.getElementById('modal-fp-members');
+  if(elMembers){ elMembers.style.display='flex'; elMembers.style.flexDirection='column'; }
+  document.getElementById('modal-overlay').classList.add('open');
 }
 
 function fpRenderMembers(){
