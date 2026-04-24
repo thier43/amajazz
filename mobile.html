@@ -457,22 +457,22 @@ textarea.edit-field-input{min-height:60px;resize:none}
 #sqm-sheet-footer{padding:10px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-shrink:0;background:var(--bg)}
 
 
-/* ATTENDANCE MOBILE */
-#attm-wrap{position:fixed;inset:0;z-index:9999;display:none;background:rgba(0,0,0,.6);align-items:flex-end}
-#attm-wrap.on{display:flex}
-#attm-sheet{background:var(--bg);border-radius:20px 20px 0 0;width:100%;max-height:88vh;display:flex;flex-direction:column;animation:slideUp .22s ease}
-.attm-row{display:flex;align-items:center;gap:10px;padding:11px 18px;border-bottom:1px solid var(--border)}
-.attm-row:last-child{border-bottom:none}
-.attm-row.me{background:rgba(185,106,40,.08);border-left:3px solid var(--accent)}
-.attm-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
-.attm-nm{flex:1;font-size:13px;color:var(--text)}
-.attm-bts{display:flex;gap:5px}
-.attm-bt{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:16px;opacity:.4;transition:all .12s}
-.attm-bt:active{transform:scale(.9)}
-.attm-bt.sel{opacity:1;border-color:transparent}
-.attm-bt.sel.p{background:rgba(39,174,96,.25)}
-.attm-bt.sel.q{background:rgba(243,156,18,.25)}
-.attm-bt.sel.a{background:rgba(231,76,60,.25)}
+
+/* EVENT ATTENDANCE MOBILE */
+#evattm-wrap{position:fixed;inset:0;z-index:9999;display:none;background:rgba(0,0,0,.6);align-items:flex-end}
+#evattm-wrap.on{display:flex}
+#evattm-sheet{background:var(--bg);border-radius:20px 20px 0 0;width:100%;max-height:88vh;display:flex;flex-direction:column;animation:slideUp .22s ease}
+.evattm-row{display:flex;align-items:center;gap:10px;padding:11px 18px;border-bottom:1px solid var(--border)}
+.evattm-row:last-child{border-bottom:none}
+.evattm-row.me{background:rgba(185,106,40,.08);border-left:3px solid var(--accent)}
+.evattm-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.evattm-nm{flex:1;font-size:13px;color:var(--text)}
+.evattm-bts{display:flex;gap:5px}
+.evattm-bt{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:16px;opacity:.35;transition:all .12s}
+.evattm-bt.sel{opacity:1;border-color:transparent}
+.evattm-bt.sel.p{background:rgba(39,174,96,.25)}
+.evattm-bt.sel.q{background:rgba(243,156,18,.25)}
+.evattm-bt.sel.a{background:rgba(231,76,60,.25)}
 </style>
 </head>
 <body>
@@ -620,7 +620,7 @@ const SUPABASE_URL  = 'https://hirykfprszvqkeerpbtt.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpcnlrZnByc3p2cWtlZXJwYnR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MTYwMDQsImV4cCI6MjA5MTM5MjAwNH0.W5U0MsMq21j9Dsvw3MD3AyLnrOfyxz1dd31ziXe0wH8';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-let DB = { songs:[], members:[], sets:[], set_songs:[], concerts:[], concert_songs:[], events:[], preferences:[], set_attendance:[] };
+let DB = { songs:[], members:[], sets:[], set_songs:[], concerts:[], concert_songs:[], events:[], preferences:[], event_attendance:[] };
 let calYear = new Date().getFullYear();
 let calMonth = new Date().getMonth();
 
@@ -637,7 +637,7 @@ const familyColors = {
 
 // ── LOAD ──
 async function loadAll(){
-  const [songs,members,sets,set_songs,concerts,concert_songs,events,preferences,set_attendance] = await Promise.all([
+  const [songs,members,sets,set_songs,concerts,concert_songs,events,preferences,event_attendance] = await Promise.all([
     sb.from('songs').select('*').order('name'),
     sb.from('members').select('*').order('prenom'),
     sb.from('sets').select('*').order('name'),
@@ -646,7 +646,7 @@ async function loadAll(){
     sb.from('concert_songs').select('*').order('position'),
     sb.from('events').select('*').order('date'),
     sb.from('preferences').select('*'),
-    sb.from('set_attendance').select('*'),
+    sb.from('event_attendance').select('*'),
   ]);
   DB.songs          = songs.data          || [];
   DB.members        = members.data        || [];
@@ -656,7 +656,7 @@ async function loadAll(){
   DB.concert_songs  = concert_songs.data  || [];
   DB.events         = events.data         || [];
   DB.preferences    = preferences.data    || [];
-  DB.set_attendance = set_attendance.data || [];
+  DB.event_attendance = event_attendance.data || [];
 }
 
 // ── NAVIGATION ──
@@ -790,18 +790,29 @@ function renderSets(){
       <div class="set-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
         <div style="flex:1">
           <div class="set-name">${esc(set.name)}</div>
-          <div class="set-meta" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-        <span>${songs.length} morceau${songs.length>1?'x':''} ${dur?'· ~'+dur+' min':''}</span>
-        ${(()=>{
-          const aa=DB.set_attendance.filter(a=>a.set_id===set.id);
-          const me=aa.find(a=>String(a.member_id)===String(_currentUserId));
-          const p=aa.filter(a=>a.status==='present').length;
-          const q=aa.filter(a=>a.status==='maybe').length;
-          const ab=aa.filter(a=>a.status==='absent').length;
-          return (me&&me.status!=='unknown'?`<span style="font-size:11px;padding:1px 6px;border-radius:8px;background:rgba(185,106,40,.15);color:var(--accent)">${{present:'✅',maybe:'❓',absent:'❌'}[me.status]}</span>`:'')+
-            ((p||q||ab)?`<span style="font-size:11px;color:var(--text3)">${p?'✅'+p+' ':''} ${q?'❓'+q+' ':''} ${ab?'❌'+ab:''}</span>`:'');
-        })()}
-      </div>
+          <div class="set-meta">${songs.length} morceau${songs.length>1?'x':''} ${dur?'· ~'+dur+' min':''}</div>
+      ${(()=>{
+        const today = new Date().toISOString().slice(0,10);
+        const next2 = DB.events.filter(e=>e.set_id===set.id && e.date>=today)
+          .sort((a,b)=>a.date.localeCompare(b.date)).slice(0,2);
+        if(!next2.length) return '';
+        return '<div style="margin-top:6px;display:flex;flex-direction:column;gap:4px">'+
+          next2.map(e=>{
+            const d=new Date(e.date+'T12:00:00');
+            const label=d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})+(e.time?' '+e.time.slice(0,5):'');
+            const atts=DB.event_attendance.filter(a=>a.event_id===e.id);
+            const p=atts.filter(a=>a.status==='present').length;
+            const ab=atts.filter(a=>a.status==='absent').length;
+            const me=atts.find(a=>String(a.member_id)===String(_currentUserId));
+            const meDot=me&&me.status!=='unknown'?` <span>${{present:'✅',maybe:'❓',absent:'❌'}[me.status]}</span>`:'';
+            const sum=(p||ab)?` <span style="font-size:10px;color:var(--text3)">${p?'✅'+p+' ':''} ${ab?'❌'+ab:''}</span>`:'';
+            return `<div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:11px;color:var(--text2);flex:1">📅 ${label}${meDot}${sum}</span>
+              <button onclick="event.stopPropagation();evattmOpen(${e.id})" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer">👥</button>
+            </div>`;
+          }).join('')+
+        '</div>';
+      })()}
         </div>
         <button onclick="openAttM(${set.id})" style="flex-shrink:0;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:14px;cursor:pointer">👥</button>
         <button onclick="attmOpen(${set.id})" style="flex-shrink:0;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:14px;cursor:pointer">👥</button>
@@ -1579,69 +1590,71 @@ function closeEditPanelDirect(){
 
 
 
-// ===== ATTENDANCE MOBILE =====
-let _attmId = null;
-const _attmColors = {
+
+
+// ===== EVENT ATTENDANCE MOBILE =====
+let _evattmId = null;
+const _evattmColors = {
   'Cordes':['#e67e22','rgba(230,126,34,.15)'],'Cuivres':['#e74c3c','rgba(231,76,60,.15)'],
   'Bois':['#27ae60','rgba(39,174,96,.15)'],'Claviers':['#2980b9','rgba(41,128,185,.15)'],
   'Percussions':['#8e44ad','rgba(142,68,173,.15)'],'Voix':['#f39c12','rgba(243,156,18,.15)'],
 };
-const _attmIcons = {present:'✅',maybe:'❓',absent:'❌',unknown:'⬜'};
+const _evattmIcons = {present:'✅',maybe:'❓',absent:'❌',unknown:'⬜'};
 
-function attmOpen(setId){
-  _attmId = setId;
-  const set = DB.sets.find(s=>s.id===setId); if(!set) return;
-  document.getElementById('attm-title').textContent = set.name;
-  attmRender();
-  document.getElementById('attm-wrap').classList.add('on');
+function evattmOpen(eventId){
+  _evattmId = eventId;
+  const e = DB.events.find(x=>x.id===eventId); if(!e) return;
+  const setName = e.set_id ? DB.sets.find(s=>s.id===e.set_id)?.name : null;
+  document.getElementById('evattm-title').textContent = setName||'Répétition';
+  const d = new Date(e.date+'T12:00:00');
+  document.getElementById('evattm-date').textContent =
+    d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})+(e.time?' · '+e.time.slice(0,5):'');
+  evattmRender();
+  document.getElementById('evattm-wrap').classList.add('on');
 }
 
-function attmRender(){
-  const rows = DB.set_attendance.filter(a=>a.set_id===_attmId);
+function evattmRender(){
+  const rows = DB.event_attendance.filter(a=>a.event_id===_evattmId);
   const p=rows.filter(r=>r.status==='present').length;
   const q=rows.filter(r=>r.status==='maybe').length;
   const ab=rows.filter(r=>r.status==='absent').length;
-  document.getElementById('attm-sum').innerHTML =
+  document.getElementById('evattm-sum').innerHTML =
     (p?`<span style="font-size:11px;padding:2px 7px;border-radius:8px;background:var(--surface2)">✅ ${p}</span>`:'')+
     (q?`<span style="font-size:11px;padding:2px 7px;border-radius:8px;background:var(--surface2)">❓ ${q}</span>`:'')+
     (ab?`<span style="font-size:11px;padding:2px 7px;border-radius:8px;background:var(--surface2)">❌ ${ab}</span>`:'');
-
   const myId = String(_currentUserId||'');
-  document.getElementById('attm-list').innerHTML = DB.members.map(m=>{
+  document.getElementById('evattm-list').innerHTML = DB.members.map(m=>{
     const att = rows.find(r=>String(r.member_id)===String(m.id));
     const st  = att?.status||'unknown';
     const isMe = String(m.id)===myId;
-    const [col,bg] = _attmColors[m.family]||['#888','rgba(136,136,136,.12)'];
+    const [col,bg] = _evattmColors[m.family]||['#888','rgba(136,136,136,.12)'];
     const av = m.avatar||(m.prenom?m.prenom[0].toUpperCase():'?');
-    return `<div class="attm-row${isMe?' me':''}">
-      <div class="attm-av" style="background:${bg};color:${col}">${av}</div>
-      <span class="attm-nm">${esc(m.prenom||'')} ${esc(m.nom||'')}</span>
+    return `<div class="evattm-row${isMe?' me':''}">
+      <div class="evattm-av" style="background:${bg};color:${col}">${av}</div>
+      <span class="evattm-nm">${esc(m.prenom||'')} ${esc(m.nom||'')}</span>
       ${isMe
-        ? `<div class="attm-bts">
-            <button class="attm-bt p${st==='present'?' sel p':''}" onclick="attmSet('present')">✅</button>
-            <button class="attm-bt q${st==='maybe'  ?' sel q':''}" onclick="attmSet('maybe')">❓</button>
-            <button class="attm-bt a${st==='absent' ?' sel a':''}" onclick="attmSet('absent')">❌</button>
+        ? `<div class="evattm-bts">
+            <button class="evattm-bt p${st==='present'?' sel p':''}" onclick="evattmSet('present')">✅</button>
+            <button class="evattm-bt q${st==='maybe'  ?' sel q':''}" onclick="evattmSet('maybe')">❓</button>
+            <button class="evattm-bt a${st==='absent' ?' sel a':''}" onclick="evattmSet('absent')">❌</button>
            </div>`
-        : `<span style="font-size:18px;opacity:${st==='unknown'?.2:.9}">${_attmIcons[st]}</span>`
-      }
+        : `<span style="font-size:18px;opacity:${st==='unknown'?.2:.9}">${_evattmIcons[st]}</span>`}
     </div>`;
   }).join('');
 }
 
-async function attmSet(status){
+async function evattmSet(status){
   const myId = _currentUserId;
-  if(!myId||!_attmId) return;
-  const ex = DB.set_attendance.find(a=>a.set_id===_attmId && String(a.member_id)===String(myId));
+  if(!myId||!_evattmId) return;
+  const ex = DB.event_attendance.find(a=>a.event_id===_evattmId && String(a.member_id)===String(myId));
   try{
-    if(ex) await sb.from('set_attendance').update({status}).eq('id',ex.id);
-    else   await sb.from('set_attendance').insert({set_id:_attmId, member_id:myId, status});
-    await loadAll();
-    attmRender();
-    renderSets();
-  }catch(e){ console.error(e); }
+    if(ex) await sb.from('event_attendance').update({status}).eq('id',ex.id);
+    else   await sb.from('event_attendance').insert({event_id:_evattmId, member_id:myId, status});
+    await loadAll(); evattmRender();
+  }catch(err){ console.error(err); }
 }
 
-function attmClose(){ document.getElementById('attm-wrap').classList.remove('on'); }
+function evattmClose(){ document.getElementById('evattm-wrap').classList.remove('on'); }
 
 // ===== SQM QUICK MODAL MOBILE =====
 let _sqmMId   = null;
@@ -1967,14 +1980,18 @@ init();
 
 
 
-<div id="attm-wrap" onclick="if(event.target===this)attmClose()">
-  <div id="attm-sheet">
-    <div style="padding:14px 18px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0">
-      <span id="attm-title" style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--accent);flex:1">Présences</span>
-      <div id="attm-sum" style="display:flex;gap:5px"></div>
-      <button onclick="attmClose()" style="background:var(--nav-bg);color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:18px;cursor:pointer">×</button>
+
+<div id="evattm-wrap" onclick="if(event.target===this)evattmClose()">
+  <div id="evattm-sheet">
+    <div style="padding:14px 18px 10px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;flex-shrink:0">
+      <div style="flex:1">
+        <div id="evattm-title" style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--accent)">Présences</div>
+        <div id="evattm-date" style="font-size:11px;color:var(--text3)"></div>
+      </div>
+      <div id="evattm-sum" style="display:flex;gap:5px;align-items:center"></div>
+      <button onclick="evattmClose()" style="background:var(--nav-bg);color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:18px;cursor:pointer;flex-shrink:0">×</button>
     </div>
-    <div id="attm-list" style="overflow-y:auto;flex:1"></div>
+    <div id="evattm-list" style="overflow-y:auto;flex:1"></div>
   </div>
 </div>
 </body>
