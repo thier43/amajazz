@@ -1038,45 +1038,57 @@ function openQuickSetModal(setId){
 }
 
 function renderQuickSetModal(){
-  const prioColors = ['var(--text3)','var(--amber)','var(--red)'];
+  const prioColors  = ['#999','#e6a817','#e74c3c'];
+  const prioLabels  = ['Normal','Attention','Prioritaire'];
+  const prioLefts   = ['#ddd','#f0c040','#e74c3c'];
   document.getElementById('sqm-list').innerHTML = _sqmRows.map((ss,i)=>{
     const s = DB.songs.find(x=>x.id===ss.song_id);
     if(!s) return '';
     const prio = ss.priority||0;
-    return `<div class="sqm-row prio${prio}">
-      <!-- Ligne 1 : numéro + titre + pastille priorité -->
-      <div class="sqm-title-line">
-        <span class="sqm-num">${i+1}</span>
-        <span class="sqm-name">${esc(s.name)}</span>
-        <span class="sqm-prio-dot" style="background:${prioColors[prio]}" title="${['Normal','Attention','Prioritaire'][prio]}"></span>
+    const rowBg   = i%2===0 ? '#f8f5f1' : '#ede8e1';
+    const leftCol = prioLefts[prio];
+    const hasData = ss.local_key||ss.local_bpm||ss.local_struct||ss.set_notes;
+    return `<div style="
+        padding:12px 18px 10px;
+        border-left:4px solid ${leftCol};
+        border-bottom:1px solid #ddd;
+        background:${rowBg};
+      ">
+      <!-- Titre -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="font-size:12px;color:#888;min-width:22px;text-align:right;font-weight:700">${i+1}</span>
+        <span style="font-size:14px;font-weight:700;color:#2a2318;flex:1">${esc(s.name)}</span>
+        <span style="width:9px;height:9px;border-radius:50%;background:${prioColors[prio]};flex-shrink:0" title="${prioLabels[prio]}"></span>
+        ${s.key?`<span style="font-size:11px;padding:1px 6px;border-radius:10px;background:rgba(41,128,185,.12);color:#2980b9;font-weight:600">${esc(s.key)}</span>`:''}
+        ${s.bpm?`<span style="font-size:11px;padding:1px 6px;border-radius:10px;background:rgba(124,159,232,.12);color:#5b7ec9;font-weight:600">${s.bpm} BPM</span>`:''}
       </div>
-      <!-- Ligne 2 : Tonalité | BPM | Structure -->
-      <div class="sqm-fields-line">
-        <div class="sqm-fc">
-          <span class="sqm-fl">Tonalité</span>
-          <input class="sqm-fi" type="text" maxlength="5"
-            placeholder="${esc(s.key||'—')}" value="${esc(ss.local_key||'')}"
-            oninput="_sqmRows[${i}].local_key=this.value||null">
+      <!-- Champs -->
+      <div style="display:grid;grid-template-columns:64px 60px 1fr;gap:8px;padding-left:30px;margin-bottom:8px;align-items:end">
+        <div>
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#999;margin-bottom:3px">Tonalité</div>
+          <input type="text" maxlength="5" placeholder="${esc(s.key||'—')}" value="${esc(ss.local_key||'')}"
+            oninput="_sqmRows[${i}].local_key=this.value||null"
+            style="width:100%;background:#fff;border:1px solid #ccc;border-radius:6px;padding:5px 7px;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box">
         </div>
-        <div class="sqm-fc">
-          <span class="sqm-fl">BPM</span>
-          <input class="sqm-fi" type="number" min="0" max="999"
-            placeholder="${s.bpm||'—'}" value="${ss.local_bpm||''}"
+        <div>
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#999;margin-bottom:3px">BPM</div>
+          <input type="number" min="0" max="999" placeholder="${s.bpm||'—'}" value="${ss.local_bpm||''}"
             oninput="_sqmRows[${i}].local_bpm=this.value?parseInt(this.value):null"
-            style="appearance:textfield;-moz-appearance:textfield">
+            style="width:100%;background:#fff;border:1px solid #ccc;border-radius:6px;padding:5px 7px;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box;-moz-appearance:textfield;appearance:textfield">
         </div>
-        <div class="sqm-fc">
-          <span class="sqm-fl">Structure</span>
-          <input class="sqm-fi" type="text"
-            placeholder="ex : A/A/B/A" value="${esc(ss.local_struct||'')}"
-            oninput="_sqmRows[${i}].local_struct=this.value||null">
+        <div>
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#999;margin-bottom:3px">Structure</div>
+          <input type="text" placeholder="ex : A/A/B/A" value="${esc(ss.local_struct||'')}"
+            oninput="_sqmRows[${i}].local_struct=this.value||null"
+            style="width:100%;background:#fff;border:1px solid #ccc;border-radius:6px;padding:5px 7px;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box">
         </div>
       </div>
-      <!-- Ligne 3 : Note -->
-      <input class="sqm-ni" type="text"
-        placeholder="⚠ Note pour ce set…"
-        value="${esc(ss.set_notes||'')}"
-        oninput="_sqmRows[${i}].set_notes=this.value||null">
+      <!-- Note -->
+      <div style="padding-left:30px">
+        <input type="text" placeholder="⚠ Note pour ce set…" value="${esc(ss.set_notes||'')}"
+          oninput="_sqmRows[${i}].set_notes=this.value||null"
+          style="width:100%;background:rgba(185,106,40,.06);border:1px dashed rgba(185,106,40,.35);border-radius:6px;font-size:12px;color:#666;font-family:inherit;outline:none;padding:6px 10px;box-sizing:border-box">
+      </div>
     </div>`;
   }).join('');
 }
