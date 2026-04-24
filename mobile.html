@@ -781,24 +781,7 @@ function renderSets(){
         <div style="flex:1">
           <div class="set-name">${esc(set.name)}</div>
           <div class="set-meta">${songs.length} morceau${songs.length>1?'x':''} ${dur?'· ~'+dur+' min':''}</div>
-      ${(()=>{
-        const today = new Date().toISOString().slice(0,10);
-        const next2 = DB.events.filter(e=>e.set_id===set.id && e.date>=today)
-          .sort((a,b)=>a.date.localeCompare(b.date)).slice(0,2);
-        if(!next2.length) return '';
-        return '<div style="margin-top:6px;display:flex;flex-direction:column;gap:4px">'+
-          next2.map(e=>{
-            const d=new Date(e.date+'T12:00:00');
-            const label=d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})+(e.time?' '+e.time.slice(0,5):'');
-            return `<div style="display:flex;align-items:center;gap:6px">
-              <span style="font-size:11px;color:var(--text2);flex:1">📅 ${label}${meDot}${sum}</span>
-              <button onclick="event.stopPropagation();" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer">👥</button>
-            </div>`;
-          }).join('')+
-        '</div>';
-      })()}
         </div>
-        <button onclick="openAttM(${set.id})" style="flex-shrink:0;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:14px;cursor:pointer">👥</button>
         <button onclick="fpmOpen(${set.id})" style="flex-shrink:0;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:14px;cursor:pointer" title="Feuille présentielle">👥</button>
         <button onclick="openEditPanel('set',${set.id})" style="flex-shrink:0;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:12px;color:var(--text2);cursor:pointer;font-family:inherit">✏️ Modifier</button>
       </div>
