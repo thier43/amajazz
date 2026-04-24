@@ -2742,4 +2742,23 @@ init();
 
 
 
+
+    <!-- SET QUICK EDIT MODAL -->
+    <div class="modal-overlay" id="set-quick-modal-overlay" onclick="closeQuickSetModal()">
+      <div class="modal" id="set-quick-modal" onclick="event.stopPropagation()" style="max-width:600px;width:94vw;max-height:85vh;display:flex;flex-direction:column">
+        <div class="modal-header">
+          <h3 class="modal-title" id="sqm-title">Répétition</h3>
+          <button class="modal-close" onclick="closeQuickSetModal()">×</button>
+        </div>
+        <div style="overflow-y:auto;flex:1;padding:0 20px 16px">
+          <div style="font-size:11px;color:var(--text3);padding:10px 0 6px">Modifiez les attributs pour <strong>cette répétition uniquement</strong>.</div>
+          <div id="sqm-list"></div>
+        </div>
+        <div style="border-top:1px solid var(--border);padding:12px 20px;display:flex;gap:8px;justify-content:flex-end;flex-shrink:0">
+          <span id="sqm-status" style="flex:1;font-size:12px;color:var(--green);align-self:center"></span>
+          <button class="btn btn-outline" onclick="closeQuickSetModal()">Fermer</button>
+          <button class="btn btn-primary" onclick="saveQuickSetModal()">💾 Enregistrer</button>
+        </div>
+      </div>
+    </div>
 </body>
