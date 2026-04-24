@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- AMAJAZZ v2026-04-24 09:37 -->
+<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -339,152 +339,21 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
 
 
 
-
-/* ===== SET QUICK EDIT MODAL ===== */
-#set-quick-modal { max-width:680px !important; width:94vw !important; }
-.sqm-row {
-  padding:14px 18px 12px;
-  border-left:5px solid transparent;
-  border-bottom:1px solid var(--border);
-}
-.sqm-row:last-child { border-bottom:none; }
-.sqm-row:nth-child(odd)  { background:#f7f3ee; border-left-color:#d4c9bc; }
-.sqm-row:nth-child(even) { background:#ede8e1; border-left-color:#c5b9aa; }
-body.theme-dark .sqm-row:nth-child(odd)  { background:rgba(255,255,255,.04); border-left-color:rgba(255,255,255,.1); }
-body.theme-dark .sqm-row:nth-child(even) { background:rgba(255,255,255,.08); border-left-color:rgba(255,255,255,.15); }
-.sqm-row.prio1 { border-left-color:var(--amber) !important; }
-.sqm-row.prio2 { border-left-color:var(--red)   !important; }
-/* ligne titre */
-.sqm-title-line { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
-.sqm-num  { font-size:12px; color:var(--text3); min-width:24px; text-align:right; flex-shrink:0; font-weight:700; }
-.sqm-name { font-size:14px; font-weight:700; color:var(--text); flex:1; }
-.sqm-prio-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
-/* ligne champs */
-.sqm-fields-line {
-  display:grid;
-  grid-template-columns:64px 60px 1fr;
-  gap:10px;
-  padding-left:34px;
-  align-items:end;
-  margin-bottom:10px;
-}
-.sqm-fc { display:flex; flex-direction:column; gap:3px; }
-.sqm-fl { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:var(--text3); }
-.sqm-fi {
-  background:var(--bg);
-  border:1px solid var(--border);
-  border-radius:6px;
-  padding:5px 8px;
-  font-size:13px;
-  color:var(--text);
-  font-family:inherit;
-  outline:none;
-  width:100%;
-  box-sizing:border-box;
-  transition:border-color .15s;
-}
-.sqm-fi:focus { border-color:var(--accent); box-shadow:0 0 0 2px rgba(185,106,40,.15); }
-/* ligne note */
-.sqm-note-line { padding-left:34px; }
-.sqm-ni {
-  width:100%;
-  background:rgba(185,106,40,.06);
-  border:1px dashed rgba(185,106,40,.3);
-  border-radius:6px;
-  font-size:12px;
-  color:var(--text2);
-  font-family:inherit;
-  outline:none;
-  padding:6px 10px;
-  box-sizing:border-box;
-  transition:border-color .15s, background .15s;
-}
-.sqm-ni:focus { border-color:var(--accent); background:rgba(185,106,40,.1); }
-.sqm-ni::placeholder { color:var(--text3); font-style:italic; }
-
-
-
-
-
-
 /* ===== FEUILLE PRÉSENTIELLE ===== */
-#fp-wrap{
-  position:fixed;top:0;left:0;width:100%;height:100%;
-  z-index:99999;
-  background:rgba(0,0,0,.65);
-  display:none;
-  align-items:center;justify-content:center;
-  padding:20px;box-sizing:border-box;
-}
-#fp-box{
-  background:var(--surface);
-  border:1px solid var(--border2);
-  border-radius:14px;
-  width:500px;max-width:96vw;max-height:86vh;
-  display:flex;flex-direction:column;
-  box-shadow:0 12px 48px rgba(0,0,0,.55);
-  overflow:hidden;
-}
-#fp-head{
-  padding:16px 20px 14px;
-  border-bottom:1px solid var(--border);
-  background:var(--surface2);
-  flex-shrink:0;
-}
-#fp-head-title{
-  font-family:'Bebas Neue',sans-serif;
-  font-size:22px;letter-spacing:1px;color:var(--accent);
-}
-#fp-head-sub{font-size:12px;color:var(--text3);margin-top:2px}
-#fp-select-wrap{
-  padding:12px 20px;
-  border-bottom:1px solid var(--border);
-  flex-shrink:0;
-  background:var(--bg);
-}
-#fp-select{
-  width:100%;padding:9px 12px;
-  background:var(--surface2);
-  border:1px solid var(--border);
-  border-radius:8px;
-  font-size:13px;font-weight:600;
-  color:var(--text);font-family:inherit;
-  outline:none;cursor:pointer;
-}
-#fp-select:focus{border-color:var(--accent)}
-#fp-members-list{overflow-y:auto;flex:1}
-.fp-mrow{
-  display:flex;align-items:center;gap:10px;
-  padding:11px 20px;
-  border-bottom:1px solid var(--border);
-}
+.fp-date-row{padding:12px 20px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .15s}
+.fp-date-row:last-child{border-bottom:none}
+.fp-date-row:hover{background:var(--surface2)}
+.fp-mrow{display:flex;align-items:center;gap:10px;padding:10px 20px;border-bottom:1px solid var(--border)}
 .fp-mrow:last-child{border-bottom:none}
 .fp-mrow.me{background:rgba(185,106,40,.08);border-left:3px solid var(--accent)}
-.fp-mav{
-  width:32px;height:32px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-size:12px;font-weight:700;flex-shrink:0;
-}
-.fp-mnm{flex:1;font-size:13px;font-weight:500;color:var(--text)}
-.fp-mbts{display:flex;gap:5px}
-.fp-mbt{
-  width:32px;height:32px;border-radius:7px;
-  border:1px solid var(--border);background:var(--surface2);
-  cursor:pointer;font-size:15px;opacity:.3;
-  transition:all .12s;
-}
-.fp-mbt:hover{opacity:.75;transform:scale(1.08)}
-.fp-mbt.on{opacity:1;border-color:transparent}
-.fp-mbt.on.p{background:rgba(39,174,96,.25);border-color:#27ae60}
-.fp-mbt.on.q{background:rgba(243,156,18,.25);border-color:#f39c12}
-.fp-mbt.on.a{background:rgba(231,76,60,.25);border-color:#e74c3c}
-#fp-foot{
-  padding:12px 20px;
-  border-top:1px solid var(--border);
-  display:flex;gap:8px;align-items:center;
-  background:var(--surface);flex-shrink:0;
-}
-#fp-status{flex:1;font-size:12px;color:var(--green)}
+.fp-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.fp-nm{flex:1;font-size:13px;font-weight:500;color:var(--text)}
+.fp-bt{width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:14px;opacity:.3;transition:all .12s}
+.fp-bt:hover{opacity:.7}
+.fp-bt.on{opacity:1;border-color:transparent}
+.fp-bt.on.p{background:rgba(39,174,96,.25);border-color:#27ae60}
+.fp-bt.on.q{background:rgba(243,156,18,.25);border-color:#f39c12}
+.fp-bt.on.a{background:rgba(231,76,60,.25);border-color:#e74c3c}
 </style>
 </head>
 <body>
@@ -674,7 +543,38 @@ body.theme-dark .sqm-row:nth-child(even) { background:rgba(255,255,255,.08); bor
         </div>
         <div id="synth-table"></div>
       </div>
+  
+    <!-- FP : étape 1 — liste des dates -->
+    <div class="modal" id="modal-fp-dates" style="max-width:500px;width:94vw;max-height:80vh;display:flex;flex-direction:column;overflow:hidden">
+      <div class="modal-header">
+        <h3 class="modal-title" id="fp-dates-title">Feuille présentielle</h3>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      <div style="overflow-y:auto;flex:1">
+        <div id="fp-dates-list"></div>
+      </div>
     </div>
+
+    <!-- FP : étape 2 — musiciens -->
+    <div class="modal" id="modal-fp-members" style="max-width:460px;width:94vw;max-height:82vh;display:flex;flex-direction:column;overflow:hidden">
+      <div class="modal-header" style="flex-direction:column;align-items:stretch;gap:4px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <h3 class="modal-title" id="fp-members-title">Présences</h3>
+          <button class="modal-close" onclick="showModal('fp-dates')">×</button>
+        </div>
+        <div id="fp-members-subtitle" style="font-size:12px;color:var(--text3)"></div>
+        <div id="fp-members-sum" style="display:flex;gap:5px;margin-top:4px"></div>
+      </div>
+      <div style="overflow-y:auto;flex:1">
+        <div id="fp-members-list"></div>
+      </div>
+      <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-shrink:0;background:var(--surface)">
+        <span id="fp-save-st" style="flex:1;font-size:12px;color:var(--green)"></span>
+        <button class="btn btn-outline" onclick="showModal('fp-dates')">← Retour</button>
+        <button class="btn btn-primary" onclick="fpSave()">💾 Enregistrer</button>
+      </div>
+    </div>
+  </div>
 
   </main>
 </div>
@@ -1089,316 +989,130 @@ function changeUser(){
 
 
 
-// ===== SET QUICK EDIT MODAL =====
-let _sqmId   = null;
-let _sqmRows = []; // copies de set_songs
-
-function openQuickSetModal(setId){
-  _sqmId = setId;
-  const set = DB.sets.find(s=>s.id===setId);
-  if(!set) return;
-
-  _sqmRows = DB.set_songs
-    .filter(ss=>ss.set_id===setId)
-    .sort((a,b)=>(b.priority||0)-(a.priority||0)||(a.position||0)-(b.position||0))
-    .map(ss=>Object.assign({},ss));
-
-  document.getElementById('sqm-title').textContent = set.name;
-  document.getElementById('sqm-status').textContent = '';
-  renderQuickSetModal();
-
-  document.getElementById('set-quick-modal-overlay').classList.add('open');
-}
-
-function renderQuickSetModal(){
-  const prioColors = ['var(--text3)','var(--amber)','var(--red)'];
-  document.getElementById('sqm-list').innerHTML = _sqmRows.map((ss,i)=>{
-    const s = DB.songs.find(x=>x.id===ss.song_id);
-    if(!s) return '';
-    const prio = ss.priority||0;
-    return `<div style="
-  padding:14px 18px 12px;
-  border-left:5px solid ${['#999','var(--amber)','var(--red)'][prio]};
-  border-bottom:1px solid var(--border);
-  background:${i%2===0?'#f7f3ee':'#ede8e1'};
-">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-        <span style="font-size:12px;color:var(--text3);min-width:24px;text-align:right;flex-shrink:0;font-weight:700;">${i+1}</span>
-        <span style="font-size:14px;font-weight:700;color:var(--text);flex:1;">${esc(s.name)}</span>
-        <span style="width:10px;height:10px;border-radius:50%;flex-shrink:0;" style="background:${prioColors[prio]}" title="${['Normal','Attention','Prioritaire'][prio]}"></span>
-      </div>
-      <div style="display:grid;grid-template-columns:64px 60px 1fr;gap:10px;padding-left:34px;align-items:end;margin-bottom:10px;">
-        <div style="display:flex;flex-direction:column;gap:3px;">
-          <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);">Tonalité</span>
-          <input style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:13px;color:var(--text);font-family:inherit;outline:none;width:100%;box-sizing:border-box;" type="text" maxlength="5"
-            placeholder="${esc(s.key||'—')}" value="${esc(ss.local_key||'')}"
-            oninput="_sqmRows[${i}].local_key=this.value||null">
-        </div>
-        <div style="display:flex;flex-direction:column;gap:3px;">
-          <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);">BPM</span>
-          <input style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:13px;color:var(--text);font-family:inherit;outline:none;width:100%;box-sizing:border-box;" type="number" min="0" max="999"
-            placeholder="${s.bpm||'—'}" value="${ss.local_bpm||''}"
-            oninput="_sqmRows[${i}].local_bpm=this.value?parseInt(this.value):null"
-            style="-moz-appearance:textfield;appearance:textfield">
-        </div>
-        <div style="display:flex;flex-direction:column;gap:3px;">
-          <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);">Structure</span>
-          <input style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:13px;color:var(--text);font-family:inherit;outline:none;width:100%;box-sizing:border-box;" type="text"
-            placeholder="ex : A/A/B/A" value="${esc(ss.local_struct||'')}"
-            oninput="_sqmRows[${i}].local_struct=this.value||null">
-        </div>
-      </div>
-      <div style="padding-left:34px;">
-        <input style="width:100%;background:rgba(185,106,40,.06);border:1px dashed rgba(185,106,40,.4);border-radius:6px;font-size:12px;color:var(--text2);font-family:inherit;outline:none;padding:6px 10px;box-sizing:border-box;" type="text"
-          placeholder="⚠ Note spécifique pour ce set…"
-          value="${esc(ss.set_notes||'')}"
-          oninput="_sqmRows[${i}].set_notes=this.value||null">
-      </div>
-    </div>`;
-  }).join('');
-}
-
-async function saveQuickSetModal(){
-  const st = document.getElementById('sqm-status');
-  st.style.color='var(--text3)'; st.textContent='Enregistrement…';
-  try{
-    for(const ss of _sqmRows){
-      await sb.from('set_songs').update({
-        set_notes:   ss.set_notes   ||null,
-        local_key:   ss.local_key   ||null,
-        local_bpm:   ss.local_bpm   ||null,
-        local_struct:ss.local_struct||null,
-      }).eq('set_id',_sqmId).eq('song_id',ss.song_id);
-    }
-    await loadAll(); renderSets();
-    st.style.color='var(--green)'; st.textContent='✓ Enregistré !';
-    setTimeout(()=>{ st.textContent=''; },2500);
-    // Rafraîchir les données locales
-    _sqmRows = DB.set_songs
-      .filter(ss=>ss.set_id===_sqmId)
-      .sort((a,b)=>(b.priority||0)-(a.priority||0)||(a.position||0)-(b.position||0))
-      .map(ss=>Object.assign({},ss));
-    renderQuickSetModal();
-  }catch(e){
-    st.style.color='var(--red)'; st.textContent='Erreur : '+e.message;
-  }
-}
-
-function closeQuickSetModal(){
-  document.getElementById('set-quick-modal-overlay').classList.remove('open');
-}
-
-
-
-
-
-
-
-
-
-
 // ===== FEUILLE PRÉSENTIELLE =====
-let _fpSetId   = null;
-let _fpEventId = null;
-let _fpChanges = {}; // member_id -> status (pending save)
-
-const _fpColors = {
-  'Cordes':['#e67e22','rgba(230,126,34,.15)'],
-  'Cuivres':['#e74c3c','rgba(231,76,60,.15)'],
-  'Bois':['#27ae60','rgba(39,174,96,.15)'],
-  'Claviers':['#2980b9','rgba(41,128,185,.15)'],
-  'Percussions':['#8e44ad','rgba(142,68,173,.15)'],
-  'Voix':['#f39c12','rgba(243,156,18,.15)'],
-};
-const _fpIcons = {present:'✅', maybe:'❓', absent:'❌', unknown:'⬜'};
-
-// ── Ouverture modale 1 : liste des dates ──────────────────────────────
-
-
-
-// ===== FEUILLE PRÉSENTIELLE =====
-const _fpCols = {
-  'Cordes':['#e67e22','rgba(230,126,34,.15)'],
-  'Cuivres':['#e74c3c','rgba(231,76,60,.15)'],
-  'Bois':['#27ae60','rgba(39,174,96,.15)'],
-  'Claviers':['#2980b9','rgba(41,128,185,.15)'],
-  'Percussions':['#8e44ad','rgba(142,68,173,.15)'],
-  'Voix':['#f39c12','rgba(243,156,18,.15)'],
-};
+let _fpSetId=null, _fpEventId=null, _fpChanges={};
+const _fpC={'Cordes':['#e67e22','rgba(230,126,34,.15)'],'Cuivres':['#e74c3c','rgba(231,76,60,.15)'],'Bois':['#27ae60','rgba(39,174,96,.15)'],'Claviers':['#2980b9','rgba(41,128,185,.15)'],'Percussions':['#8e44ad','rgba(142,68,173,.15)'],'Voix':['#f39c12','rgba(243,156,18,.15)']};
 
 function fpOpen(setId){
-  _fpSetId   = setId;
-  _fpEventId = null;
-  _fpChanges = {};
-  const set = DB.sets.find(s=>s.id===setId); if(!set) return;
-
-  // Remplir le menu déroulant
-  const today = new Date().toISOString().slice(0,10);
-  const events = DB.events
-    .filter(e=>e.set_id===setId && e.type!=='prestation')
-    .sort((a,b)=>a.date.localeCompare(b.date));
-  const future = events.filter(e=>e.date>=today).slice(0,8);
-  const past   = events.filter(e=>e.date<today).slice(-3).reverse();
-
-  const sel = document.getElementById('fp-select');
-  sel.innerHTML = '<option value="">— Choisissez une date —</option>';
-  if(future.length){
-    const og = document.createElement('optgroup');
-    og.label = 'À venir';
-    future.forEach(e=>{
-      const d = new Date(e.date+'T12:00:00');
-      const label = d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})
-        +(e.time?' · '+e.time.slice(0,5):'');
-      const o = document.createElement('option');
-      o.value = e.id; o.textContent = '📅 '+label;
-      og.appendChild(o);
-    });
-    sel.appendChild(og);
-  }
-  if(past.length){
-    const og2 = document.createElement('optgroup');
-    og2.label = 'Passées';
-    past.forEach(e=>{
-      const d = new Date(e.date+'T12:00:00');
-      const label = d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})
-        +(e.time?' · '+e.time.slice(0,5):'');
-      const o = document.createElement('option');
-      o.value = e.id; o.textContent = '↩ '+label;
-      og2.appendChild(o);
-    });
-    sel.appendChild(og2);
-  }
-
-  document.getElementById('fp-head-title').textContent = set.name;
-  document.getElementById('fp-head-sub').textContent = 'Feuille présentielle';
-  document.getElementById('fp-head-sum').innerHTML = '';
-  document.getElementById('fp-members-list').innerHTML =
-    '<div style="padding:24px;text-align:center;color:var(--text3);font-size:13px">Sélectionnez une date pour voir les présences.</div>';
-  document.getElementById('fp-status').textContent = '';
-  document.getElementById('fp-save-btn').disabled = true;
-  document.getElementById('fp-save-btn').style.opacity = '.5';
-
-  // Sélectionner auto la prochaine date si unique
-  if(future.length===1 && !past.length){ sel.value=future[0].id; fpSelectDate(future[0].id); }
-  else if(future.length>0){ sel.value=future[0].id; fpSelectDate(future[0].id); }
-
-  document.getElementById('fp-wrap').style.display='flex';
+  _fpSetId=setId;
+  const set=DB.sets.find(s=>s.id===setId); if(!set) return;
+  const today=new Date().toISOString().slice(0,10);
+  const evts=DB.events.filter(e=>e.set_id===setId&&e.type!=='prestation').sort((a,b)=>a.date.localeCompare(b.date));
+  const shown=[...evts.filter(e=>e.date>=today).slice(0,8),...evts.filter(e=>e.date<today).slice(-2).reverse()];
+  document.getElementById('fp-dates-title').textContent=set.name+' — Feuille présentielle';
+  document.getElementById('fp-dates-list').innerHTML=shown.length
+    ?shown.map(e=>{
+      const d=new Date(e.date+'T12:00:00');
+      const lbl=d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+      const time=e.time?' · '+e.time.slice(0,5):'';
+      const isPast=e.date<today;
+      const atts=DB.event_attendance.filter(a=>parseInt(a.event_id)===e.id);
+      const p=atts.filter(a=>a.status==='present').length;
+      const q=atts.filter(a=>a.status==='maybe').length;
+      const ab=atts.filter(a=>a.status==='absent').length;
+      return `<div class="fp-date-row" onclick="fpOpenDate(${e.id})">
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600;color:${isPast?'var(--text3)':'var(--text)'}">${isPast?'↩ ':'📅 '}${lbl}${time}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">${(p||q||ab)?`${p?'✅'+p+' ':''}${q?'❓'+q+' ':''}${ab?'❌'+ab:''}`:'<i>Aucune réponse</i>'}</div>
+        </div>
+        <span style="color:var(--text3)">›</span>
+      </div>`;
+    }).join('')
+    :'<div style="padding:24px;text-align:center;color:var(--text3);font-style:italic">Aucune date planifiée.</div>';
+  showModal('fp-dates');
 }
 
-function fpSelectDate(eventId){
-  if(!eventId){ 
-    document.getElementById('fp-members-list').innerHTML =
-      '<div style="padding:24px;text-align:center;color:var(--text3)">Sélectionnez une date.</div>';
-    return;
-  }
-  _fpEventId = parseInt(eventId);
-  _fpChanges = {};
-  document.getElementById('fp-save-btn').disabled = false;
-  document.getElementById('fp-save-btn').style.opacity = '1';
+function fpOpenDate(eventId){
+  _fpEventId=parseInt(eventId); _fpChanges={};
+  const e=DB.events.find(x=>x.id===_fpEventId); if(!e) return;
+  const set=e.set_id?DB.sets.find(s=>s.id===e.set_id):null;
+  const d=new Date(e.date+'T12:00:00');
+  const dateStr=d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const time=e.time?' · '+e.time.slice(0,5)+(e.time_end?' – '+e.time_end.slice(0,5):''):'';
+  document.getElementById('fp-members-title').textContent=set?.name||'Répétition';
+  document.getElementById('fp-members-subtitle').textContent=dateStr+time;
+  document.getElementById('fp-save-st').textContent='';
   fpRenderMembers();
+  showModal('fp-members');
 }
 
 function fpRenderMembers(){
-  const atts = DB.event_attendance.filter(a=>parseInt(a.event_id)===_fpEventId);
+  const atts=DB.event_attendance.filter(a=>parseInt(a.event_id)===_fpEventId);
   const p=atts.filter(a=>a.status==='present').length;
   const q=atts.filter(a=>a.status==='maybe').length;
   const ab=atts.filter(a=>a.status==='absent').length;
-  document.getElementById('fp-head-sum').innerHTML =
-    (p?`<span style="font-size:11px;padding:2px 7px;border-radius:8px;background:var(--surface3)">✅ ${p}</span>`:'')+
-    (q?`<span style="font-size:11px;padding:2px 7px;border-radius:8px;background:var(--surface3)">❓ ${q}</span>`:'')+
-    (ab?`<span style="font-size:11px;padding:2px 7px;border-radius:8px;background:var(--surface3)">❌ ${ab}</span>`:'');
-
-  const myId = parseInt(currentUserId||0);
-  document.getElementById('fp-members-list').innerHTML = DB.members.map(m=>{
-    const att  = atts.find(r=>parseInt(r.member_id)===parseInt(m.id));
-    const saved= att?.status||'unknown';
-    const st   = _fpChanges[m.id]!==undefined ? _fpChanges[m.id] : saved;
-    const isMe = parseInt(m.id)===myId;
-    const [col,bg] = _fpCols[m.family]||['#888','rgba(136,136,136,.12)'];
-    const av   = m.avatar||(m.prenom?m.prenom[0].toUpperCase():'?');
-    const icons= {present:'✅',maybe:'❓',absent:'❌',unknown:'⬜'};
-    const changed = _fpChanges[m.id]!==undefined && _fpChanges[m.id]!==saved;
+  document.getElementById('fp-members-sum').innerHTML=
+    (p?`<span style="font-size:11px;padding:2px 7px;border-radius:8px;background:var(--surface2)">✅ ${p}</span>`:'')+
+    (q?`<span style="font-size:11px;padding:2px 7px;border-radius:8px;background:var(--surface2)">❓ ${q}</span>`:'')+
+    (ab?`<span style="font-size:11px;padding:2px 7px;border-radius:8px;background:var(--surface2)">❌ ${ab}</span>`:'');
+  const myId=parseInt(currentUserId||0);
+  const icons={present:'✅',maybe:'❓',absent:'❌',unknown:'⬜'};
+  document.getElementById('fp-members-list').innerHTML=DB.members.map(m=>{
+    const att=atts.find(r=>parseInt(r.member_id)===parseInt(m.id));
+    const saved=att?.status||'unknown';
+    const st=_fpChanges[m.id]!==undefined?_fpChanges[m.id]:saved;
+    const isMe=parseInt(m.id)===myId;
+    const [col,bg]=_fpC[m.family]||['#888','rgba(136,136,136,.12)'];
+    const av=m.avatar||(m.prenom?m.prenom[0].toUpperCase():'?');
     return `<div class="fp-mrow${isMe?' me':''}">
-      <div class="fp-mav" style="background:${bg};color:${col}">${av}</div>
-      <span class="fp-mnm">${esc(m.prenom||'')} ${esc(m.nom||'')}${changed?'<span style="font-size:10px;color:var(--amber);margin-left:4px">●</span>':''}</span>
+      <div class="fp-av" style="background:${bg};color:${col}">${av}</div>
+      <span class="fp-nm">${esc(m.prenom||'')} ${esc(m.nom||'')}</span>
       ${isMe
-        ? `<div class="fp-mbts">
-            <button class="fp-mbt${st==='present'?' on p':''}" onclick="fpMark(${m.id},'present')" title="Présent">✅</button>
-            <button class="fp-mbt${st==='maybe'  ?' on q':''}" onclick="fpMark(${m.id},'maybe')"   title="Incertain">❓</button>
-            <button class="fp-mbt${st==='absent' ?' on a':''}" onclick="fpMark(${m.id},'absent')"  title="Absent">❌</button>
-           </div>`
-        : `<span style="font-size:18px;opacity:${st==='unknown'?.2:.9}">${icons[st]}</span>`
+        ?`<div style="display:flex;gap:4px">
+            <button class="fp-bt${st==='present'?' on p':''}" onclick="fpMark(${m.id},'present')">✅</button>
+            <button class="fp-bt${st==='maybe'  ?' on q':''}" onclick="fpMark(${m.id},'maybe')">❓</button>
+            <button class="fp-bt${st==='absent' ?' on a':''}" onclick="fpMark(${m.id},'absent')">❌</button>
+          </div>`
+        :`<span style="font-size:16px;opacity:${st==='unknown'?.2:.9}">${icons[st]}</span>`
       }
     </div>`;
   }).join('');
 }
 
-function fpMark(memberId, status){
-  _fpChanges[memberId] = status;
-  fpRenderMembers();
-}
+function fpMark(id,status){ _fpChanges[id]=status; fpRenderMembers(); }
 
 async function fpSave(){
-  const st = document.getElementById('fp-status');
+  const st=document.getElementById('fp-save-st');
   st.style.color='var(--text3)'; st.textContent='Enregistrement…';
   try{
-    for(const [mid, status] of Object.entries(_fpChanges)){
-      const ex = DB.event_attendance.find(
-        a=>parseInt(a.event_id)===_fpEventId && parseInt(a.member_id)===parseInt(mid)
-      );
+    for(const [mid,status] of Object.entries(_fpChanges)){
+      const ex=DB.event_attendance.find(a=>parseInt(a.event_id)===_fpEventId&&parseInt(a.member_id)===parseInt(mid));
       if(ex) await sb.from('event_attendance').update({status}).eq('id',ex.id);
-      else   await sb.from('event_attendance').insert({event_id:_fpEventId, member_id:parseInt(mid), status});
+      else   await sb.from('event_attendance').insert({event_id:_fpEventId,member_id:parseInt(mid),status});
     }
-    await loadAll();
-    _fpChanges = {};
-    fpRenderMembers();
-    renderSets();
-    renderDashboard();
+    await loadAll(); _fpChanges={};
+    fpRenderMembers(); renderSets(); renderDashboard();
     st.style.color='var(--green)'; st.textContent='✓ Enregistré !';
-    setTimeout(()=>{ st.textContent=''; },2500);
-  }catch(err){
-    st.style.color='var(--red)'; st.textContent='Erreur : '+err.message;
-  }
+    setTimeout(()=>{st.textContent='';},2500);
+  }catch(err){ st.style.color='var(--red)'; st.textContent='Erreur: '+err.message; }
 }
 
-function fpClose(){
-  document.getElementById('fp-wrap').style.display='none';
+function fpAbsAlert(setId){
+  const today=new Date().toISOString().slice(0,10);
+  return DB.events.filter(e=>e.set_id===setId&&e.date>=today&&e.type!=='prestation')
+    .sort((a,b)=>a.date.localeCompare(b.date)).slice(0,2)
+    .some(e=>DB.event_attendance.filter(a=>parseInt(a.event_id)===e.id&&a.status==='absent').length>0);
 }
 
-// Widget absences dashboard
 function renderAbsentsWidget(){
-  const today = new Date().toISOString().slice(0,10);
-  const el = document.getElementById('dash-absents');
-  if(!el) return;
-  const lines = [];
+  const el=document.getElementById('dash-absents'); if(!el) return;
+  const today=new Date().toISOString().slice(0,10);
+  const lines=[];
   DB.sets.forEach(set=>{
-    const next2 = DB.events
-      .filter(e=>e.set_id===set.id && e.date>=today && e.type!=='prestation')
-      .sort((a,b)=>a.date.localeCompare(b.date)).slice(0,2);
-    next2.forEach(e=>{
-      const absents = DB.event_attendance
-        .filter(a=>parseInt(a.event_id)===e.id && a.status==='absent')
-        .map(a=>DB.members.find(m=>m.id===a.member_id)).filter(Boolean);
-      if(absents.length){
-        const d = new Date(e.date+'T12:00:00');
-        lines.push({
-          setName:set.name,
-          date:d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'}),
-          absents
-        });
-      }
-    });
+    DB.events.filter(e=>e.set_id===set.id&&e.date>=today&&e.type!=='prestation')
+      .sort((a,b)=>a.date.localeCompare(b.date)).slice(0,2).forEach(e=>{
+        const abs=DB.event_attendance.filter(a=>parseInt(a.event_id)===e.id&&a.status==='absent')
+          .map(a=>DB.members.find(m=>m.id===a.member_id)).filter(Boolean);
+        if(abs.length){
+          const d=new Date(e.date+'T12:00:00');
+          lines.push(`<div style="margin-bottom:8px">
+            <div style="font-size:12px;font-weight:600;color:var(--text)">❌ ${esc(set.name)} · ${d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})}</div>
+            <div style="font-size:12px;color:var(--red);padding-left:10px">${abs.map(m=>esc(m.prenom+' '+(m.nom||''))).join(', ')}</div>
+          </div>`);
+        }
+      });
   });
-  if(!lines.length){
-    el.innerHTML='<div style="color:var(--text3);font-size:12px;font-style:italic">Aucune absence signalée.</div>';
-  } else {
-    el.innerHTML = lines.map(l=>
-      `<div style="margin-bottom:8px">
-        <div style="font-size:12px;font-weight:600;color:var(--text)">❌ ${esc(l.setName)} · ${l.date}</div>
-        <div style="font-size:12px;color:var(--red);padding-left:12px">${l.absents.map(m=>esc(m.prenom+' '+(m.nom||''))).join(', ')}</div>
-      </div>`
-    ).join('');
-  }
+  el.innerHTML=lines.length?lines.join(''):'<div style="color:var(--text3);font-size:12px;font-style:italic">Aucune absence signalée.</div>';
 }
 
 async function init(){
@@ -1771,23 +1485,13 @@ function renderSets(){
     const songs = songIds.map(sid=>DB.songs.find(s=>s.id===sid)).filter(Boolean);
     const dur = songs.reduce((a,s)=>a+(s.duration||0),0);
     return `
-      <div class="set-card" ondblclick="openQuickSetModal(${set.id})" title="Double-clic : édition rapide" style="cursor:pointer">
+      <div class="set-card" >
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
-          <div class="set-name" style="display:flex;align-items:center;gap:6px">
-          ${esc(set.name)}
-          ${(()=>{
-            const today=new Date().toISOString().slice(0,10);
-            const next2=DB.events.filter(e=>e.set_id===set.id&&e.date>=today&&e.type!=='prestation')
-              .sort((a,b)=>a.date.localeCompare(b.date)).slice(0,2);
-            const absent=next2.some(e=>DB.event_attendance.filter(a=>parseInt(a.event_id)===e.id&&a.status==='absent').length>0);
-            return absent?'<span title="Absence(s) signalée(s)" style="font-size:14px">⚠️</span>':'';
-          })()}
-        </div>
+          <div class="set-name" style="display:flex;align-items:center;gap:6px">${esc(set.name)}${fpAbsAlert(set.id)?'<span title="Absences signalées" style="font-size:13px">⚠️</span>':''}</div>
           <div class="flex gap-8" style="flex-shrink:0">
-            ${songs.length?`<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();printSetProgram(${set.id})" title="Imprimer">🖨</button>`:''}
-            <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();fpOpen(${set.id})" title="Feuille présentielle" style="color:var(--accent)">👥</button>
-            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openSetModal(${set.id})">✎</button>
-            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteSet(${set.id})">✕</button>
+            ${songs.length?`<button class="btn btn-outline btn-sm" onclick="printSetProgram(${set.id})" title="Imprimer">🖨</button>`:''}
+            <button class="btn btn-ghost btn-sm" onclick="openSetModal(${set.id})">✎</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteSet(${set.id})">✕</button>
           </div>
         </div>
         <div class="set-count">${songs.length} morceau${songs.length>1?'x':''} ${dur?'· ~'+dur+' min':''}</div>
@@ -1806,6 +1510,7 @@ function renderSets(){
                 ${(ss.local_key||s.key)?`<span class="tag tag-key" style="font-size:10px">${esc(ss.local_key||s.key)}</span>`:''}
                 ${(ss.local_bpm||s.bpm)?`<span class="tag" style="font-size:10px;background:rgba(124,159,232,.15);color:var(--accent2)">${ss.local_bpm||s.bpm} BPM</span>`:''}
                 ${ss.local_struct?`<span class="tag" style="font-size:10px;background:rgba(93,200,160,.12);color:var(--green);font-family:monospace">${esc(ss.local_struct)}</span>`:''}
+                ${s.tempo?`<span class="tag" style="font-size:10px;background:rgba(93,200,160,.12);color:var(--green)">${esc(s.tempo)}</span>`:''}
                 ${s.folder_link?`<a href="${esc(s.folder_link)}" target="_blank" onclick="event.stopPropagation()" title="Ouvrir le dossier" style="color:var(--accent2);font-size:13px;text-decoration:none">&#128279;</a>`:''}
               </div>
               ${ss.set_notes?`<div style="font-size:11px;color:var(--amber);padding-left:30px;line-height:1.4">⚠ ${esc(ss.set_notes)}</div>`:''}
@@ -2397,7 +2102,6 @@ async function saveRepet(){
 // ============================================================
 //  DASHBOARD
 // ============================================================
-
 function renderDashboard(){
   document.getElementById('stats-bar').innerHTML = [
     {v:DB.songs.length,   l:'Morceaux',    p:'morceaux'},
@@ -2923,7 +2627,7 @@ function editPlanningEventSerie(serieKey){
 //  IMPRESSION — fonctions partagées
 // ============================================================
 function buildPrintHtml({title, subtitle, dateStr, timeStr, venue, songsRows, logoSrc}){
-  return `<!DOCTYPE html><!-- AMAJAZZ v2026-04-24 09:37 -->
+  return `<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -3097,48 +2801,6 @@ function toggleTheme(){
 init();
 </script>
 
-    <!-- SET QUICK EDIT MODAL -->
-    <div class="modal-overlay" id="set-quick-modal-overlay" onclick="closeQuickSetModal()">
-      <div id="set-quick-modal" onclick="event.stopPropagation()" style="background:var(--surface);border:1px solid var(--border2);border-radius:16px;box-shadow:var(--shadow);width:680px;max-width:94vw;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 14px;border-bottom:1px solid var(--border);flex-shrink:0">
-          <h3 style="margin:0;font-size:18px;font-weight:700;color:var(--text)" id="sqm-title">Répétition</h3>
-          <button class="modal-close" onclick="closeQuickSetModal()">×</button>
-        </div>
-        <div style="padding:8px 20px 4px;font-size:11px;color:var(--text3);flex-shrink:0;border-bottom:1px solid var(--border)">
-          Attributs modifiables pour <strong>cette répétition uniquement</strong> — Tonalité · BPM · Structure · Note
-        </div>
-        <div style="overflow-y:auto;flex:1" id="sqm-list"></div>
-        <div style="border-top:1px solid var(--border);padding:12px 20px;display:flex;gap:10px;justify-content:flex-end;align-items:center;flex-shrink:0;background:var(--surface)">
-          <span id="sqm-status" style="flex:1;font-size:12px;color:var(--green)"></span>
-          <button class="btn btn-outline" onclick="closeQuickSetModal()">Fermer</button>
-          <button class="btn btn-primary" onclick="saveQuickSetModal()">💾 Enregistrer</button>
-        </div>
-      </div>
-    </div>
 
 
-
-<div id="fp-wrap" onclick="if(event.target===this)fpClose()">
-  <div id="fp-box">
-    <div id="fp-head">
-      <div style="display:flex;align-items:center;gap:8px">
-        <div id="fp-head-title">Feuille présentielle</div>
-        <div id="fp-head-sum" style="display:flex;gap:5px;margin-left:auto"></div>
-        <button onclick="fpClose()" style="background:none;border:1px solid var(--border);border-radius:50%;width:28px;height:28px;font-size:16px;cursor:pointer;color:var(--text3);display:flex;align-items:center;justify-content:center">×</button>
-      </div>
-      <div id="fp-head-sub"></div>
-    </div>
-    <div id="fp-select-wrap">
-      <select id="fp-select" onchange="fpSelectDate(this.value)">
-        <option value="">— Choisissez une date —</option>
-      </select>
-    </div>
-    <div id="fp-members-list"></div>
-    <div id="fp-foot">
-      <span id="fp-status"></span>
-      <button class="btn btn-outline" onclick="fpClose()">Fermer</button>
-      <button class="btn btn-primary" id="fp-save-btn" onclick="fpSave()" disabled style="opacity:.5">💾 Enregistrer</button>
-    </div>
-  </div>
-</div>
 </body>
