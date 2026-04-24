@@ -634,7 +634,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
       <!-- Layout 2 colonnes -->
       <div style="display:flex;flex:1;overflow:hidden">
         <!-- Colonne gauche : dates -->
-        <div style="width:260px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;background:var(--surface)">
+        <div style="width:320px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;background:var(--surface)">
           <div style="padding:10px 14px;font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);font-weight:600;border-bottom:1px solid var(--border)">Répétitions à venir</div>
           <div id="pres-dates-list"></div>
         </div>
@@ -1364,9 +1364,9 @@ function presRenderMembers(){
       <div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;background:${bg};color:${col}">${av}</div>
       <span style="flex:1;font-size:13px;font-weight:${isMe?'700':'500'};color:var(--text);min-width:120px">${esc(m.prenom||'')} ${esc(m.nom||'')}</span>
       <div style="display:flex;gap:6px;flex-shrink:0">
-        <button onclick="presMark(${m.id},'present')" style="padding:5px 14px;border-radius:20px;border:1px solid ${st==='present'?'#27ae60':'var(--border)'};background:${st==='present'?'rgba(39,174,96,.15)':'var(--surface2)'};color:${st==='present'?'#27ae60':'var(--text2)'};font-size:12px;font-weight:${st==='present'?'700':'400'};cursor:pointer;font-family:inherit;transition:all .12s">✅ Présent</button>
-        <button onclick="presMark(${m.id},'maybe')" style="padding:5px 14px;border-radius:20px;border:1px solid ${st==='maybe'?'#f39c12':'var(--border)'};background:${st==='maybe'?'rgba(243,156,18,.15)':'var(--surface2)'};color:${st==='maybe'?'#c87f0a':'var(--text2)'};font-size:12px;font-weight:${st==='maybe'?'700':'400'};cursor:pointer;font-family:inherit;transition:all .12s">❓ Incertain</button>
-        <button onclick="presMark(${m.id},'absent')" style="padding:5px 14px;border-radius:20px;border:1px solid ${st==='absent'?'#e74c3c':'var(--border)'};background:${st==='absent'?'rgba(231,76,60,.15)':'var(--surface2)'};color:${st==='absent'?'#e74c3c':'var(--text2)'};font-size:12px;font-weight:${st==='absent'?'700':'400'};cursor:pointer;font-family:inherit;transition:all .12s">❌ Absent</button>
+        <button onclick="presMark(${m.id},'present')" style="padding:4px 10px;border-radius:16px;border:1px solid ${st==='present'?'#27ae60':'var(--border)'};background:${st==='present'?'rgba(39,174,96,.15)':'var(--surface2)'};color:${st==='present'?'#27ae60':'var(--text2)'};font-size:11px;font-weight:${st==='present'?'700':'400'};cursor:pointer;font-family:inherit">✅</button>
+        <button onclick="presMark(${m.id},'maybe')" style="padding:4px 10px;border-radius:16px;border:1px solid ${st==='maybe'?'#f39c12':'var(--border)'};background:${st==='maybe'?'rgba(243,156,18,.15)':'var(--surface2)'};color:${st==='maybe'?'#c87f0a':'var(--text2)'};font-size:11px;font-weight:${st==='maybe'?'700':'400'};cursor:pointer;font-family:inherit">❓</button>
+        <button onclick="presMark(${m.id},'absent')" style="padding:4px 10px;border-radius:16px;border:1px solid ${st==='absent'?'#e74c3c':'var(--border)'};background:${st==='absent'?'rgba(231,76,60,.15)':'var(--surface2)'};color:${st==='absent'?'#e74c3c':'var(--text2)'};font-size:11px;font-weight:${st==='absent'?'700':'400'};cursor:pointer;font-family:inherit">❌</button>
       </div>
     </div>`;
   }).join('');
