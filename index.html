@@ -407,8 +407,8 @@ body.theme-dark .sqm-row:nth-child(even) { background:rgba(255,255,255,.08); bor
 
 
 /* ===== FEUILLE PRÉSENTIELLE ===== */
-.fp-overlay{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;padding:20px}
-.fp-overlay.open{display:flex}
+.fp-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;padding:20px}
+.fp-overlay.open{display:flex !important}
 .fp-modal{background:var(--surface);border:1px solid var(--border2);border-radius:14px;box-shadow:0 8px 40px rgba(0,0,0,.5);display:flex;flex-direction:column;overflow:hidden}
 .fp-header{padding:14px 20px 12px;border-bottom:1px solid var(--border);background:var(--surface2);flex-shrink:0}
 .fp-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--accent)}
@@ -1204,11 +1204,11 @@ function fpOpen(setId){
       }).join('')
     : '<div style="padding:24px;text-align:center;color:var(--text3)">Aucune date planifiée pour ce set.</div>';
 
-  document.getElementById('fp-dates-overlay').classList.add('open');
+  const _fpo1=document.getElementById('fp-dates-overlay'); _fpo1.style.display='flex';
 }
 
 function fpDatesClose(){
-  document.getElementById('fp-dates-overlay').classList.remove('open');
+  document.getElementById('fp-dates-overlay').style.display='none';
 }
 
 // ── Ouverture modale 2 : musiciens pour une date ──────────────────────
@@ -1226,7 +1226,7 @@ function fpOpenMembers(eventId){
   document.getElementById('fp-save-status').textContent = '';
 
   fpRenderMembers();
-  document.getElementById('fp-members-overlay').classList.add('open');
+  const _fpo2=document.getElementById('fp-members-overlay'); _fpo2.style.display='flex';
 }
 
 function fpRenderMembers(){
@@ -1282,7 +1282,7 @@ async function fpSave(){
 }
 
 function fpMembersClose(){
-  document.getElementById('fp-members-overlay').classList.remove('open');
+  document.getElementById('fp-members-overlay').style.display='none';
 }
 
 async function init(){
@@ -3035,7 +3035,7 @@ init();
 
 
 <!-- FEUILLE PRÉSENTIELLE - Modale 1 : dates -->
-<div class="fp-overlay" id="fp-dates-overlay" onclick="if(event.target===this)fpDatesClose()">
+<div class="fp-overlay" id="fp-dates-overlay" onclick="if(event.target===this)fpDatesClose()" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;padding:20px">
   <div class="fp-modal" id="fp-dates-modal">
     <div class="fp-header">
       <div class="fp-title" id="fp-dates-title">Feuille présentielle</div>
@@ -3049,7 +3049,7 @@ init();
 </div>
 
 <!-- FEUILLE PRÉSENTIELLE - Modale 2 : musiciens -->
-<div class="fp-overlay" id="fp-members-overlay" onclick="if(event.target===this)fpMembersClose()">
+<div class="fp-overlay" id="fp-members-overlay" onclick="if(event.target===this)fpMembersClose()" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;padding:20px">
   <div class="fp-modal" id="fp-members-modal">
     <div class="fp-header">
       <div class="fp-title" id="fp-members-title">Présences</div>
