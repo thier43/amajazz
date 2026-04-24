@@ -336,7 +336,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
 
 
 
-.sdp-save-status{font-size:12px;color:var(--green);align-self:center;flex:1}
+
 
 </style>
 </head>
@@ -850,10 +850,9 @@ let DB = { songs:[], members:[], sets:[], set_songs:[], concerts:[], concert_son
 let editingId = null;
 let setSelectedSongs = [];
 let setNotesMap    = {}; // song_id -> note
-let setLocalName   = {}; // song_id -> nom local au set
 let setLocalKey    = {}; // song_id -> tonalité locale
 let setLocalBpm    = {}; // song_id -> BPM local
-let setLocalTempo  = {}; // song_id -> tempo (texte) local
+let setLocalStruct = {}; // song_id -> structure grille (ex: A/A/B)
 let calYear = new Date().getFullYear();
 let calMonth = new Date().getMonth();
 
@@ -939,6 +938,7 @@ function changeUser(){
   document.getElementById('app').style.display='none';
   showWelcomeScreen();
 }
+
 
 
 async function init(){
@@ -1330,11 +1330,11 @@ function renderSets(){
               <div style="display:flex;align-items:center;gap:8px;width:100%">
                 <div class="prio-dot prio-${prio}" onclick="event.stopPropagation();setPriority(${set.id},${s.id},${prio})" title="${prio===0?'Normal — cliquer pour prioriser':prio===1?'À travailler — cliquer pour urgent':'Prioritaire — cliquer pour réinitialiser'}"></div>
                 <span class="set-song-num">${i+1}.</span>
-                <span style="flex:1;font-size:12px${prio===2?';font-weight:600;color:var(--text)':prio===1?';color:var(--text)':''}">${esc(ss.local_name||s.name)}</span>
+                <span style="flex:1;font-size:12px${prio===2?';font-weight:600;color:var(--text)':prio===1?';color:var(--text)':''}">${esc(s.name)}</span>
                 ${(ss.local_key||s.key)?`<span class="tag tag-key" style="font-size:10px">${esc(ss.local_key||s.key)}</span>`:''}
-                ${(ss.local_bpm||s.bpm)?`<span class="tag" style="font-size:10px;background:rgba(124,159,232,.15);color:var(--accent2)">${ss.local_bpm||s.bpm}</span>`:''}
-                ${(ss.local_tempo||s.tempo)?`<span class="tag" style="font-size:10px;background:rgba(93,200,160,.12);color:var(--green)">${esc(ss.local_tempo||s.tempo)}</span>`:''}
-                ${ss.local_name?`<span style="font-size:9px;color:var(--text3);font-style:italic" title="Nom local: ${esc(ss.local_name)}">✎</span>`:''}
+                ${(ss.local_bpm||s.bpm)?`<span class="tag" style="font-size:10px;background:rgba(124,159,232,.15);color:var(--accent2)">${ss.local_bpm||s.bpm} BPM</span>`:''}
+                ${ss.local_struct?`<span class="tag" style="font-size:10px;background:rgba(93,200,160,.12);color:var(--green);font-family:monospace">${esc(ss.local_struct)}</span>`:''}
+                ${s.tempo?`<span class="tag" style="font-size:10px;background:rgba(93,200,160,.12);color:var(--green)">${esc(s.tempo)}</span>`:''}
                 ${s.folder_link?`<a href="${esc(s.folder_link)}" target="_blank" onclick="event.stopPropagation()" title="Ouvrir le dossier" style="color:var(--accent2);font-size:13px;text-decoration:none">&#128279;</a>`:''}
               </div>
               ${ss.set_notes?`<div style="font-size:11px;color:var(--amber);padding-left:30px;line-height:1.4">⚠ ${esc(ss.set_notes)}</div>`:''}
@@ -1354,17 +1354,15 @@ function openSetModal(id=null){
   setVal('f-set-name', set?.name||'');
   setSelectedSongs = id ? getSongIdsForSet(id) : [];
   setNotesMap  = {};
-  setLocalName = {};
-  setLocalKey  = {};
-  setLocalBpm  = {};
-  setLocalTempo = {};
+  setLocalKey    = {};
+  setLocalBpm    = {};
+  setLocalStruct = {};
   if(id){
     DB.set_songs.filter(ss=>ss.set_id===id).forEach(ss=>{
       if(ss.set_notes)   setNotesMap[ss.song_id]   = ss.set_notes;
-      if(ss.local_name)  setLocalName[ss.song_id]  = ss.local_name;
-      if(ss.local_key)   setLocalKey[ss.song_id]   = ss.local_key;
-      if(ss.local_bpm)   setLocalBpm[ss.song_id]   = ss.local_bpm;
-      if(ss.local_tempo) setLocalTempo[ss.song_id] = ss.local_tempo;
+      if(ss.local_key)    setLocalKey[ss.song_id]    = ss.local_key;
+      if(ss.local_bpm)    setLocalBpm[ss.song_id]    = ss.local_bpm;
+      if(ss.local_struct) setLocalStruct[ss.song_id] = ss.local_struct;
     });
   }
   renderSetBuilder();
@@ -1390,34 +1388,39 @@ function renderSetBuilder(){
       <div class="pick-item pick-remove" style="flex-direction:column;align-items:stretch;gap:6px;cursor:default">
         <div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="toggleInSet(${s.id})">
           <div class="pick-icon">−</div>
-          <span style="flex:1;font-size:12px;font-weight:500">${esc(setLocalName[s.id]||s.name)}</span>
+          <span style="flex:1;font-size:12px;font-weight:500">${esc(s.name)}</span>
           ${(setLocalKey[s.id]||s.key)?`<span class="tag tag-key" style="font-size:10px">${esc(setLocalKey[s.id]||s.key)}</span>`:''}
+          ${(setLocalBpm[s.id]||s.bpm)?`<span class="tag" style="font-size:10px;background:rgba(124,159,232,.15);color:var(--accent2)">${setLocalBpm[s.id]||s.bpm} BPM</span>`:''}
         </div>
-        <!-- Overrides locaux au set -->
-        <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:6px;padding-left:28px;align-items:center">
-          <input class="form-input" style="font-size:11px;padding:4px 8px" type="text"
-            placeholder="Nom affiché dans ce set (facultatif)"
-            value="${esc(setLocalName[s.id]||'')}"
-            oninput="setLocalName[${s.id}]=this.value"
-            title="Nom local au set — remplace le nom global uniquement dans ce set">
-          <input class="form-input" style="font-size:11px;padding:4px 8px;width:70px" type="text"
-            placeholder="Ton."
-            value="${esc(setLocalKey[s.id]||'')}"
-            oninput="setLocalKey[${s.id}]=this.value"
-            title="Tonalité pour ce set">
-          <input class="form-input" style="font-size:11px;padding:4px 8px;width:64px" type="number" min="0" max="400"
-            placeholder="BPM"
-            value="${setLocalBpm[s.id]||''}"
-            oninput="setLocalBpm[${s.id}]=this.value?parseInt(this.value):null"
-            title="BPM pour ce set">
-          <input class="form-input" style="font-size:11px;padding:4px 8px;width:60px" type="text"
-            placeholder="Tempo"
-            value="${esc(setLocalTempo[s.id]||'')}"
-            oninput="setLocalTempo[${s.id}]=this.value"
-            title="Tempo (ex: Slow, Medium…)">
+        <!-- Attributs locaux au set -->
+        <div style="display:grid;grid-template-columns:72px 72px 1fr;gap:6px;padding-left:28px;align-items:end">
+          <div>
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);margin-bottom:2px">Tonalité</div>
+            <input class="form-input" style="font-size:11px;padding:4px 8px" type="text"
+              placeholder="${esc(s.key||'—')}"
+              value="${esc(setLocalKey[s.id]||'')}"
+              oninput="setLocalKey[${s.id}]=this.value"
+              title="Tonalité pour ce set uniquement">
+          </div>
+          <div>
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);margin-bottom:2px">BPM</div>
+            <input class="form-input" style="font-size:11px;padding:4px 8px" type="number" min="0" max="400"
+              placeholder="${s.bpm||'—'}"
+              value="${setLocalBpm[s.id]||''}"
+              oninput="setLocalBpm[${s.id}]=this.value?parseInt(this.value):null"
+              title="BPM pour ce set uniquement">
+          </div>
+          <div>
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);margin-bottom:2px">Structure</div>
+            <input class="form-input" style="font-size:11px;padding:4px 8px" type="text"
+              placeholder="ex : A/A/B/A"
+              value="${esc(setLocalStruct[s.id]||'')}"
+              oninput="setLocalStruct[${s.id}]=this.value"
+              title="Structure de la grille pour ce set (ex: A/A/B/A, verse/chorus…)">
+          </div>
         </div>
-        <textarea class="form-input" rows="2" style="font-size:11px;padding:5px 9px;background:var(--surface3);resize:vertical;min-height:38px;margin-left:28px"
-          placeholder="&#9888; Note spécifique pour ce set (structure, arrangement…)"
+        <textarea class="form-input" rows="2" style="font-size:11px;padding:5px 9px;background:var(--surface3);resize:vertical;min-height:36px;margin-left:28px"
+          placeholder="&#9888; Note spécifique pour ce set…"
           oninput="setNotesMap[${s.id}]=this.value">${esc(setNotesMap[s.id]||'')}</textarea>
       </div>`).join('')
     : `<p class="text-xs text-muted" style="padding:16px;text-align:center">Cliquez sur les morceaux pour les ajouter.</p>`;
@@ -2504,7 +2507,7 @@ function buildPrintHtml({title, subtitle, dateStr, timeStr, venue, songsRows, lo
 </div>
 <table>
   <thead><tr>
-    <th>#</th><th>Morceau</th><th>Tonalité</th><th>Tempo</th><th>Impro</th>
+    <th>#</th><th>Morceau</th><th>Tonalité</th><th>Tempo/BPM</th><th>Structure</th><th>Impro</th>
   </tr></thead>
   <tbody>${songsRows}</tbody>
 </table>
@@ -2514,6 +2517,7 @@ function buildPrintHtml({title, subtitle, dateStr, timeStr, venue, songsRows, lo
 </div>
 <script>window.onload=()=>{ window.print(); }<\/script>
 
+
 </body></html>`;
 }
 
@@ -2522,10 +2526,8 @@ function buildSongRows(songs, setId, notesMap){
     const s = DB.songs.find(x=>x.id===(entry.song_id||entry.id));
     if(!s) return '';
     // Overrides locaux au set
-    const displayName  = entry.local_name  || s.name;
     const displayKey   = entry.local_key   || s.key   || '';
     const displayBpm   = entry.local_bpm   || s.bpm   || '';
-    const displayTempo = entry.local_tempo || s.tempo || '';
     const improvs = setId ? DB.members.filter(m=>{
       const p = DB.preferences.find(pr=>pr.set_id===setId && pr.member_id===m.id && pr.song_id===s.id);
       return p?.impro;
@@ -2535,13 +2537,13 @@ function buildSongRows(songs, setId, notesMap){
     return `<tr>
       <td class="p-num">${i+1}</td>
       <td class="p-song">
-        <strong>${esc(displayName)}</strong>
-        ${entry.local_name?`<span class="p-artist" style="font-style:italic;font-size:10px"> (${esc(s.name)})</span>`:''}
-        ${s.artist?`<span class="p-artist"> — ${esc(s.artist)}</span>`:''}
+        <strong>${esc(s.name)}</strong>
+          ${s.artist?`<span class="p-artist"> — ${esc(s.artist)}</span>`:''}
         ${notes?`<div class="p-notes">${esc(notes)}</div>`:''}
       </td>
       <td class="p-key">${esc(displayKey)}</td>
-      <td class="p-tempo">${esc(displayTempo)}${displayBpm?` <span style="font-size:10px;color:#888">${displayBpm}</span>`:''}</td>
+      <td class="p-tempo">${displayBpm||esc(s.tempo||'')}</td>
+      <td style="font-size:10px;font-family:monospace;color:#666">${esc(entry.local_struct||'')}</td>
       <td class="p-impro">${improvs.map(m=>esc(m.prenom)).join(', ')}</td>
     </tr>`;
   }).join('');
