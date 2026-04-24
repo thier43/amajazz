@@ -421,6 +421,12 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
 .pres-bt.on-a{background:rgba(231,76,60,.15);border-color:#e74c3c;color:#e74c3c;font-weight:600}
 .pres-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;align-items:center;flex-shrink:0;background:var(--surface)}
 </style>
+<script>
+// Redirection automatique vers mobile si on est sur un téléphone
+if(/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) && window.innerWidth < 768){
+  window.location.replace('/mobile.html');
+}
+</script>
 </head>
 <body>
 

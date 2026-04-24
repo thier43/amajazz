@@ -1,11 +1,11 @@
 {
-  "name": "AMAJAZZ Band Manager",
+  "name": "AMAJAZZ",
   "short_name": "AMAJAZZ",
   "description": "Gestion du r\u00e9pertoire et des r\u00e9p\u00e9titions du groupe AMAJAZZ",
-  "start_url": "/",
+  "start_url": "/mobile.html",
   "scope": "/",
   "display": "standalone",
-  "orientation": "landscape",
+  "orientation": "portrait",
   "background_color": "#1a1814",
   "theme_color": "#c97a3a",
   "icons": [
