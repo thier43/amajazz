@@ -403,7 +403,7 @@ body.theme-dark .sqm-row:nth-child(even) { background:rgba(255,255,255,.08); bor
 .sqm-ni::placeholder { color:var(--text3); font-style:italic; }
 
 /* ===== ATTENDANCE PANEL ===== */
-#att-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
+#att-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9000;display:none;align-items:center;justify-content:center;padding:20px}
 #att-overlay.open{display:flex}
 #att-modal{background:var(--surface);border:1px solid var(--border2);border-radius:16px;width:440px;max-width:94vw;max-height:85vh;display:flex;flex-direction:column;box-shadow:var(--shadow);overflow:hidden}
 #att-header{padding:14px 18px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}
@@ -1160,7 +1160,7 @@ function renderAtt(){
   document.getElementById('att-body').innerHTML = DB.members.map(m=>{
     const att = rows.find(r=>r.member_id===m.id);
     const status = att?.status || 'unknown';
-    const isMe = m.id == currentUserId;
+    const isMe = String(m.id) === String(currentUserId);
     const [col,bg] = FAM_COLS[m.family]||['#888','rgba(136,136,136,.15)'];
     return `<div class="att-row${isMe?' me':''}">
       <div class="att-avatar" style="background:${bg};color:${col}">${m.avatar||(m.prenom?m.prenom[0]:'?')}</div>

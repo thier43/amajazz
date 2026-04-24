@@ -1589,6 +1589,14 @@ const _famColsM2 = {
 function openAttM(setId){
   _attMId = setId;
   const set = DB.sets.find(s=>s.id===setId); if(!set) return;
+  if(!_currentUserId){
+    // Avertir si pas identifié
+    const banner = document.createElement('div');
+    banner.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;z-index:9999';
+    banner.textContent='Identifiez-vous pour indiquer votre présence';
+    document.body.appendChild(banner);
+    setTimeout(()=>banner.remove(),2500);
+  }
   document.getElementById('att-title-m').textContent = set.name;
   renderAttM();
   document.getElementById('att-panel-m').classList.add('open');
@@ -1608,7 +1616,7 @@ function renderAttM(){
   document.getElementById('att-body-m').innerHTML = DB.members.map(m=>{
     const att = rows.find(r=>r.member_id===m.id);
     const status = att?.status||'unknown';
-    const isMe = m.id == _currentUserId;
+    const isMe = String(m.id) === String(_currentUserId);
     const [col,bg] = _famColsM2[m.family]||['#888','rgba(136,136,136,.15)'];
     return `<div class="att-row-m${isMe?' me-m':''}">
       <div class="att-av-m" style="background:${bg};color:${col}">${m.avatar||(m.prenom?m.prenom[0]:'?')}</div>
@@ -1624,7 +1632,7 @@ function renderAttM(){
 
 async function setAttM(status){
   if(!_currentUserId||!_attMId) return;
-  const existing = DB.set_attendance.find(a=>a.set_id===_attMId && a.member_id==_currentUserId);
+  const existing = DB.set_attendance.find(a=>a.set_id===_attMId && String(a.member_id)===String(_currentUserId));
   if(existing){
     await sb.from('set_attendance').update({status}).eq('id',existing.id);
   } else {
