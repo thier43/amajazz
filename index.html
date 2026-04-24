@@ -1140,6 +1140,52 @@ const _evattColors = {
 };
 const _evattIcons = {present:'✅',maybe:'❓',absent:'❌',unknown:'⬜'};
 
+function evattOpenSet(setId){
+  // Afficher les prochaines dates pour ce set, permettre de choisir
+  const today = new Date().toISOString().slice(0,10);
+  const events = DB.events.filter(e=>e.set_id===setId && e.date>=today)
+    .sort((a,b)=>a.date.localeCompare(b.date)).slice(0,6);
+  const set = DB.sets.find(s=>s.id===setId);
+  if(!set) return;
+
+  if(events.length===0){
+    // Pas de date à venir : ouvrir quand même sur la dernière date passée
+    const past = DB.events.filter(e=>e.set_id===setId)
+      .sort((a,b)=>b.date.localeCompare(a.date));
+    if(past.length) evattOpen(past[0].id);
+    else alert('Aucune date planifiée pour ce set.');
+    return;
+  }
+  if(events.length===1){ evattOpen(events[0].id); return; }
+
+  // Plusieurs dates → afficher sélecteur dans la bottom-sheet
+  _evattId = null;
+  document.getElementById('evatt-title').textContent = set.name;
+  document.getElementById('evatt-date').textContent = 'Choisissez une date';
+  document.getElementById('evatt-sum').innerHTML = '';
+  document.getElementById('evatt-list').innerHTML =
+    '<div style="padding:8px 0">'+
+    events.map(e=>{
+      const d = new Date(e.date+'T12:00:00');
+      const label = d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})+(e.time?' · '+e.time.slice(0,5):'');
+      const atts = DB.event_attendance.filter(a=>parseInt(a.event_id)===e.id);
+      const p=atts.filter(a=>a.status==='present').length;
+      const q=atts.filter(a=>a.status==='maybe').length;
+      const ab=atts.filter(a=>a.status==='absent').length;
+      const me=atts.find(a=>parseInt(a.member_id)===parseInt(currentUserId));
+      const meDot=me&&me.status!=='unknown'?` ${{'present':'✅','maybe':'❓','absent':'❌'}[me.status]}`:'';
+      return `<div onclick="evattOpen(${e.id})" style="display:flex;align-items:center;gap:12px;padding:13px 22px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s" onmouseover="this.style.background='var(--surface)'" onmouseout="this.style.background=''">
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600;color:var(--text)">📅 ${label}${meDot}</div>
+          ${(p||q||ab)?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${p?'✅'+p+' ':''} ${q?'❓'+q+' ':''} ${ab?'❌'+ab:''}</div>`:'<div style="font-size:11px;color:var(--text3);margin-top:2px">Aucune réponse</div>'}
+        </div>
+        <span style="color:var(--text3);font-size:16px">›</span>
+      </div>`;
+    }).join('')+
+    '</div>';
+  document.getElementById('evatt-wrap').classList.add('on');
+}
+
 function evattOpen(eventId){
   _evattId = parseInt(eventId);
   const e = DB.events.find(x=>x.id===_evattId); if(!e) return;
@@ -1571,34 +1617,12 @@ function renderSets(){
           <div class="set-name">${esc(set.name)}</div>
           <div class="flex gap-8" style="flex-shrink:0">
             ${songs.length?`<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();printSetProgram(${set.id})" title="Imprimer">🖨</button>`:''}
+            <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();evattOpenSet(${set.id})" title="Présences">👥</button>
             <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openSetModal(${set.id})">✎</button>
             <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteSet(${set.id})">✕</button>
           </div>
         </div>
-        <div class="set-count">
-          <div>${songs.length} morceau${songs.length>1?'x':''} ${dur?'· ~'+dur+' min':''}</div>
-          ${(()=>{
-            const today=new Date().toISOString().slice(0,10);
-            const next2=DB.events.filter(e=>e.set_id===set.id&&e.date>=today).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,2);
-            if(!next2.length) return '';
-            return '<div style="display:flex;flex-direction:column;gap:3px;margin-top:5px">'+
-              next2.map(e=>{
-                const d=new Date(e.date+'T12:00:00');
-                const label=d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})+(e.time?' '+e.time.slice(0,5):'');
-                const atts=DB.event_attendance.filter(a=>parseInt(a.event_id)===e.id);
-                const p=atts.filter(a=>a.status==='present').length;
-                const ab=atts.filter(a=>a.status==='absent').length;
-                const me=atts.find(a=>parseInt(a.member_id)===parseInt(currentUserId));
-                const meDot=me&&me.status!=='unknown'?` <span>${{present:'✅',maybe:'❓',absent:'❌'}[me.status]}</span>`:'';
-                const sum=(p||ab)?` <span style="font-size:10px;color:var(--text3)">${p?'✅'+p+' ':''} ${ab?'❌'+ab:''}</span>`:'';
-                return `<div style="display:flex;align-items:center;gap:6px">
-                  <span style="font-size:11px;color:var(--text2);flex:1">📅 ${label}${meDot}${sum}</span>
-                  <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();evattOpen(${e.id})" style="font-size:11px;padding:1px 7px">👥</button>
-                </div>`;
-              }).join('')+
-            '</div>';
-          })()}
-        </div>
+        <div class="set-count">${songs.length} morceau${songs.length>1?'x':''} ${dur?'· ~'+dur+' min':''}</div>
         <div class="set-songs-list">
           ${DB.set_songs.filter(ss=>ss.set_id===set.id)
             .sort((a,b)=>(b.priority||0)-(a.priority||0) || a.position-b.position)
