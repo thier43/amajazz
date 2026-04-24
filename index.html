@@ -1153,6 +1153,9 @@ function fpOpen(sid){
 function fpOD(eid){
   _fpEId=parseInt(eid);_fpCh={};
   const e=DB.events.find(x=>x.id===_fpEId); if(!e) return;
+  // Pré-remplir "présent" pour les musiciens sans réponse
+  const existing=DB.event_attendance.filter(a=>parseInt(a.event_id)===_fpEId).map(a=>parseInt(a.member_id));
+  DB.members.forEach(m=>{ if(!existing.includes(parseInt(m.id))) _fpCh[m.id]='present'; });
   const set=e.set_id?DB.sets.find(s=>s.id===e.set_id):null;
   const d=new Date(e.date+'T12:00:00');
   document.getElementById('fp-m-title').textContent=set?.name||'Répétition';
