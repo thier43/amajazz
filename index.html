@@ -978,7 +978,7 @@ function openQuickSetModal(setId){
   document.getElementById('sqm-status').textContent = '';
   renderQuickSetModal();
 
-  document.getElementById('set-quick-modal-overlay').classList.add('active');
+  document.getElementById('set-quick-modal-overlay').classList.add('open');
 }
 
 function renderQuickSetModal(){
@@ -1053,7 +1053,7 @@ async function saveQuickSetModal(){
 }
 
 function closeQuickSetModal(){
-  document.getElementById('set-quick-modal-overlay').classList.remove('active');
+  document.getElementById('set-quick-modal-overlay').classList.remove('open');
 }
 
 async function init(){
@@ -1424,13 +1424,13 @@ function renderSets(){
     const songs = songIds.map(sid=>DB.songs.find(s=>s.id===sid)).filter(Boolean);
     const dur = songs.reduce((a,s)=>a+(s.duration||0),0);
     return `
-      <div class="set-card" >
+      <div class="set-card" ondblclick="openQuickSetModal(${set.id})" title="Double-clic : édition rapide" style="cursor:pointer">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
           <div class="set-name">${esc(set.name)}</div>
           <div class="flex gap-8" style="flex-shrink:0">
-            ${songs.length?`<button class="btn btn-outline btn-sm" onclick="printSetProgram(${set.id})" title="Imprimer">🖨</button>`:''}
-            <button class="btn btn-ghost btn-sm" onclick="openSetModal(${set.id})">✎</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteSet(${set.id})">✕</button>
+            ${songs.length?`<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();printSetProgram(${set.id})" title="Imprimer">🖨</button>`:''}
+            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openSetModal(${set.id})">✎</button>
+            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteSet(${set.id})">✕</button>
           </div>
         </div>
         <div class="set-count">${songs.length} morceau${songs.length>1?'x':''} ${dur?'· ~'+dur+' min':''}</div>
