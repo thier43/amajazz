@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!-- AMAJAZZ v2026-04-24 09:37 -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -1032,35 +1032,40 @@ function renderQuickSetModal(){
     const s = DB.songs.find(x=>x.id===ss.song_id);
     if(!s) return '';
     const prio = ss.priority||0;
-    return `<div class="sqm-row prio${prio}">
-      <div class="sqm-title-line">
-        <span class="sqm-num">${i+1}</span>
-        <span class="sqm-name">${esc(s.name)}</span>
-        <span class="sqm-prio-dot" style="background:${prioColors[prio]}" title="${['Normal','Attention','Prioritaire'][prio]}"></span>
+    return `<div style="
+  padding:14px 18px 12px;
+  border-left:5px solid ${['#999','var(--amber)','var(--red)'][prio]};
+  border-bottom:1px solid var(--border);
+  background:${i%2===0?'#f7f3ee':'#ede8e1'};
+">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <span style="font-size:12px;color:var(--text3);min-width:24px;text-align:right;flex-shrink:0;font-weight:700;">${i+1}</span>
+        <span style="font-size:14px;font-weight:700;color:var(--text);flex:1;">${esc(s.name)}</span>
+        <span style="width:10px;height:10px;border-radius:50%;flex-shrink:0;" style="background:${prioColors[prio]}" title="${['Normal','Attention','Prioritaire'][prio]}"></span>
       </div>
-      <div class="sqm-fields-line">
-        <div class="sqm-fc">
-          <span class="sqm-fl">Tonalité</span>
-          <input class="sqm-fi" type="text" maxlength="5"
+      <div style="display:grid;grid-template-columns:64px 60px 1fr;gap:10px;padding-left:34px;align-items:end;margin-bottom:10px;">
+        <div style="display:flex;flex-direction:column;gap:3px;">
+          <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);">Tonalité</span>
+          <input style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:13px;color:var(--text);font-family:inherit;outline:none;width:100%;box-sizing:border-box;" type="text" maxlength="5"
             placeholder="${esc(s.key||'—')}" value="${esc(ss.local_key||'')}"
             oninput="_sqmRows[${i}].local_key=this.value||null">
         </div>
-        <div class="sqm-fc">
-          <span class="sqm-fl">BPM</span>
-          <input class="sqm-fi" type="number" min="0" max="999"
+        <div style="display:flex;flex-direction:column;gap:3px;">
+          <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);">BPM</span>
+          <input style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:13px;color:var(--text);font-family:inherit;outline:none;width:100%;box-sizing:border-box;" type="number" min="0" max="999"
             placeholder="${s.bpm||'—'}" value="${ss.local_bpm||''}"
             oninput="_sqmRows[${i}].local_bpm=this.value?parseInt(this.value):null"
             style="-moz-appearance:textfield;appearance:textfield">
         </div>
-        <div class="sqm-fc">
-          <span class="sqm-fl">Structure</span>
-          <input class="sqm-fi" type="text"
+        <div style="display:flex;flex-direction:column;gap:3px;">
+          <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);">Structure</span>
+          <input style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:13px;color:var(--text);font-family:inherit;outline:none;width:100%;box-sizing:border-box;" type="text"
             placeholder="ex : A/A/B/A" value="${esc(ss.local_struct||'')}"
             oninput="_sqmRows[${i}].local_struct=this.value||null">
         </div>
       </div>
-      <div class="sqm-note-line">
-        <input class="sqm-ni" type="text"
+      <div style="padding-left:34px;">
+        <input style="width:100%;background:rgba(185,106,40,.06);border:1px dashed rgba(185,106,40,.4);border-radius:6px;font-size:12px;color:var(--text2);font-family:inherit;outline:none;padding:6px 10px;box-sizing:border-box;" type="text"
           placeholder="⚠ Note spécifique pour ce set…"
           value="${esc(ss.set_notes||'')}"
           oninput="_sqmRows[${i}].set_notes=this.value||null">
@@ -2609,7 +2614,7 @@ function editPlanningEventSerie(serieKey){
 //  IMPRESSION — fonctions partagées
 // ============================================================
 function buildPrintHtml({title, subtitle, dateStr, timeStr, venue, songsRows, logoSrc}){
-  return `<!DOCTYPE html>
+  return `<!DOCTYPE html><!-- AMAJAZZ v2026-04-24 09:37 -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
