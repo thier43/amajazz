@@ -1396,6 +1396,18 @@ async function presSave(){
   }catch(err){ stEl.style.color='var(--red)'; stEl.textContent='Erreur: '+err.message; }
 }
 
+
+async function cancelEvent(eventId, isCancelled){
+  const msg = isCancelled ? 'Rétablir cette répétition ?' : 'Marquer cette répétition comme annulée ?';
+  if(!confirm(msg)) return;
+  try{
+    await sb.from('events').update({cancelled: !isCancelled}).eq('id', eventId);
+    await loadAll();
+    renderDashboard();
+    renderCalendar();
+  }catch(e){ alert('Erreur : '+e.message); }
+}
+
 async function init(){
   try {
     await loadAll();
@@ -2397,11 +2409,11 @@ function renderDashboard(){
   const nextRepets = DB.events
     .filter(e=>e.date >= todayStr)
     .sort((a,b)=>a.date.localeCompare(b.date))
-    .slice(0,2)
+    .slice(0,3)
     .map(e=>{
       const setName = e.set_id ? DB.sets.find(s=>s.id===e.set_id)?.name : null;
       const timeStr = e.time ? e.time.slice(0,5)+(e.time_end?' – '+e.time_end.slice(0,5):'') : '';
-      return {date:e.date, label: setName||'Répétition', sub:(e.venue||'')+(timeStr?' · '+timeStr:''), type:'repet'};
+      return {id:e.id, date:e.date, label: setName||'Répétition', sub:(e.venue||'')+(timeStr?' · '+timeStr:''), type:'repet', cancelled:!!e.cancelled};
     });
 
   // 1 prochaine prestation : d'abord la plus proche avec date, sinon la première sans date
@@ -2451,13 +2463,17 @@ function renderDashboard(){
         const statusBadge = e.type==='concert' && e.status==='projet'
           ? `<span style="font-size:10px;padding:1px 7px;border-radius:20px;background:rgba(232,200,124,.15);color:var(--amber);margin-left:6px">Projet</span>`
           : '';
-        return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer" title="Double-cliquez pour ouvrir" ondblclick="${e.type==='concert'?'navTo(\'concerts\')':'navTo(\'planning\')'}">
-          <div style="width:7px;height:7px;border-radius:50%;background:${e.type==='concert'?'var(--accent)':'var(--accent2)'};flex-shrink:0"></div>
-          <div style="flex:1;min-width:0">
-            <div class="text-sm" style="display:flex;align-items:center">${esc(e.label)}${statusBadge}</div>
-            <div class="text-xs text-muted">${dateLabel}${e.sub?' · '+esc(e.sub):''}</div>
+        const isCancelled = e.type==='repet' && e.cancelled;
+        return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:${isCancelled?'rgba(231,76,60,.04)':'var(--surface)'};border:1px solid ${isCancelled?'rgba(231,76,60,.25)':'var(--border)'};border-radius:var(--radius-sm);margin-bottom:8px;position:relative;overflow:hidden">
+          ${isCancelled?`<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:1">
+            <div style="color:rgba(231,76,60,.55);font-size:22px;font-weight:900;letter-spacing:6px;transform:rotate(-8deg);text-transform:uppercase;font-family:'Bebas Neue',sans-serif">ANNULÉE</div>
+          </div>`:''}
+          <div style="width:7px;height:7px;border-radius:50%;background:${isCancelled?'var(--red)':e.type==='concert'?'var(--accent)':'var(--accent2)'};flex-shrink:0;opacity:${isCancelled?.5:1}"></div>
+          <div style="flex:1;min-width:0;cursor:pointer;opacity:${isCancelled?.45:1}" ondblclick="${e.type==='concert'?'navTo(\'concerts\')':'navTo(\'planning\')'}">
+            <div class="text-sm" style="display:flex;align-items:center;text-decoration:${isCancelled?'line-through':''};color:${isCancelled?'var(--red)':'inherit'}">${esc(e.label)}${statusBadge}</div>
+            <div class="text-xs text-muted" style="text-decoration:${isCancelled?'line-through':''}">${dateLabel}${e.sub?' · '+esc(e.sub):''}</div>
           </div>
-          <span style="font-size:10px;color:var(--text3);flex-shrink:0">↗</span>
+          ${e.type==='repet'&&e.id?`<button onclick="cancelEvent(${e.id},${isCancelled})" title="${isCancelled?'Rétablir':'Annuler'}" style="background:none;border:1px solid ${isCancelled?'rgba(39,174,96,.4)':'rgba(231,76,60,.3)'};border-radius:6px;padding:3px 8px;font-size:11px;color:${isCancelled?'var(--green)':'var(--red)'};cursor:pointer;flex-shrink:0;font-family:inherit;z-index:2;position:relative">${isCancelled?'↩ Rétablir':'✕ Annuler'}</button>`:''}
         </div>`;
       }).join('')
     : `<p class="text-xs text-muted">Aucun événement à venir.</p>`;
