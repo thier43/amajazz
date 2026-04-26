@@ -682,11 +682,11 @@ function renderDashboard(){
   const nextRepets = DB.events
     .filter(e=>e.date>=todayStr)
     .sort((a,b)=>a.date.localeCompare(b.date))
-    .slice(0,2)
+    .slice(0,3)
     .map(e=>({
-      date:e.date, time:e.time,
+      id:e.id, date:e.date, time:e.time,
       label: e.set_id ? DB.sets.find(s=>s.id===e.set_id)?.name||'Répétition' : 'Répétition',
-      venue:e.venue||'', type:'repet'
+      venue:e.venue||'', type:'repet', cancelled:!!e.cancelled
     }));
 
   const nextConcert = DB.concerts
@@ -733,13 +733,17 @@ function renderDashboard(){
     const icon = e.type==='concert' ? '🎤' : '🎵';
     const badgeClass = e.type==='concert' ? `badge-${e.status||'projet'}` : 'badge-repet';
     const badgeText = e.type==='concert' ? (e.status==='confirme'?'Confirmé':'Projet') : 'Répét.';
-    return `<div class="event-card-compact" onclick="goTo('${dest}')">
+    const isCancelled = e.type==='repet' && e.cancelled;
+    return `<div class="event-card-compact" onclick="goTo('${dest}')" style="position:relative;overflow:hidden;${isCancelled?'background:rgba(231,76,60,.04);border-color:rgba(231,76,60,.25);':''};opacity:${isCancelled?.7:1}">
+      ${isCancelled?`<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none">
+        <div style="color:rgba(231,76,60,.5);font-size:18px;font-weight:900;letter-spacing:4px;transform:rotate(-8deg);text-transform:uppercase;font-family:'Bebas Neue',sans-serif">ANNULÉE</div>
+      </div>`:''}
       <div class="event-compact-icon">${icon}</div>
-      <div class="event-compact-info">
-        <div class="event-compact-title">${esc(e.label)}</div>
+      <div class="event-compact-info" style="${isCancelled?'text-decoration:line-through;color:var(--red);':''}">
+        <div class="event-compact-title" style="${isCancelled?'color:var(--red);':''}">${esc(e.label)}</div>
         <div class="event-compact-meta">${dateShort}${timeStr?' · '+timeStr:''}${e.venue?' · '+esc(e.venue):''}</div>
       </div>
-      <span class="event-badge ${badgeClass}" style="flex-shrink:0">${badgeText}</span>
+      <span class="event-badge ${badgeClass}" style="flex-shrink:0;${isCancelled?'background:rgba(231,76,60,.15);color:var(--red);':''}">${isCancelled?'Annulée':badgeText}</span>
     </div>`;
   }).join('');
 }
