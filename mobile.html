@@ -705,17 +705,20 @@ function renderDashboard(){
   (()=>{
     const el=document.getElementById('dash-absents-m'); if(!el) return;
     const today=new Date().toISOString().slice(0,10);
-    const nextEvt=DB.events.filter(e=>e.date>=today&&e.type!=='prestation').sort((a,b)=>a.date.localeCompare(b.date))[0];
-    if(!nextEvt){el.innerHTML='';return;}
-    const absents=DB.event_attendance.filter(a=>parseInt(a.event_id)===nextEvt.id&&a.status==='absent')
-      .map(a=>DB.members.find(m=>m.id===a.member_id)).filter(Boolean);
-    if(!absents.length){el.innerHTML='';return;}
-    const set=nextEvt.set_id?DB.sets.find(s=>s.id===nextEvt.set_id):null;
-    const d=new Date(nextEvt.date+'T12:00:00');
-    el.innerHTML=`<div style="padding:10px 14px;background:rgba(231,76,60,.07);border:1px solid rgba(231,76,60,.2);border-left:3px solid var(--red);border-radius:10px">
-      <div style="font-size:11px;font-weight:600;color:var(--red);margin-bottom:4px">❌ Absents — ${esc(set?.name||'Répétition')} · ${d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})}</div>
-      <div style="font-size:13px;color:var(--text)">${absents.map(m=>esc(m.prenom+' '+(m.nom||''))).join(', ')}</div>
-    </div>`;
+    const next2Evts=DB.events.filter(e=>e.date>=today&&e.type!=='prestation'&&!e.cancelled).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,2);
+    if(!next2Evts.length){el.innerHTML='';return;}
+    const blocks=next2Evts.map(evt=>{
+      const absents=DB.event_attendance.filter(a=>parseInt(a.event_id)===evt.id&&a.status==='absent')
+        .map(a=>DB.members.find(m=>m.id===a.member_id)).filter(Boolean);
+      if(!absents.length) return '';
+      const set=evt.set_id?DB.sets.find(s=>s.id===evt.set_id):null;
+      const d=new Date(evt.date+'T12:00:00');
+      return `<div style="padding:10px 14px;background:rgba(231,76,60,.07);border:1px solid rgba(231,76,60,.2);border-left:3px solid var(--red);border-radius:10px;margin-bottom:6px">
+        <div style="font-size:11px;font-weight:600;color:var(--red);margin-bottom:4px">❌ Absents — ${esc(set?.name||'Répétition')} · ${d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})}</div>
+        <div style="font-size:13px;color:var(--text)">${absents.map(m=>esc(m.prenom+' '+(m.nom||''))).join(', ')}</div>
+      </div>`;
+    }).filter(Boolean).join('');
+    el.innerHTML=blocks||'';
   })();
 
   const container = document.getElementById('dash-upcoming');
