@@ -1721,7 +1721,7 @@ async function fpmSave(){
       if(ex) await sb.from('event_attendance').update({status}).eq('id',ex.id);
       else   await sb.from('event_attendance').insert({event_id:_fpmEId,member_id:parseInt(mid),status});
     }
-    await loadAll();_fpmCh={};fpmRM();renderSets();
+    await loadAll();_fpmCh={};fpmRM();renderSets();renderDashboard();
     stEl.style.color='var(--green)';stEl.textContent='✓ Enregistré !';
     setTimeout(()=>{stEl.textContent='';},2500);
   }catch(err){stEl.style.color='var(--red)';stEl.textContent='Erreur: '+err.message;}
