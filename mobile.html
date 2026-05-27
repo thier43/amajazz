@@ -513,6 +513,7 @@ textarea.edit-field-input{min-height:60px;resize:none}
         <div class="stat-card c3"><div class="stat-v" id="s-sets">—</div><div class="stat-l">Répétitions</div></div>
         <div class="stat-card c4"><div class="stat-v" id="s-concerts">—</div><div class="stat-l">Prestations</div></div>
       </div>
+      <div id="dash-presences-banner" style="margin-bottom:10px;padding:0 2px"></div>
       <div id="dash-upcoming"></div>
       <div id="dash-absents-m" style="margin-top:10px;padding:0 2px"></div>
     </div>
@@ -700,6 +701,46 @@ function renderDashboard(){
     label:nextConcert.name, venue:nextConcert.venue||'',
     type:'concert', status:nextConcert.status
   });
+
+
+  // Bannière présences non répondues
+  (()=>{
+    const el = document.getElementById('dash-presences-banner'); if(!el) return;
+    const myId = parseInt(_currentUserId||0);
+    if(!myId){ el.innerHTML=''; return; }
+    const today = new Date().toISOString().slice(0,10);
+    // Prochaines répétitions sans réponse du musicien connecté
+    const pending = DB.events
+      .filter(e=>e.date>=today && e.type!=='prestation' && !e.cancelled)
+      .sort((a,b)=>a.date.localeCompare(b.date))
+      .slice(0,4)
+      .filter(e=>{
+        const att = DB.event_attendance.find(a=>parseInt(a.event_id)===e.id && parseInt(a.member_id)===myId);
+        return !att; // pas encore répondu
+      });
+    if(!pending.length){ el.innerHTML=''; return; }
+    const set = pending[0].set_id ? DB.sets.find(s=>s.id===pending[0].set_id) : null;
+    const d = new Date(pending[0].date+'T12:00:00');
+    const dateStr = d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+    const time = pending[0].time ? ' · '+pending[0].time.slice(0,5) : '';
+    el.innerHTML = `<div onclick="fpmOpenDate(${pending[0].id})" style="
+        background:rgba(185,106,40,.08);
+        border:1px solid rgba(185,106,40,.3);
+        border-left:4px solid var(--accent);
+        border-radius:12px;
+        padding:12px 16px;
+        cursor:pointer;
+        display:flex;align-items:center;gap:12px;
+      ">
+      <span style="font-size:24px;flex-shrink:0">🗓️</span>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;color:var(--accent)">Indiquer ta présence</div>
+        <div style="font-size:12px;color:var(--text);margin-top:2px">${esc(set?.name||'Répétition')} — ${dateStr}${time}</div>
+        ${pending.length>1?`<div style="font-size:11px;color:var(--text3);margin-top:2px">+${pending.length-1} autre${pending.length>2?'s':''} date${pending.length>2?'s':''} sans réponse</div>`:''}
+      </div>
+      <span style="font-size:20px;color:var(--accent)">›</span>
+    </div>`;
+  })();
 
   // Absents prochaine répétition
   (()=>{
