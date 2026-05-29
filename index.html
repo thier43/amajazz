@@ -1630,11 +1630,12 @@ function dispoSaisieHTML(dates){
         </div>`;
       }).join('');
     }).join('');
+    if(!rows.trim()) return '';
     return `<div style="margin-bottom:16px">
       <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:6px;padding:4px 10px;background:var(--surface2);border-radius:6px">Semaine du ${days[0].dt.toLocaleDateString('fr-FR',{day:'numeric',month:'long'})}</div>
       <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">${rows}</div>
     </div>`;
-  }).join('');
+  }).filter(Boolean).join('') || '<div style="padding:40px;text-align:center;color:var(--text3);font-style:italic">Aucune disponibilité enregistrée pour cette période.</div>';
 }
 
 function dispoSyntheseHTML(dates){
@@ -1649,6 +1650,9 @@ function dispoSyntheseHTML(dates){
 
   return Object.entries(weeks).map(([wk, days])=>{
     const rows = days.map(({d,dt})=>{
+      // Ne montrer que les jours avec au moins une réponse
+      const dayTotal = DB.availability_responses.filter(r=>r.poll_id===_dispoPollId&&r.date===d).length;
+      if(!dayTotal) return '';
       const dayLabel = dt.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
       const isWE = dt.getDay()===0||dt.getDay()===6;
       return SLOTS.map(slot=>{
@@ -1672,11 +1676,12 @@ function dispoSyntheseHTML(dates){
         </div>`;
       }).join('');
     }).join('');
+    if(!rows.trim()) return '';
     return `<div style="margin-bottom:16px">
       <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:6px;padding:4px 10px;background:var(--surface2);border-radius:6px">Semaine du ${days[0].dt.toLocaleDateString('fr-FR',{day:'numeric',month:'long'})}</div>
       <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">${rows}</div>
     </div>`;
-  }).join('');
+  }).filter(Boolean).join('') || '<div style="padding:40px;text-align:center;color:var(--text3);font-style:italic">Aucune disponibilité enregistrée pour cette période.</div>';
 }
 
 function getWeekKey(dt){
