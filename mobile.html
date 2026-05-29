@@ -550,12 +550,10 @@ textarea.edit-field-input{min-height:60px;resize:none}
 
     <!-- PLANNING -->
     <div class="page" id="page-planning">
-      <!-- Onglets -->
-      <div style="display:flex;border-bottom:2px solid var(--border);flex-shrink:0;background:var(--bg)">
+      <div style="display:flex;border-bottom:2px solid var(--border);background:var(--bg)">
         <button id="btn-m-cal" onclick="planningViewM('cal')" style="flex:1;padding:12px;border:none;background:none;font-size:13px;font-weight:700;color:var(--accent);border-bottom:2px solid var(--accent);margin-bottom:-2px;cursor:pointer;font-family:inherit">📅 Calendrier</button>
         <button id="btn-m-dispo" onclick="planningViewM('dispo')" style="flex:1;padding:12px;border:none;background:none;font-size:13px;font-weight:400;color:var(--text3);cursor:pointer;font-family:inherit">🗓 Disponibilités</button>
       </div>
-      <!-- Calendrier -->
       <div id="plan-m-cal">
         <div class="cal-header">
           <button class="cal-nav-btn" onclick="calNav(-1)">‹</button>
@@ -564,7 +562,6 @@ textarea.edit-field-input{min-height:60px;resize:none}
         </div>
         <div class="cal-grid" id="cal-grid-m"></div>
       </div>
-      <!-- Disponibilités -->
       <div id="plan-m-dispo" style="display:none;overflow-y:auto;padding-bottom:80px">
         <div id="dispo-m-polls">
           <div style="padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)">
@@ -579,16 +576,11 @@ textarea.edit-field-input{min-height:60px;resize:none}
             <span id="dispo-m-title" style="font-size:15px;font-weight:700;color:var(--text);flex:1"></span>
             <button onclick="_dispoMView=_dispoMView==='saisie'?'synthese':'saisie';dispoMRender()" id="dispo-m-toggle-btn" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:12px;font-family:inherit;cursor:pointer;color:var(--text2)">Synthese</button>
           </div>
+          <div id="dispo-m-st" style="min-height:20px;padding:4px 16px;font-size:12px;color:var(--green);text-align:right"></div>
           <div id="dispo-m-content"></div>
-          <div id="dispo-m-footer" style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;align-items:center">
-            <span id="dispo-m-st" style="flex:1;font-size:12px;color:var(--green)"></span>
-            <button onclick="dispoMSave()" style="background:var(--accent);color:#fff;border:none;border-radius:10px;padding:10px 20px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer">Enregistrer</button>
-          </div>
         </div>
       </div>
     </div>
-
-    <!-- Modal nouvelle période -->
     <div id="dispo-m-new-wrap" style="position:fixed;inset:0;z-index:9999;display:none;background:rgba(0,0,0,.6);align-items:flex-end">
       <div style="background:var(--bg);border-radius:20px 20px 0 0;width:100%;padding:20px 18px 40px;display:flex;flex-direction:column;gap:14px">
         <div style="font-size:18px;font-weight:700;color:var(--text)">Nouvelle période</div>
@@ -1771,8 +1763,7 @@ async function fpmSave(){
   const stEl=document.getElementById('fpm-st');
   stEl.style.color='var(--text3)';stEl.textContent='Enregistrement…';
   try{
-    const fpmKeys=Object.keys(_fpmCh);
-    for(let fi=0;fi<fpmKeys.length;fi++){ const mid=fpmKeys[fi]; const status=_fpmCh[mid];
+    for(const [mid,status] of Object.entries(_fpmCh)){
       const ex=DB.event_attendance.find(a=>parseInt(a.event_id)===_fpmEId&&parseInt(a.member_id)===parseInt(mid));
       if(ex) await sb.from('event_attendance').update({status}).eq('id',ex.id);
       else   await sb.from('event_attendance').insert({event_id:_fpmEId,member_id:parseInt(mid),status});
@@ -1786,27 +1777,25 @@ async function fpmSave(){
 
 // ===== DISPONIBILITES MOBILE =====
 let _dispoPollIdM = null;
-let _dispoMView   = 'saisie';
-let _dispoMPending = {}; // plus utilise - sauvegarde auto
-const SLOTS_M = [{key:'morning',icon:'Matin'},{key:'afternoon',icon:'Apres-midi'}];
+let _dispoMView = 'saisie';
 
 function planningViewM(view){
-  const cal   = document.getElementById('plan-m-cal');
-  const dispo = document.getElementById('plan-m-dispo');
-  const btnCal   = document.getElementById('btn-m-cal');
-  const btnDispo = document.getElementById('btn-m-dispo');
+  var cal=document.getElementById('plan-m-cal');
+  var dispo=document.getElementById('plan-m-dispo');
+  var bCal=document.getElementById('btn-m-cal');
+  var bDispo=document.getElementById('btn-m-dispo');
   if(view==='cal'){
     cal.style.display='block'; dispo.style.display='none';
-    btnCal.style.fontWeight='700'; btnCal.style.color='var(--accent)';
-    btnCal.style.borderBottom='2px solid var(--accent)'; btnCal.style.marginBottom='-2px';
-    btnDispo.style.fontWeight='400'; btnDispo.style.color='var(--text3)';
-    btnDispo.style.borderBottom='none'; btnDispo.style.marginBottom='0';
+    bCal.style.fontWeight='700'; bCal.style.color='var(--accent)';
+    bCal.style.borderBottom='2px solid var(--accent)'; bCal.style.marginBottom='-2px';
+    bDispo.style.fontWeight='400'; bDispo.style.color='var(--text3)';
+    bDispo.style.borderBottom='none'; bDispo.style.marginBottom='0';
   } else {
     cal.style.display='none'; dispo.style.display='block';
-    btnDispo.style.fontWeight='700'; btnDispo.style.color='var(--accent)';
-    btnDispo.style.borderBottom='2px solid var(--accent)'; btnDispo.style.marginBottom='-2px';
-    btnCal.style.fontWeight='400'; btnCal.style.color='var(--text3)';
-    btnCal.style.borderBottom='none'; btnCal.style.marginBottom='0';
+    bDispo.style.fontWeight='700'; bDispo.style.color='var(--accent)';
+    bDispo.style.borderBottom='2px solid var(--accent)'; bDispo.style.marginBottom='-2px';
+    bCal.style.fontWeight='400'; bCal.style.color='var(--text3)';
+    bCal.style.borderBottom='none'; bCal.style.marginBottom='0';
     renderDispoMPolls();
     document.getElementById('dispo-m-polls').style.display='block';
     document.getElementById('dispo-m-detail').style.display='none';
@@ -1814,34 +1803,31 @@ function planningViewM(view){
 }
 
 function renderDispoMPolls(){
-  const list = document.getElementById('dispo-m-list'); if(!list) return;
-  list.innerHTML = DB.availability_polls.length
-    ? DB.availability_polls.map(p=>{
-        const d1=new Date(p.date_start+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
-        const d2=new Date(p.date_end+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'});
-        const resps=DB.availability_responses.filter(r=>r.poll_id===p.id).length;
-        return '<div onclick="dispoMOpen('+p.id+')" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px">'+
-          '<div style="flex:1">'+
-            '<div style="font-size:15px;font-weight:700;color:var(--text)">'+esc(p.name)+'</div>'+
-            '<div style="font-size:12px;color:var(--text3);margin-top:2px">'+d1+' - '+d2+'</div>'+
-          '</div>'+
-          '<div style="text-align:right">'+
-            '<div style="font-size:12px;color:var(--accent);font-weight:600">'+resps+' reponse'+(resps>1?'s':'')+'</div>'+
-            '<div style="font-size:16px;color:var(--text3)">›</div>'+
-          '</div>'+
-        '</div>';
-      }).join('')
-    : '<div style="padding:40px;text-align:center;color:var(--text3);font-style:italic">Aucune periode. Creez-en une avec +</div>';
+  var list=document.getElementById('dispo-m-list'); if(!list) return;
+  if(!DB.availability_polls.length){
+    list.innerHTML='<div style="padding:40px;text-align:center;color:var(--text3);font-style:italic">Aucune periode. Creez-en une avec +</div>';
+    return;
+  }
+  list.innerHTML=DB.availability_polls.map(function(p){
+    var d1=new Date(p.date_start+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
+    var d2=new Date(p.date_end+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'});
+    var resps=DB.availability_responses.filter(function(r){return parseInt(r.poll_id)===p.id;}).length;
+    return '<div onclick="dispoMOpen('+p.id+')" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px">'
+      +'<div style="flex:1"><div style="font-size:15px;font-weight:700;color:var(--text)">'+esc(p.name)+'</div>'
+      +'<div style="font-size:12px;color:var(--text3);margin-top:2px">'+d1+' - '+d2+'</div></div>'
+      +'<div style="text-align:right"><div style="font-size:12px;color:var(--accent);font-weight:600">'+resps+' rep.</div><div style="font-size:16px;color:var(--text3)">›</div></div>'
+      +'</div>';
+  }).join('');
 }
 
 function dispoMOpen(id){
-  _dispoPollIdM=id; _dispoMView='saisie'; _dispoMPending={};
-  const p=DB.availability_polls.find(x=>x.id===id); if(!p) return;
+  _dispoPollIdM=parseInt(id); _dispoMView='saisie';
+  var p=DB.availability_polls.find(function(x){return x.id===_dispoPollIdM;});
+  if(!p) return;
   document.getElementById('dispo-m-title').textContent=p.name;
   document.getElementById('dispo-m-polls').style.display='none';
   document.getElementById('dispo-m-detail').style.display='block';
   document.getElementById('dispo-m-toggle-btn').textContent='Synthese';
-  document.getElementById('dispo-m-footer').style.display='none';
   dispoMRender();
 }
 
@@ -1852,123 +1838,137 @@ function dispoMBack(){
 }
 
 function dispoMRender(){
-  const p=DB.availability_polls.find(x=>x.id===_dispoPollIdM); if(!p) return;
-  const isSaisie=_dispoMView==='saisie';
+  var p=DB.availability_polls.find(function(x){return x.id===_dispoPollIdM;}); if(!p) return;
+  var isSaisie=_dispoMView==='saisie';
   document.getElementById('dispo-m-toggle-btn').textContent=isSaisie?'Voir Synthese':'Ma saisie';
-  document.getElementById('dispo-m-footer').style.display='none';
 
-  const dates=[];
-  let cur=new Date(p.date_start+'T12:00:00');
-  const end=new Date(p.date_end+'T12:00:00');
+  var dates=[];
+  var cur=new Date(p.date_start+'T12:00:00');
+  var end=new Date(p.date_end+'T12:00:00');
   while(cur<=end){ dates.push(cur.toISOString().slice(0,10)); cur.setDate(cur.getDate()+1); }
 
-  const myId=parseInt(_currentUserId||0);
-  const myR=DB.availability_responses.filter(r=>r.poll_id===_dispoPollIdM&&parseInt(r.member_id)===myId);
-  const total=DB.members.length;
-
-  // Grouper par semaine
-  const weeks={};
-  dates.forEach(d=>{
-    const dt=new Date(d+'T12:00:00');
-    const wk=dispoGetWeek(dt);
+  var myId=parseInt(_currentUserId||0);
+  var total=DB.members.length;
+  var weeks={};
+  dates.forEach(function(d){
+    var dt=new Date(d+'T12:00:00');
+    var wk=dispoGetWeek(dt);
     if(!weeks[wk]) weeks[wk]=[];
-    weeks[wk].push({d,dt});
+    weeks[wk].push({d:d,dt:dt});
   });
 
-  document.getElementById('dispo-m-content').innerHTML=Object.entries(weeks).map(function(entry){
-    const wk=entry[0], days=entry[1];
-    const wkLabel='Semaine du '+days[0].dt.toLocaleDateString('fr-FR',{day:'numeric',month:'long'});
-    const rows=days.map(function(item){
-      const d=item.d, dt=item.dt;
-      const isWE=dt.getDay()===0||dt.getDay()===6;
-      const dayLabel=dt.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'short'});
-      // En synthèse, ne montrer que les jours avec réponses
+  var html=Object.keys(weeks).map(function(wk){
+    var days=weeks[wk];
+    var wkLabel='Semaine du '+days[0].dt.toLocaleDateString('fr-FR',{day:'numeric',month:'long'});
+    var dayRows=days.map(function(item){
+      var d=item.d; var dt=item.dt;
+      var isWE=dt.getDay()===0||dt.getDay()===6;
+      var dayLabel=dt.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'short'});
+
       if(!isSaisie){
-        const dayTotal=DB.availability_responses.filter(function(r){return parseInt(r.poll_id)===parseInt(_dispoPollIdM)&&r.date===d;}).length;
+        // Synthèse : ne montrer que si au moins 1 réponse
+        var dayTotal=DB.availability_responses.filter(function(r){
+          return parseInt(r.poll_id)===_dispoPollIdM&&r.date===d;
+        }).length;
         if(!dayTotal) return '';
       }
-      return SLOTS_M.map(function(slot,si){
+
+      var slots=['morning','afternoon'];
+      var slotLabels=['Matin','Apres-midi'];
+      return slots.map(function(slot,si){
         if(isSaisie){
-          const key=d+'_'+slot.key;
-          const saved=myR.find(function(r){return r.date===d&&r.slot===slot.key;});
-          const isOn=!!saved;
-          const rowBg=isWE?'rgba(185,106,40,.04)':isOn?'rgba(39,174,96,.05)':'';
-          const btnBorder=isOn?'#27ae60':'var(--border)';
-          const btnBg=isOn?'rgba(39,174,96,.15)':'var(--surface2)';
-          const btnColor=isOn?'#27ae60':'var(--text3)';
-          const btnWeight=isOn?'700':'400';
-          const btnText=isOn?'Disponible':'Non renseigne';
-          return '<div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);background:'+rowBg+'">'+
-            '<div style="flex:1">'+
-              (si===0?'<div style="font-size:13px;font-weight:600;color:'+(isWE?'var(--accent)':'var(--text)')+'">'+dayLabel+'</div>':'')+
-              '<div style="font-size:12px;color:var(--text3)">'+slot.icon+'</div>'+
-            '</div>'+
-            '<button onclick="dispoMToggle(&quot;'+key+'&quot;,this)" style="padding:7px 14px;border-radius:20px;border:1px solid '+btnBorder+';background:'+btnBg+';color:'+btnColor+';font-size:13px;font-weight:'+btnWeight+';cursor:pointer;font-family:inherit">'+
-              btnText+
-            '</button>'+
-          '</div>';
+          var isOn=DB.availability_responses.some(function(r){
+            return parseInt(r.poll_id)===_dispoPollIdM&&parseInt(r.member_id)===myId&&r.date===d&&r.slot===slot;
+          });
+          var btnBg=isOn?'rgba(39,174,96,.15)':'var(--surface2)';
+          var btnBorder=isOn?'#27ae60':'var(--border)';
+          var btnColor=isOn?'#27ae60':'var(--text3)';
+          var btnWeight=isOn?'700':'400';
+          var btnText=isOn?'✅ Disponible':'Non renseigne';
+          return '<div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);background:'+(isWE?'rgba(185,106,40,.04)':isOn?'rgba(39,174,96,.05)':'')+'">'
+            +'<div style="flex:1">'+(si===0?'<div style="font-size:13px;font-weight:600;color:'+(isWE?'var(--accent)':'var(--text)')+'">'+dayLabel+'</div>':'')
+            +'<div style="font-size:12px;color:var(--text3)">'+slotLabels[si]+'</div></div>'
+            +'<button data-poll="'+_dispoPollIdM+'" data-date="'+d+'" data-slot="'+slot+'" onclick="dispoMToggle(this)" style="padding:7px 14px;border-radius:20px;border:1px solid '+btnBorder+';background:'+btnBg+';color:'+btnColor+';font-size:13px;font-weight:'+btnWeight+';cursor:pointer;font-family:inherit">'+btnText+'</button>'
+            +'</div>';
         } else {
-          const resps=DB.availability_responses.filter(function(r){return parseInt(r.poll_id)===parseInt(_dispoPollIdM)&&r.date===d&&r.slot===slot.key;});
-          const count=resps.length;
-          const pct=total>0?Math.round(count/total*100):0;
-          const col=pct>=80?'#27ae60':pct>=50?'#f39c12':'#e74c3c';
-          const names=resps.map(function(r){const m=DB.members.find(function(x){return x.id===r.member_id;});return m?esc(m.prenom):'';}).filter(Boolean).join(', ');
-          return '<div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border)">'+
-            '<div style="flex:1">'+
-              (si===0?'<div style="font-size:13px;font-weight:600;color:'+(isWE?'var(--accent)':'var(--text)')+'">'+dayLabel+'</div>':'')+
-              '<div style="font-size:12px;color:var(--text3)">'+slot.icon+'</div>'+
-              (names?'<div style="font-size:11px;color:var(--text3);margin-top:2px">'+names+'</div>':'')+
-            '</div>'+
-            '<div style="text-align:right;min-width:50px">'+
-              '<div style="font-size:14px;font-weight:700;color:'+col+'">'+count+'/'+total+'</div>'+
-              '<div style="width:50px;height:5px;border-radius:3px;background:var(--border);overflow:hidden;margin-top:3px">'+
-                '<div style="height:100%;width:'+pct+'%;background:'+col+'"></div>'+
-              '</div>'+
-            '</div>'+
-          '</div>';
+          var resps=DB.availability_responses.filter(function(r){
+            return parseInt(r.poll_id)===_dispoPollIdM&&r.date===d&&r.slot===slot;
+          });
+          var count=resps.length;
+          var pct=total>0?Math.round(count/total*100):0;
+          var col=pct>=80?'#27ae60':pct>=50?'#f39c12':'#e74c3c';
+          var names=resps.map(function(r){var m=DB.members.find(function(x){return x.id===r.member_id;});return m?esc(m.prenom):'';}).filter(Boolean).join(', ');
+          return '<div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border)">'
+            +'<div style="flex:1">'+(si===0?'<div style="font-size:13px;font-weight:600;color:'+(isWE?'var(--accent)':'var(--text)')+'">'+dayLabel+'</div>':'')
+            +'<div style="font-size:12px;color:var(--text3)">'+slotLabels[si]+'</div>'
+            +(names?'<div style="font-size:11px;color:var(--text3);margin-top:2px">'+names+'</div>':'')+'</div>'
+            +'<div style="text-align:right;min-width:50px"><div style="font-size:14px;font-weight:700;color:'+col+'">'+count+'/'+total+'</div>'
+            +'<div style="width:50px;height:5px;border-radius:3px;background:var(--border);overflow:hidden;margin-top:3px">'
+            +'<div style="height:100%;width:'+pct+'%;background:'+col+'"></div></div></div>'
+            +'</div>';
         }
       }).join('');
     }).filter(Boolean).join('');
-    if(!rows.trim()) return '';
-    return '<div style="margin:12px 14px">'+
-      '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);padding:6px 10px;background:var(--surface2);border-radius:6px;margin-bottom:6px">'+wkLabel+'</div>'+
-      '<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden">'+rows+'</div>'+
-    '</div>';
-  }).filter(Boolean).join('') || '<div style="padding:40px;text-align:center;color:var(--text3);font-style:italic">Aucune disponibilite enregistree.</div>';
+
+    if(!dayRows.trim()) return '';
+    return '<div style="margin:12px 14px">'
+      +'<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);padding:6px 10px;background:var(--surface2);border-radius:6px;margin-bottom:6px">'+wkLabel+'</div>'
+      +'<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden">'+dayRows+'</div>'
+      +'</div>';
+  }).filter(Boolean).join('');
+
+  document.getElementById('dispo-m-content').innerHTML=html||'<div style="padding:40px;text-align:center;color:var(--text3);font-style:italic">Aucune disponibilite enregistree.</div>';
 }
 
-async function dispoMToggle(key){
-  const myId=parseInt(_currentUserId||0);
-  if(!myId){ alert('Identifiez-vous pour saisir vos disponibilites.'); return; }
-  const parts=key.split('_'); const date=parts[0]; const slot=parts[1];
-  const saved=DB.availability_responses.find(function(r){return r.poll_id===_dispoPollIdM&&parseInt(r.member_id)===myId&&r.date===date&&r.slot===slot;});
-  const isOn=!!saved;
-  const st=document.getElementById('dispo-m-st');
+async function dispoMToggle(btn){
+  var myId=parseInt(_currentUserId||0);
+  if(!myId){ alert('Identifiez-vous.'); return; }
+  var pollId=parseInt(btn.dataset.poll);
+  var date=btn.dataset.date;
+  var slot=btn.dataset.slot;
+  var saved=DB.availability_responses.find(function(r){
+    return parseInt(r.poll_id)===pollId&&parseInt(r.member_id)===myId&&r.date===date&&r.slot===slot;
+  });
+  var willBeOn=!saved;
+  btn.disabled=true;
+  var st=document.getElementById('dispo-m-st');
   try{
-    if(isOn){
+    if(saved){
       await sb.from('availability_responses').delete().eq('id',saved.id);
     } else {
-      await sb.from('availability_responses').insert({poll_id:_dispoPollIdM,member_id:myId,date:date,slot:slot});
+      await sb.from('availability_responses').insert({poll_id:pollId,member_id:myId,date:date,slot:slot});
     }
-    await loadAll();
-    dispoMRender();
-    if(st){ st.style.color='var(--green)'; st.textContent=isOn?'Retiree':'Enregistree'; setTimeout(function(){st.textContent='';},1200); }
+    // Recharger juste les réponses
+    var fresh=await sb.from('availability_responses').select('*');
+    if(fresh.data) DB.availability_responses=fresh.data;
+    // Mettre à jour le bouton
+    var nowOn=DB.availability_responses.some(function(r){
+      return parseInt(r.poll_id)===pollId&&parseInt(r.member_id)===myId&&r.date===date&&r.slot===slot;
+    });
+    btn.style.borderColor=nowOn?'#27ae60':'var(--border)';
+    btn.style.background=nowOn?'rgba(39,174,96,.15)':'var(--surface2)';
+    btn.style.color=nowOn?'#27ae60':'var(--text3)';
+    btn.style.fontWeight=nowOn?'700':'400';
+    btn.textContent=nowOn?'Disponible':'Non renseigne';
+    var row=btn.parentElement;
+    if(row) row.style.background=nowOn?'rgba(39,174,96,.05)':'';
+    if(st){ st.style.color='var(--green)'; st.textContent=nowOn?'Enregistre':'Retire'; setTimeout(function(){st.textContent='';},1200); }
   }catch(e){
     if(st){ st.style.color='var(--red)'; st.textContent='Erreur'; }
+    console.error(e);
   }
+  btn.disabled=false;
 }
-
-function dispoMSave(){ /* sauvegarde automatique - bouton conserve pour compatibilite */ }
 
 function dispoMNewPoll(){ document.getElementById('dispo-m-new-wrap').style.display='flex'; }
 
 async function dispoMCreatePoll(){
-  const name=document.getElementById('dpm-name').value.trim();
-  const start=document.getElementById('dpm-start').value;
-  const end=document.getElementById('dpm-end').value;
+  var name=document.getElementById('dpm-name').value.trim();
+  var start=document.getElementById('dpm-start').value;
+  var end=document.getElementById('dpm-end').value;
   if(!name||!start||!end){ alert('Remplissez tous les champs.'); return; }
-  if(start>end){ alert('La date de fin doit etre apres le debut.'); return; }
-  await sb.from('availability_polls').insert({name,date_start:start,date_end:end});
+  if(start>end){ alert('Date de fin invalide.'); return; }
+  await sb.from('availability_polls').insert({name:name,date_start:start,date_end:end});
   await loadAll(); renderDispoMPolls();
   document.getElementById('dispo-m-new-wrap').style.display='none';
   document.getElementById('dpm-name').value='';
@@ -1977,7 +1977,7 @@ async function dispoMCreatePoll(){
 }
 
 function dispoGetWeek(dt){
-  const d=new Date(dt);d.setHours(12,0,0,0);
+  var d=new Date(dt); d.setHours(12,0,0,0);
   d.setDate(d.getDate()-(d.getDay()===0?6:d.getDay()-1));
   return d.toISOString().slice(0,10);
 }
