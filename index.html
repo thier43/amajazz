@@ -1651,12 +1651,12 @@ function dispoSyntheseHTML(dates){
   return Object.entries(weeks).map(([wk, days])=>{
     const rows = days.map(({d,dt})=>{
       // Ne montrer que les jours avec au moins une réponse
-      const dayTotal = DB.availability_responses.filter(r=>r.poll_id===_dispoPollId&&r.date===d).length;
+      const dayTotal = DB.availability_responses.filter(r=>parseInt(r.poll_id)===parseInt(_dispoPollId)&&r.date===d).length;
       if(!dayTotal) return '';
       const dayLabel = dt.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
       const isWE = dt.getDay()===0||dt.getDay()===6;
       return SLOTS.map(slot=>{
-        const resps = DB.availability_responses.filter(r=>r.poll_id===_dispoPollId&&r.date===d&&r.slot===slot.key);
+        const resps = DB.availability_responses.filter(r=>parseInt(r.poll_id)===parseInt(_dispoPollId)&&r.date===d&&r.slot===slot.key);
         const count = resps.length;
         const pct = total>0?Math.round(count/total*100):0;
         const names = resps.map(r=>DB.members.find(m=>m.id===r.member_id)).filter(Boolean).map(m=>esc(m.prenom)).join(', ');
