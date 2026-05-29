@@ -1698,7 +1698,7 @@ async function dispoSave(){
   const st = document.getElementById('dispo-save-st');
   if(st){ st.style.color='var(--text3)'; st.textContent='Enregistrement…'; }
   const myId = parseInt(currentUserId||0);
-  if(!myId){ if(st){st.style.color='var(--red)';st.textContent='Identifiez-vous d'abord.';} return; }
+  if(!myId){ if(st){st.style.color='var(--red)';st.textContent='Identifiez-vous dabord.';} return; }
   try{
     for(const [key, val] of Object.entries(_dispoPending)){
       const [date, slot] = key.split('_');
