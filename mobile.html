@@ -550,16 +550,69 @@ textarea.edit-field-input{min-height:60px;resize:none}
 
     <!-- PLANNING -->
     <div class="page" id="page-planning">
-      <div class="page-top">
-        <h2>Planning</h2>
-        <p id="planning-sub-m"></p>
+      <!-- Onglets -->
+      <div style="display:flex;border-bottom:2px solid var(--border);flex-shrink:0;background:var(--bg)">
+        <button id="btn-m-cal" onclick="planningViewM('cal')" style="flex:1;padding:12px;border:none;background:none;font-size:13px;font-weight:700;color:var(--accent);border-bottom:2px solid var(--accent);margin-bottom:-2px;cursor:pointer;font-family:inherit">📅 Calendrier</button>
+        <button id="btn-m-dispo" onclick="planningViewM('dispo')" style="flex:1;padding:12px;border:none;background:none;font-size:13px;font-weight:400;color:var(--text3);cursor:pointer;font-family:inherit">🗓 Disponibilités</button>
       </div>
-      <div class="cal-header">
-        <button class="cal-nav-btn" onclick="calNav(-1)">‹</button>
-        <div class="cal-month-label" id="cal-label-m"></div>
-        <button class="cal-nav-btn" onclick="calNav(1)">›</button>
+      <!-- Calendrier -->
+      <div id="plan-m-cal">
+        <div class="cal-header">
+          <button class="cal-nav-btn" onclick="calNav(-1)">‹</button>
+          <div class="cal-month-label" id="cal-label-m"></div>
+          <button class="cal-nav-btn" onclick="calNav(1)">›</button>
+        </div>
+        <div class="cal-grid" id="cal-grid-m"></div>
       </div>
-      <div class="cal-grid" id="cal-grid-m"></div>
+      <!-- Disponibilités -->
+      <div id="plan-m-dispo" style="display:none;overflow-y:auto;padding-bottom:80px">
+        <!-- Liste des sondages -->
+        <div id="dispo-m-polls">
+          <div style="padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)">
+            <span style="font-size:12px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Périodes</span>
+            <button onclick="dispoMNewPoll()" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer">+ Nouvelle</button>
+          </div>
+          <div id="dispo-m-list" style="padding:12px 14px"></div>
+        </div>
+        <!-- Détail d'un sondage -->
+        <div id="dispo-m-detail" style="display:none">
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10">
+            <button onclick="dispoMBack()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:13px;color:var(--text);cursor:pointer">←</button>
+            <span id="dispo-m-title" style="font-size:15px;font-weight:700;color:var(--text);flex:1"></span>
+            <button onclick="_dispoMView=_dispoMView==='saisie'?'synthese':'saisie';dispoMRender()" id="dispo-m-toggle-btn" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:12px;font-family:inherit;cursor:pointer;color:var(--text2)">Synthèse</button>
+          </div>
+          <div id="dispo-m-content"></div>
+          <div id="dispo-m-footer" style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;align-items:center;position:sticky;bottom:68px;background:var(--bg)">
+            <span id="dispo-m-st" style="flex:1;font-size:12px;color:var(--green)"></span>
+            <button onclick="dispoMSave()" style="background:var(--accent);color:#fff;border:none;border-radius:10px;padding:10px 20px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer">💾 Enregistrer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal nouvelle période -->
+    <div id="dispo-m-new-wrap" style="position:fixed;inset:0;z-index:9999;display:none;background:rgba(0,0,0,.6);align-items:flex-end">
+      <div style="background:var(--bg);border-radius:20px 20px 0 0;width:100%;padding:20px 18px 40px;display:flex;flex-direction:column;gap:14px">
+        <div style="font-size:18px;font-weight:700;color:var(--text)">Nouvelle période</div>
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:4px;text-transform:uppercase">Nom</div>
+          <input id="dpm-name" type="text" placeholder="ex: Été 2026" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:inherit;outline:none;box-sizing:border-box">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:4px;text-transform:uppercase">Début</div>
+            <input id="dpm-start" type="date" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 8px;font-size:13px;color:var(--text);font-family:inherit;outline:none;box-sizing:border-box">
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:4px;text-transform:uppercase">Fin</div>
+            <input id="dpm-end" type="date" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 8px;font-size:13px;color:var(--text);font-family:inherit;outline:none;box-sizing:border-box">
+          </div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button onclick="document.getElementById('dispo-m-new-wrap').style.display='none'" style="flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);background:none;color:var(--text);font-size:14px;font-family:inherit;cursor:pointer">Annuler</button>
+          <button onclick="dispoMCreatePoll()" style="flex:2;padding:12px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer">Créer</button>
+        </div>
+      </div>
     </div>
 
     <!-- GROUPE -->
@@ -578,58 +631,6 @@ textarea.edit-field-input{min-height:60px;resize:none}
 
   <!-- BOTTOM NAV -->
   
-    <!-- DISPONIBILITÉS -->
-    <div class="page" id="page-disponibilites">
-
-      <!-- Liste des sondages -->
-      <div id="dispo-m-polls">
-        <div class="page-top" style="display:flex;align-items:center;justify-content:space-between">
-          <h2>Disponibilités</h2>
-          <button onclick="dispoMNewPoll()" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer">+ Nouvelle</button>
-        </div>
-        <div id="dispo-m-list" style="padding:0 14px"></div>
-      </div>
-
-      <!-- Saisie d'un sondage -->
-      <div id="dispo-m-detail" style="display:none">
-        <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--nav-bg)">
-          <button onclick="dispoMBack()" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer">←</button>
-          <span id="dispo-m-title" style="font-size:16px;font-weight:700;color:#fff;flex:1"></span>
-          <button onclick="_dispoMView=_dispoMView==='saisie'?'synthese':'saisie';dispoMRender()" style="background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:8px;padding:5px 12px;font-size:12px;font-family:inherit;cursor:pointer" id="dispo-m-toggle-btn">Synthèse</button>
-        </div>
-        <div id="dispo-m-content" style="overflow-y:auto;padding-bottom:100px"></div>
-        <div id="dispo-m-footer" style="position:fixed;bottom:68px;left:0;right:0;padding:10px 16px;background:var(--bg);border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;align-items:center">
-          <span id="dispo-m-st" style="flex:1;font-size:12px;color:var(--green)"></span>
-          <button onclick="dispoMSave()" style="background:var(--accent);color:#fff;border:none;border-radius:10px;padding:10px 20px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer">💾 Enregistrer</button>
-        </div>
-      </div>
-
-      <!-- Modal nouvelle période -->
-      <div id="dispo-m-new-wrap" style="position:fixed;inset:0;z-index:9999;display:none;background:rgba(0,0,0,.6);align-items:flex-end">
-        <div style="background:var(--bg);border-radius:20px 20px 0 0;width:100%;padding:20px 18px 40px;display:flex;flex-direction:column;gap:14px">
-          <div style="font-size:18px;font-weight:700;color:var(--text)">Nouvelle période</div>
-          <div>
-            <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:4px;text-transform:uppercase">Nom</div>
-            <input id="dpm-name" type="text" placeholder="ex: Été 2026" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:inherit;outline:none;box-sizing:border-box">
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-            <div>
-              <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:4px;text-transform:uppercase">Début</div>
-              <input id="dpm-start" type="date" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 8px;font-size:13px;color:var(--text);font-family:inherit;outline:none;box-sizing:border-box">
-            </div>
-            <div>
-              <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:4px;text-transform:uppercase">Fin</div>
-              <input id="dpm-end" type="date" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 8px;font-size:13px;color:var(--text);font-family:inherit;outline:none;box-sizing:border-box">
-            </div>
-          </div>
-          <div style="display:flex;gap:10px;margin-top:4px">
-            <button onclick="document.getElementById('dispo-m-new-wrap').style.display='none'" style="flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);background:none;color:var(--text);font-size:14px;font-family:inherit;cursor:pointer">Annuler</button>
-            <button onclick="dispoMCreatePoll()" style="flex:2;padding:12px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer">Créer</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
   <nav id="bottom-nav">
     <button class="nav-btn active" data-page="dashboard" onclick="goTo('dashboard')">
       <span class="nav-icon">🏠</span>
@@ -716,7 +717,7 @@ function goTo(page){
   document.querySelector('.nav-btn[data-page="'+page+'"]')?.classList.add('active');
   document.getElementById('main')?.scrollTo(0,0);
   const renders = {
-    dashboard:renderDashboard, morceaux:renderSongs, disponibilites:()=>{renderDispoMPolls();document.getElementById('dispo-m-polls').style.display='block';document.getElementById('dispo-m-detail').style.display='none';},
+    dashboard:renderDashboard, morceaux:renderSongs,
     sets:renderSets, concerts:renderConcerts,
     planning:renderCalendar, membres:renderMembers,
   };
@@ -1791,6 +1792,26 @@ let _dispoMView   = 'saisie';
 let _dispoMPending = {};
 const SLOTS_M = [{key:'morning',icon:'🌅',label:'Matin'},{key:'afternoon',icon:'☀️',label:'Après-midi'}];
 
+
+function planningViewM(view){
+  const cal   = document.getElementById('plan-m-cal');
+  const dispo = document.getElementById('plan-m-dispo');
+  const btnCal   = document.getElementById('btn-m-cal');
+  const btnDispo = document.getElementById('btn-m-dispo');
+  if(view==='cal'){
+    cal.style.display='block'; dispo.style.display='none';
+    btnCal.style.fontWeight='700'; btnCal.style.color='var(--accent)'; btnCal.style.borderBottom='2px solid var(--accent)'; btnCal.style.marginBottom='-2px';
+    btnDispo.style.fontWeight='400'; btnDispo.style.color='var(--text3)'; btnDispo.style.borderBottom=''; btnDispo.style.marginBottom='';
+  } else {
+    cal.style.display='none'; dispo.style.display='block';
+    btnDispo.style.fontWeight='700'; btnDispo.style.color='var(--accent)'; btnDispo.style.borderBottom='2px solid var(--accent)'; btnDispo.style.marginBottom='-2px';
+    btnCal.style.fontWeight='400'; btnCal.style.color='var(--text3)'; btnCal.style.borderBottom=''; btnCal.style.marginBottom='';
+    renderDispoMPolls();
+    document.getElementById('dispo-m-polls').style.display='block';
+    document.getElementById('dispo-m-detail').style.display='none';
+  }
+}
+
 function renderDispoMPolls(){
   const list = document.getElementById('dispo-m-list'); if(!list) return;
   list.innerHTML = DB.availability_polls.length
@@ -1825,6 +1846,7 @@ function dispoMOpen(id){
 function dispoMBack(){
   document.getElementById('dispo-m-detail').style.display='none';
   document.getElementById('dispo-m-polls').style.display='block';
+  renderDispoMPolls();
 }
 
 function dispoMRender(){
