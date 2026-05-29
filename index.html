@@ -1587,9 +1587,9 @@ function dispoRenderContent(){
     <div style="padding:16px 20px">
       ${_dispoView==='saisie' ? dispoSaisieHTML(dates) : dispoSyntheseHTML(dates)}
     </div>
-    ${_dispoView==='saisie' ? `<div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;align-items:center">
+    ${_dispoView==='saisie' ? `<div style="padding:8px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;align-items:center">
       <span id="dispo-save-st" style="font-size:12px;color:var(--green)"></span>
-      <button class="btn btn-primary" onclick="dispoSave()">💾 Enregistrer mes disponibilités</button>
+      <span style="font-size:11px;color:var(--text3);font-style:italic">Sauvegarde automatique au clic</span>
     </div>` : ''}
   `;
 }

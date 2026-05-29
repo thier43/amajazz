@@ -1787,7 +1787,7 @@ async function fpmSave(){
 // ===== DISPONIBILITES MOBILE =====
 let _dispoPollIdM = null;
 let _dispoMView   = 'saisie';
-let _dispoMPending = {};
+let _dispoMPending = {}; // plus utilise - sauvegarde auto
 const SLOTS_M = [{key:'morning',icon:'Matin'},{key:'afternoon',icon:'Apres-midi'}];
 
 function planningViewM(view){
@@ -1841,7 +1841,7 @@ function dispoMOpen(id){
   document.getElementById('dispo-m-polls').style.display='none';
   document.getElementById('dispo-m-detail').style.display='block';
   document.getElementById('dispo-m-toggle-btn').textContent='Synthese';
-  document.getElementById('dispo-m-footer').style.display='flex';
+  document.getElementById('dispo-m-footer').style.display='none';
   dispoMRender();
 }
 
@@ -1855,7 +1855,7 @@ function dispoMRender(){
   const p=DB.availability_polls.find(x=>x.id===_dispoPollIdM); if(!p) return;
   const isSaisie=_dispoMView==='saisie';
   document.getElementById('dispo-m-toggle-btn').textContent=isSaisie?'Voir Synthese':'Ma saisie';
-  document.getElementById('dispo-m-footer').style.display=isSaisie?'flex':'none';
+  document.getElementById('dispo-m-footer').style.display='none';
 
   const dates=[];
   let cur=new Date(p.date_start+'T12:00:00');
@@ -1886,8 +1886,7 @@ function dispoMRender(){
         if(isSaisie){
           const key=d+'_'+slot.key;
           const saved=myR.find(function(r){return r.date===d&&r.slot===slot.key;});
-          const pend=_dispoMPending[key];
-          const isOn=pend!==undefined?pend:!!saved;
+          const isOn=!!saved;
           const rowBg=isWE?'rgba(185,106,40,.04)':isOn?'rgba(39,174,96,.05)':'';
           const btnBorder=isOn?'#27ae60':'var(--border)';
           const btnBg=isOn?'rgba(39,174,96,.15)':'var(--surface2)';
@@ -1932,33 +1931,28 @@ function dispoMRender(){
   }).join('');
 }
 
-function dispoMToggle(key){
+async function dispoMToggle(key){
   const myId=parseInt(_currentUserId||0);
+  if(!myId){ alert('Identifiez-vous pour saisir vos disponibilites.'); return; }
   const parts=key.split('_'); const date=parts[0]; const slot=parts[1];
   const saved=DB.availability_responses.find(function(r){return r.poll_id===_dispoPollIdM&&parseInt(r.member_id)===myId&&r.date===date&&r.slot===slot;});
-  const cur=_dispoMPending[key]!==undefined?_dispoMPending[key]:!!saved;
-  _dispoMPending[key]=!cur;
-  dispoMRender();
+  const isOn=!!saved;
+  const st=document.getElementById('dispo-m-st');
+  try{
+    if(isOn){
+      await sb.from('availability_responses').delete().eq('id',saved.id);
+    } else {
+      await sb.from('availability_responses').insert({poll_id:_dispoPollIdM,member_id:myId,date:date,slot:slot});
+    }
+    await loadAll();
+    dispoMRender();
+    if(st){ st.style.color='var(--green)'; st.textContent=isOn?'Retiree':'Enregistree'; setTimeout(function(){st.textContent='';},1200); }
+  }catch(e){
+    if(st){ st.style.color='var(--red)'; st.textContent='Erreur'; }
+  }
 }
 
-async function dispoMSave(){
-  const st=document.getElementById('dispo-m-st');
-  const myId=parseInt(_currentUserId||0);
-  if(!myId){ if(st){st.style.color='var(--red)';st.textContent='Identifiez-vous.';} return; }
-  st.style.color='var(--text3)';st.textContent='Enregistrement...';
-  try{
-    const dispoKeys=Object.keys(_dispoMPending);
-    for(let ki=0;ki<dispoKeys.length;ki++){ const key=dispoKeys[ki]; const val=_dispoMPending[key];
-      const parts=key.split('_');const date=parts[0];const slot=parts[1];
-      const ex=DB.availability_responses.find(function(r){return r.poll_id===_dispoPollIdM&&parseInt(r.member_id)===myId&&r.date===date&&r.slot===slot;});
-      if(val&&!ex) await sb.from('availability_responses').insert({poll_id:_dispoPollIdM,member_id:myId,date,slot});
-      else if(!val&&ex) await sb.from('availability_responses').delete().eq('id',ex.id);
-    }
-    await loadAll();_dispoMPending={};dispoMRender();
-    st.style.color='var(--green)';st.textContent='Enregistre !';
-    setTimeout(function(){st.textContent='';},2500);
-  }catch(e){st.style.color='var(--red)';st.textContent='Erreur: '+e.message;}
-}
+function dispoMSave(){ /* sauvegarde automatique - bouton conserve pour compatibilite */ }
 
 function dispoMNewPoll(){ document.getElementById('dispo-m-new-wrap').style.display='flex'; }
 
