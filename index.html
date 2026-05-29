@@ -1713,11 +1713,15 @@ async function dispoToggle(key, btn){
       await sb.from('availability_responses').delete().eq('id',saved.id);
       DB.availability_responses = DB.availability_responses.filter(r=>r.id!==saved.id);
     } else {
-      const {data} = await sb.from('availability_responses').insert({poll_id:parseInt(_dispoPollId),member_id:myId,date,slot}).select();
+      const {data,error} = await sb.from('availability_responses').insert({poll_id:parseInt(_dispoPollId),member_id:myId,date,slot}).select();
       if(data?.[0]) DB.availability_responses.push(data[0]);
+      else {
+        // Fallback : recharger depuis Supabase
+        const {data:fresh} = await sb.from('availability_responses').select('*');
+        if(fresh) DB.availability_responses = fresh;
+      }
     }
     if(st){ st.style.color='var(--green)'; st.textContent=saved?'Retiré ✓':'✓ Enregistré'; setTimeout(()=>{st.textContent='';},1200); }
-    // Rafraîchir uniquement si on est en vue synthèse (pour les autres musiciens)
     if(_dispoView==='synthese') dispoRenderContent();
   }catch(e){
     // En cas d'erreur, recharger pour remettre l'état correct
