@@ -1771,7 +1771,8 @@ async function fpmSave(){
   const stEl=document.getElementById('fpm-st');
   stEl.style.color='var(--text3)';stEl.textContent='Enregistrement…';
   try{
-    for(const [mid,status] of Object.entries(_fpmCh)){
+    const fpmKeys=Object.keys(_fpmCh);
+    for(let fi=0;fi<fpmKeys.length;fi++){ const mid=fpmKeys[fi]; const status=_fpmCh[mid];
       const ex=DB.event_attendance.find(a=>parseInt(a.event_id)===_fpmEId&&parseInt(a.member_id)===parseInt(mid));
       if(ex) await sb.from('event_attendance').update({status}).eq('id',ex.id);
       else   await sb.from('event_attendance').insert({event_id:_fpmEId,member_id:parseInt(mid),status});
@@ -1898,7 +1899,7 @@ function dispoMRender(){
               (si===0?'<div style="font-size:13px;font-weight:600;color:'+(isWE?'var(--accent)':'var(--text)')+'">'+dayLabel+'</div>':'')+
               '<div style="font-size:12px;color:var(--text3)">'+slot.icon+'</div>'+
             '</div>'+
-            '<button onclick="dispoMToggle(''+key+'')" style="padding:7px 14px;border-radius:20px;border:1px solid '+btnBorder+';background:'+btnBg+';color:'+btnColor+';font-size:13px;font-weight:'+btnWeight+';cursor:pointer;font-family:inherit">'+
+            '<button onclick="dispoMToggle(&quot;'+key+'&quot;)" style="padding:7px 14px;border-radius:20px;border:1px solid '+btnBorder+';background:'+btnBg+';color:'+btnColor+';font-size:13px;font-weight:'+btnWeight+';cursor:pointer;font-family:inherit">'+
               btnText+
             '</button>'+
           '</div>';
