@@ -421,6 +421,30 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
 .pres-bt.on-q{background:rgba(243,156,18,.15);border-color:#f39c12;color:#c87f0a;font-weight:600}
 .pres-bt.on-a{background:rgba(231,76,60,.15);border-color:#e74c3c;color:#e74c3c;font-weight:600}
 .pres-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;align-items:center;flex-shrink:0;background:var(--surface)}
+
+/* ===== DISPONIBILITÉS ===== */
+#page-disponibilites.active{display:flex !important}
+.dispo-layout{display:flex;gap:20px;flex:1;overflow:hidden}
+.dispo-left{width:300px;flex-shrink:0;display:flex;flex-direction:column;gap:12px}
+.dispo-poll-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;cursor:pointer;transition:all .15s}
+.dispo-poll-card:hover{border-color:var(--accent);background:var(--surface2)}
+.dispo-poll-card.active{border-color:var(--accent);background:rgba(185,106,40,.07);border-left:3px solid var(--accent)}
+.dispo-poll-name{font-size:14px;font-weight:700;color:var(--text)}
+.dispo-poll-dates{font-size:11px;color:var(--text3);margin-top:2px}
+.dispo-right{flex:1;overflow:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
+/* Grille de saisie */
+.dispo-grid{border-collapse:collapse;width:100%;font-size:12px}
+.dispo-grid th{padding:8px 10px;background:var(--surface2);border:1px solid var(--border);font-weight:600;color:var(--text);white-space:nowrap;position:sticky;top:0;z-index:2}
+.dispo-grid th.day-header{min-width:90px;text-align:center}
+.dispo-grid td{padding:6px 8px;border:1px solid var(--border);text-align:center;vertical-align:middle}
+.dispo-grid tr:nth-child(even) td{background:var(--surface)}
+.dispo-slot-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:14px;transition:all .12s;display:inline-flex;align-items:center;justify-content:center}
+.dispo-slot-btn:hover{border-color:var(--accent)}
+.dispo-slot-btn.on-morning{background:rgba(41,128,185,.2);border-color:#2980b9}
+.dispo-slot-btn.on-afternoon{background:rgba(39,174,96,.2);border-color:#27ae60}
+.dispo-slot-btn.on-full{background:rgba(185,106,40,.2);border-color:var(--accent)}
+/* Synthèse */
+.dispo-synth-bar{height:6px;border-radius:3px;background:var(--accent);margin-top:3px;transition:width .3s}
 </style>
 <script>
 // Redirection automatique vers mobile si on est sur un téléphone
@@ -576,13 +600,31 @@ if(/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) && window.innerW
     <!-- PLANNING -->
     <div class="page" id="page-planning">
       <div class="page-header">
-        <div><h2 class="page-title">Planning</h2><p class="page-sub">Répétitions &amp; prestations</p></div>
-        <div class="flex gap-8">
-          <button class="btn btn-outline btn-sm" onclick="openRepetModal()">+ Répétition</button>
-          <button class="btn btn-primary btn-sm" onclick="openConcertModal()">+ Prestation</button>
+        <div><h2 class="page-title" id="planning-title">Planning</h2><p class="page-sub" id="planning-sub">Répétitions &amp; prestations</p></div>
+        <div class="flex gap-8" id="planning-actions">
+          <button class="btn btn-ghost btn-sm" id="btn-plan-cal" onclick="planningView('cal')" style="font-weight:700;color:var(--accent)">📅 Calendrier</button>
+          <button class="btn btn-ghost btn-sm" id="btn-plan-dispo" onclick="planningView('dispo')">🗓 Disponibilités</button>
+          <button class="btn btn-outline btn-sm" id="btn-plan-add-repet" onclick="openRepetModal()">+ Répétition</button>
+          <button class="btn btn-primary btn-sm" id="btn-plan-add-conc" onclick="openConcertModal()">+ Prestation</button>
         </div>
       </div>
-      <div class="calendar" id="calendar"></div>
+      <!-- Vue calendrier -->
+      <div id="planning-cal-view">
+        <div class="calendar" id="calendar"></div>
+      </div>
+      <!-- Vue disponibilités -->
+      <div id="planning-dispo-view" style="display:none;height:calc(100vh - 140px);display:none;flex-direction:column">
+        <div style="display:flex;flex:1;overflow:hidden">
+          <div style="width:280px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;background:var(--surface);padding:14px">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);font-weight:600;margin-bottom:10px">Périodes</div>
+            <button class="btn btn-outline btn-sm" style="width:100%;margin-bottom:12px" onclick="openNewPollModal()">+ Nouvelle période</button>
+            <div id="dispo-polls-list"></div>
+          </div>
+          <div style="flex:1;overflow:auto" id="dispo-content">
+            <div style="padding:60px;text-align:center;color:var(--text3);font-style:italic">← Sélectionnez une période</div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- PREFERENCES -->
@@ -653,6 +695,59 @@ if(/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) && window.innerW
           </div>
           <div id="pres-members-list">
             <div style="padding:60px;text-align:center;color:var(--text3);font-style:italic;font-size:14px">← Sélectionnez une date à gauche</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DISPONIBILITÉS -->
+    <div class="page" id="page-disponibilites" style="height:calc(100vh - 56px);flex-direction:column;padding:0;overflow:hidden">
+      <div style="padding:16px 24px 12px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <h2 class="page-title" style="margin:0">Disponibilités</h2>
+          <p class="page-sub" style="margin:2px 0 0">Indiquez vos disponibilités pour planifier les répétitions</p>
+        </div>
+        <button class="btn btn-primary" onclick="openNewPollModal()">+ Nouvelle période</button>
+      </div>
+      <div style="display:flex;flex:1;overflow:hidden;gap:0">
+        <!-- Gauche : liste des sondages -->
+        <div style="width:280px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;background:var(--surface);padding:14px">
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);font-weight:600;margin-bottom:10px">Périodes</div>
+          <div id="dispo-polls-list"></div>
+        </div>
+        <!-- Droite : contenu -->
+        <div style="flex:1;overflow:auto" id="dispo-content">
+          <div style="padding:60px;text-align:center;color:var(--text3);font-style:italic">← Sélectionnez une période</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal nouvelle période -->
+    <div class="modal-overlay" id="dispo-new-overlay" onclick="if(event.target===this)closeNewPollModal()">
+      <div class="modal" style="max-width:420px;width:94vw" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <h3 class="modal-title">Nouvelle période</h3>
+          <button class="modal-close" onclick="closeNewPollModal()">×</button>
+        </div>
+        <div class="modal-body" style="display:flex;flex-direction:column;gap:14px">
+          <div>
+            <label class="form-label">Nom de la période</label>
+            <input class="form-input" id="dp-name" placeholder="ex: Été 2026">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div>
+              <label class="form-label">Date de début</label>
+              <input class="form-input" id="dp-start" type="date">
+            </div>
+            <div>
+              <label class="form-label">Date de fin</label>
+              <input class="form-input" id="dp-end" type="date">
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--text3)">Les jours seront automatiquement générés entre ces deux dates.</div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;padding-top:4px">
+            <button class="btn btn-outline" onclick="closeNewPollModal()">Annuler</button>
+            <button class="btn btn-primary" onclick="savePoll()">Créer</button>
           </div>
         </div>
       </div>
@@ -993,7 +1088,7 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 // ============================================================
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-let DB = { songs:[], members:[], sets:[], set_songs:[], concerts:[], concert_songs:[], events:[], preferences:[], event_attendance:[] };
+let DB = { songs:[], members:[], sets:[], set_songs:[], concerts:[], concert_songs:[], events:[], preferences:[], event_attendance:[], availability_polls:[], availability_responses:[] };
 let editingId = null;
 let setSelectedSongs = [];
 let setNotesMap    = {}; // song_id -> note
@@ -1409,6 +1504,247 @@ async function cancelEvent(eventId, isCancelled){
   }catch(e){ alert('Erreur : '+e.message); }
 }
 
+
+// ===== DISPONIBILITÉS =====
+let _dispoPollId = null;
+let _dispoView   = 'saisie'; // 'saisie' | 'synthese'
+let _dispoPending = {}; // {date_slot_key: status}
+
+const SLOTS = [
+  {key:'morning',   label:'🌅 Matin',    icon:'🌅'},
+  {key:'afternoon', label:'☀️ Après-midi', icon:'☀️'},
+];
+
+
+function planningView(view){
+  const cal   = document.getElementById('planning-cal-view');
+  const dispo = document.getElementById('planning-dispo-view');
+  const btnCal   = document.getElementById('btn-plan-cal');
+  const btnDispo = document.getElementById('btn-plan-dispo');
+  const btnR = document.getElementById('btn-plan-add-repet');
+  const btnC = document.getElementById('btn-plan-add-conc');
+  if(view==='cal'){
+    cal.style.display='block';
+    dispo.style.display='none';
+    btnCal.style.fontWeight='700'; btnCal.style.color='var(--accent)';
+    btnDispo.style.fontWeight=''; btnDispo.style.color='';
+    btnR.style.display=''; btnC.style.display='';
+    document.getElementById('planning-sub').textContent='Répétitions & prestations';
+  } else {
+    cal.style.display='none';
+    dispo.style.display='flex';
+    btnDispo.style.fontWeight='700'; btnDispo.style.color='var(--accent)';
+    btnCal.style.fontWeight=''; btnCal.style.color='';
+    btnR.style.display='none'; btnC.style.display='none';
+    document.getElementById('planning-sub').textContent='Indiquez vos disponibilités';
+    renderDisponibilites();
+  }
+}
+
+function renderDisponibilites(){
+  const list = document.getElementById('dispo-polls-list');
+  if(!list) return;
+  list.innerHTML = DB.availability_polls.length
+    ? DB.availability_polls.map(p=>{
+        const d1 = new Date(p.date_start+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
+        const d2 = new Date(p.date_end+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'});
+        const isActive = p.id === _dispoPollId;
+        return `<div class="dispo-poll-card${isActive?' active':''}" onclick="dispoSelectPoll(${p.id})">
+          <div class="dispo-poll-name">${esc(p.name)}</div>
+          <div class="dispo-poll-dates">${d1} – ${d2}</div>
+        </div>`;
+      }).join('')
+    : '<div style="color:var(--text3);font-size:12px;font-style:italic">Aucune période créée.</div>';
+}
+
+function dispoSelectPoll(id){
+  _dispoPollId = id;
+  _dispoPending = {};
+  renderDisponibilites();
+  dispoRenderContent();
+}
+
+function dispoRenderContent(){
+  const el = document.getElementById('dispo-content'); if(!el) return;
+  const poll = DB.availability_polls.find(p=>p.id===_dispoPollId); if(!poll) return;
+
+  // Générer les dates de la période
+  const dates = [];
+  let cur = new Date(poll.date_start+'T12:00:00');
+  const end = new Date(poll.date_end+'T12:00:00');
+  while(cur <= end){
+    dates.push(cur.toISOString().slice(0,10));
+    cur.setDate(cur.getDate()+1);
+  }
+
+  el.innerHTML = `
+    <div style="padding:16px 20px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;sticky;top:0;background:var(--surface)">
+      <span style="font-size:15px;font-weight:700;color:var(--text);flex:1">${esc(poll.name)}</span>
+      <button onclick="_dispoView='saisie';dispoRenderContent()" style="padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:${_dispoView==='saisie'?'var(--accent)':'var(--surface2)'};color:${_dispoView==='saisie'?'#fff':'var(--text2)'};font-size:12px;cursor:pointer;font-family:inherit">Ma saisie</button>
+      <button onclick="_dispoView='synthese';dispoRenderContent()" style="padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:${_dispoView==='synthese'?'var(--accent)':'var(--surface2)'};color:${_dispoView==='synthese'?'#fff':'var(--text2)'};font-size:12px;cursor:pointer;font-family:inherit">Synthèse</button>
+      <button class="btn btn-danger btn-sm" onclick="deletePoll(${poll.id})" title="Supprimer">✕</button>
+    </div>
+    <div style="padding:16px 20px">
+      ${_dispoView==='saisie' ? dispoSaisieHTML(dates) : dispoSyntheseHTML(dates)}
+    </div>
+    ${_dispoView==='saisie' ? `<div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;align-items:center">
+      <span id="dispo-save-st" style="font-size:12px;color:var(--green)"></span>
+      <button class="btn btn-primary" onclick="dispoSave()">💾 Enregistrer mes disponibilités</button>
+    </div>` : ''}
+  `;
+}
+
+function dispoSaisieHTML(dates){
+  const myId = parseInt(currentUserId||0);
+  const myResponses = DB.availability_responses.filter(r=>r.poll_id===_dispoPollId && parseInt(r.member_id)===myId);
+
+  const weeks = {};
+  dates.forEach(d=>{
+    const dt = new Date(d+'T12:00:00');
+    const weekKey = getWeekKey(dt);
+    if(!weeks[weekKey]) weeks[weekKey]=[];
+    weeks[weekKey].push({d, dt});
+  });
+
+  return Object.entries(weeks).map(([wk, days])=>{
+    const rows = days.map(({d,dt})=>{
+      const dayLabel = dt.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
+      const isWE = dt.getDay()===0||dt.getDay()===6;
+      return SLOTS.map(slot=>{
+        const key = d+'_'+slot.key;
+        const saved = myResponses.find(r=>r.date===d&&r.slot===slot.key);
+        const pending = _dispoPending[key];
+        const isOn = pending!==undefined ? pending : !!saved;
+        return `<div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-bottom:1px solid var(--border);background:${isWE?'rgba(185,106,40,.04)':isOn?'rgba(39,174,96,.06)':''}">
+          <span style="min-width:130px;font-size:12px;color:${isWE?'var(--accent)':'var(--text2)'};font-weight:${slot.key==='morning'?'600':'400'}">${slot.key==='morning'?dayLabel:''}</span>
+          <span style="min-width:90px;font-size:12px;color:var(--text3)">${slot.icon} ${slot.key==='morning'?'Matin':'Après-midi'}</span>
+          <button onclick="dispoToggle('${key}')" style="
+            padding:5px 16px;border-radius:20px;
+            border:1px solid ${isOn?'#27ae60':'var(--border)'};
+            background:${isOn?'rgba(39,174,96,.15)':'var(--surface2)'};
+            color:${isOn?'#27ae60':'var(--text3)'};
+            font-size:12px;font-weight:${isOn?'700':'400'};
+            cursor:pointer;font-family:inherit;transition:all .12s">
+            ${isOn?'✅ Disponible':'○ Non renseigné'}
+          </button>
+        </div>`;
+      }).join('');
+    }).join('');
+    return `<div style="margin-bottom:16px">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:6px;padding:4px 10px;background:var(--surface2);border-radius:6px">Semaine du ${days[0].dt.toLocaleDateString('fr-FR',{day:'numeric',month:'long'})}</div>
+      <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">${rows}</div>
+    </div>`;
+  }).join('');
+}
+
+function dispoSyntheseHTML(dates){
+  const total = DB.members.length;
+  const weeks = {};
+  dates.forEach(d=>{
+    const dt = new Date(d+'T12:00:00');
+    const wk = getWeekKey(dt);
+    if(!weeks[wk]) weeks[wk]=[];
+    weeks[wk].push({d,dt});
+  });
+
+  return Object.entries(weeks).map(([wk, days])=>{
+    const rows = days.map(({d,dt})=>{
+      const dayLabel = dt.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
+      const isWE = dt.getDay()===0||dt.getDay()===6;
+      return SLOTS.map(slot=>{
+        const resps = DB.availability_responses.filter(r=>r.poll_id===_dispoPollId&&r.date===d&&r.slot===slot.key);
+        const count = resps.length;
+        const pct = total>0?Math.round(count/total*100):0;
+        const names = resps.map(r=>DB.members.find(m=>m.id===r.member_id)).filter(Boolean).map(m=>esc(m.prenom)).join(', ');
+        const barColor = pct>=80?'#27ae60':pct>=50?'#f39c12':'#e74c3c';
+        return `<div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-bottom:1px solid var(--border);background:${isWE?'rgba(185,106,40,.04)':''}">
+          <span style="min-width:130px;font-size:12px;color:${isWE?'var(--accent)':'var(--text2)'};font-weight:${slot.key==='morning'?'600':'400'}">${slot.key==='morning'?dayLabel:''}</span>
+          <span style="min-width:90px;font-size:12px;color:var(--text3)">${slot.icon} ${slot.key==='morning'?'Matin':'Après-midi'}</span>
+          <div style="flex:1;max-width:200px">
+            <div style="display:flex;align-items:center;gap:6px">
+              <div style="flex:1;height:8px;border-radius:4px;background:var(--border);overflow:hidden">
+                <div style="height:100%;width:${pct}%;background:${barColor};border-radius:4px;transition:width .3s"></div>
+              </div>
+              <span style="font-size:11px;font-weight:700;color:${barColor};min-width:30px">${count}/${total}</span>
+            </div>
+            ${names?`<div style="font-size:10px;color:var(--text3);margin-top:2px">${names}</div>`:''}
+          </div>
+        </div>`;
+      }).join('');
+    }).join('');
+    return `<div style="margin-bottom:16px">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:6px;padding:4px 10px;background:var(--surface2);border-radius:6px">Semaine du ${days[0].dt.toLocaleDateString('fr-FR',{day:'numeric',month:'long'})}</div>
+      <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">${rows}</div>
+    </div>`;
+  }).join('');
+}
+
+function getWeekKey(dt){
+  const d = new Date(dt); d.setHours(12,0,0,0);
+  d.setDate(d.getDate() - (d.getDay()===0?6:d.getDay()-1));
+  return d.toISOString().slice(0,10);
+}
+
+function dispoToggle(key){
+  const myId = parseInt(currentUserId||0);
+  const [date, slot] = key.split('_');
+  const saved = DB.availability_responses.find(r=>r.poll_id===_dispoPollId&&parseInt(r.member_id)===myId&&r.date===date&&r.slot===slot);
+  const current = _dispoPending[key]!==undefined ? _dispoPending[key] : !!saved;
+  _dispoPending[key] = !current;
+  dispoRenderContent();
+}
+
+async function dispoSave(){
+  const st = document.getElementById('dispo-save-st');
+  if(st){ st.style.color='var(--text3)'; st.textContent='Enregistrement…'; }
+  const myId = parseInt(currentUserId||0);
+  if(!myId){ if(st){st.style.color='var(--red)';st.textContent='Identifiez-vous d'abord.';} return; }
+  try{
+    for(const [key, val] of Object.entries(_dispoPending)){
+      const [date, slot] = key.split('_');
+      const ex = DB.availability_responses.find(r=>r.poll_id===_dispoPollId&&parseInt(r.member_id)===myId&&r.date===date&&r.slot===slot);
+      if(val && !ex){
+        await sb.from('availability_responses').insert({poll_id:_dispoPollId, member_id:myId, date, slot});
+      } else if(!val && ex){
+        await sb.from('availability_responses').delete().eq('id',ex.id);
+      }
+    }
+    await loadAll(); _dispoPending={};
+    dispoRenderContent();
+    if(st){ st.style.color='var(--green)'; st.textContent='✓ Enregistré !'; setTimeout(()=>{st.textContent='';},2500); }
+  }catch(e){
+    if(st){ st.style.color='var(--red)'; st.textContent='Erreur: '+e.message; }
+  }
+}
+
+async function deletePoll(id){
+  if(!confirm('Supprimer cette période et toutes ses réponses ?')) return;
+  await sb.from('availability_polls').delete().eq('id',id);
+  await loadAll(); _dispoPollId=null;
+  renderDisponibilites();
+  document.getElementById('dispo-content').innerHTML='<div style="padding:60px;text-align:center;color:var(--text3);font-style:italic">← Sélectionnez une période</div>';
+}
+
+function openNewPollModal(){
+  document.getElementById('dispo-new-overlay').classList.add('open');
+}
+function closeNewPollModal(){
+  document.getElementById('dispo-new-overlay').classList.remove('open');
+}
+async function savePoll(){
+  const name  = document.getElementById('dp-name').value.trim();
+  const start = document.getElementById('dp-start').value;
+  const end   = document.getElementById('dp-end').value;
+  if(!name||!start||!end){ alert('Remplissez tous les champs.'); return; }
+  if(start>end){ alert('La date de fin doit être après la date de début.'); return; }
+  await sb.from('availability_polls').insert({name, date_start:start, date_end:end});
+  await loadAll(); renderDisponibilites();
+  closeNewPollModal();
+  document.getElementById('dp-name').value='';
+  document.getElementById('dp-start').value='';
+  document.getElementById('dp-end').value='';
+}
+
 async function init(){
   try {
     await loadAll();
@@ -1431,7 +1767,7 @@ async function init(){
 }
 
 async function loadAll(){
-  const [songs, members, sets, set_songs, concerts, concert_songs, events, preferences, ev_att] = await Promise.all([
+  const [songs, members, sets, set_songs, concerts, concert_songs, events, preferences, ev_att, av_polls, av_responses] = await Promise.all([
     sb.from('songs').select('*').order('name'),
     sb.from('members').select('*').order('prenom'),
     sb.from('sets').select('*').order('name'),
@@ -1441,6 +1777,8 @@ async function loadAll(){
     sb.from('events').select('*').order('date'),
     sb.from('preferences').select('*'),
     sb.from('event_attendance').select('*'),
+    sb.from('availability_polls').select('*').order('date_start'),
+    sb.from('availability_responses').select('*'),
   ]);
   DB.songs          = songs.data          || [];
   DB.members        = members.data        || [];
@@ -1450,7 +1788,9 @@ async function loadAll(){
   DB.concert_songs  = concert_songs.data  || [];
   DB.events         = events.data         || [];
   DB.preferences    = preferences.data    || [];
-  DB.event_attendance = ev_att.data || [];
+  DB.event_attendance  = ev_att.data      || [];
+  DB.availability_polls     = av_polls.data    || [];
+  DB.availability_responses = av_responses.data|| [];
 }
 
 // ============================================================
