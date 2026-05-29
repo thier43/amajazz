@@ -1694,39 +1694,47 @@ async function dispoToggle(key, btn){
   const myId = parseInt(currentUserId||0);
   if(!myId){ alert('Identifiez-vous pour saisir vos disponibilités.'); return; }
   const [date, slot] = key.split('_');
-  const saved = DB.availability_responses.find(r=>parseInt(r.poll_id)===parseInt(_dispoPollId)&&parseInt(r.member_id)===myId&&r.date===date&&r.slot===slot);
-  const willBeOn = !saved;
   const st = document.getElementById('dispo-save-st');
-  // Mise à jour visuelle immédiate du bouton sans reconstruire la vue
-  if(btn){
-    btn.style.background    = willBeOn ? 'rgba(39,174,96,.15)' : 'var(--surface2)';
-    btn.style.borderColor   = willBeOn ? '#27ae60' : 'var(--border)';
-    btn.style.color         = willBeOn ? '#27ae60' : 'var(--text2)';
-    btn.style.fontWeight    = willBeOn ? '700' : '400';
-    btn.textContent         = willBeOn ? '✅ Disponible' : '○ Non renseigné';
-    // Mettre à jour le fond de la ligne parente
-    const row = btn.closest('div[style*="display:flex"]');
-    if(row) row.style.background = willBeOn ? 'rgba(39,174,96,.06)' : '';
-  }
+  // Désactiver le bouton pendant la sauvegarde
+  if(btn) btn.disabled = true;
   try{
+    // Toujours relire depuis DB.availability_responses à jour
+    const saved = DB.availability_responses.find(r=>
+      parseInt(r.poll_id)===parseInt(_dispoPollId) &&
+      parseInt(r.member_id)===myId &&
+      r.date===date && r.slot===slot
+    );
+    const willBeOn = !saved;
     if(saved){
-      await sb.from('availability_responses').delete().eq('id',saved.id);
-      DB.availability_responses = DB.availability_responses.filter(r=>r.id!==saved.id);
+      const {error:delErr} = await sb.from('availability_responses').delete().eq('id',saved.id);
+      if(delErr) console.error('delete error:',delErr);
     } else {
-      const {data,error} = await sb.from('availability_responses').insert({poll_id:parseInt(_dispoPollId),member_id:myId,date,slot}).select();
-      if(data?.[0]) DB.availability_responses.push(data[0]);
-      else {
-        // Fallback : recharger depuis Supabase
-        const {data:fresh} = await sb.from('availability_responses').select('*');
-        if(fresh) DB.availability_responses = fresh;
-      }
+      const {error:insErr} = await sb.from('availability_responses')
+        .upsert({poll_id:parseInt(_dispoPollId),member_id:myId,date,slot},
+                {onConflict:'poll_id,member_id,date,slot'});
+      if(insErr) console.error('insert error:',insErr);
+    }
+    // Recharger uniquement availability_responses
+    const {data} = await sb.from('availability_responses').select('*');
+    if(data) DB.availability_responses = data;
+    console.log('DB responses count:',DB.availability_responses.length);
+    // Mise à jour visuelle du bouton
+    if(btn){
+      btn.style.background  = willBeOn ? 'rgba(39,174,96,.15)' : 'var(--surface2)';
+      btn.style.borderColor = willBeOn ? '#27ae60' : 'var(--border)';
+      btn.style.color       = willBeOn ? '#27ae60' : 'var(--text2)';
+      btn.style.fontWeight  = willBeOn ? '700' : '400';
+      btn.textContent       = willBeOn ? '✅ Disponible' : '○ Non renseigné';
+      const row = btn.closest('div[style*="display:flex"]');
+      if(row) row.style.background = willBeOn ? 'rgba(39,174,96,.06)' : '';
     }
     if(st){ st.style.color='var(--green)'; st.textContent=saved?'Retiré ✓':'✓ Enregistré'; setTimeout(()=>{st.textContent='';},1200); }
     if(_dispoView==='synthese') dispoRenderContent();
   }catch(e){
-    // En cas d'erreur, recharger pour remettre l'état correct
     await loadAll(); dispoRenderContent();
     if(st){ st.style.color='var(--red)'; st.textContent='Erreur: '+e.message; }
+  } finally {
+    if(btn) btn.disabled = false;
   }
 }
 
