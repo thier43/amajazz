@@ -1629,7 +1629,7 @@ function dispoSaisieHTML(dates){
           </button>
         </div>`;
       }).join('');
-    }).join('');
+    }).filter(Boolean).join('');
     if(!rows.trim()) return '';
     return `<div style="margin-bottom:16px">
       <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:6px;padding:4px 10px;background:var(--surface2);border-radius:6px">Semaine du ${days[0].dt.toLocaleDateString('fr-FR',{day:'numeric',month:'long'})}</div>
@@ -1675,7 +1675,7 @@ function dispoSyntheseHTML(dates){
           </div>
         </div>`;
       }).join('');
-    }).join('');
+    }).filter(Boolean).join('');
     if(!rows.trim()) return '';
     return `<div style="margin-bottom:16px">
       <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:6px;padding:4px 10px;background:var(--surface2);border-radius:6px">Semaine du ${days[0].dt.toLocaleDateString('fr-FR',{day:'numeric',month:'long'})}</div>
@@ -1690,37 +1690,24 @@ function getWeekKey(dt){
   return d.toISOString().slice(0,10);
 }
 
-function dispoToggle(key){
+async function dispoToggle(key){
   const myId = parseInt(currentUserId||0);
+  if(!myId){ alert('Identifiez-vous pour saisir vos disponibilités.'); return; }
   const [date, slot] = key.split('_');
-  const saved = DB.availability_responses.find(r=>r.poll_id===_dispoPollId&&parseInt(r.member_id)===myId&&r.date===date&&r.slot===slot);
-  const current = _dispoPending[key]!==undefined ? _dispoPending[key] : !!saved;
-  _dispoPending[key] = !current;
-  dispoRenderContent();
-}
-
-async function dispoSave(){
+  const saved = DB.availability_responses.find(r=>parseInt(r.poll_id)===parseInt(_dispoPollId)&&parseInt(r.member_id)===myId&&r.date===date&&r.slot===slot);
   const st = document.getElementById('dispo-save-st');
-  if(st){ st.style.color='var(--text3)'; st.textContent='Enregistrement…'; }
-  const myId = parseInt(currentUserId||0);
-  if(!myId){ if(st){st.style.color='var(--red)';st.textContent='Identifiez-vous dabord.';} return; }
   try{
-    for(const [key, val] of Object.entries(_dispoPending)){
-      const [date, slot] = key.split('_');
-      const ex = DB.availability_responses.find(r=>r.poll_id===_dispoPollId&&parseInt(r.member_id)===myId&&r.date===date&&r.slot===slot);
-      if(val && !ex){
-        await sb.from('availability_responses').insert({poll_id:_dispoPollId, member_id:myId, date, slot});
-      } else if(!val && ex){
-        await sb.from('availability_responses').delete().eq('id',ex.id);
-      }
-    }
-    await loadAll(); _dispoPending={};
+    if(saved) await sb.from('availability_responses').delete().eq('id',saved.id);
+    else await sb.from('availability_responses').insert({poll_id:parseInt(_dispoPollId),member_id:myId,date,slot});
+    await loadAll();
     dispoRenderContent();
-    if(st){ st.style.color='var(--green)'; st.textContent='✓ Enregistré !'; setTimeout(()=>{st.textContent='';},2500); }
+    if(st){ st.style.color='var(--green)'; st.textContent=saved?'Retiré':'✓ Enregistré'; setTimeout(()=>{st.textContent='';},1200); }
   }catch(e){
     if(st){ st.style.color='var(--red)'; st.textContent='Erreur: '+e.message; }
   }
 }
+
+async function dispoSave(){ /* sauvegarde automatique */ }
 
 async function deletePoll(id){
   if(!confirm('Supprimer cette période et toutes ses réponses ?')) return;
