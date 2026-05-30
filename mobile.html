@@ -1813,10 +1813,12 @@ function renderDispoMPolls(){
     var d1=new Date(p.date_start+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
     var d2=new Date(p.date_end+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'});
     var resps=DB.availability_responses.filter(function(r){return parseInt(r.poll_id)===p.id;}).length;
-    return '<div style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px">'+'<div onclick="dispoMOpen('+p.id+')" style="flex:1;cursor:pointer">" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px">'
-      +'<div style="flex:1"><div style="font-size:15px;font-weight:700;color:var(--text)">'+esc(p.name)+'</div>'
-      +'<div style="font-size:12px;color:var(--text3);margin-top:2px">'+d1+' - '+d2+'</div></div>'
-      +'<div style="text-align:right"><div style="font-size:12px;color:var(--accent);font-weight:600">'+resps+' rep.</div><div style="font-size:16px;color:var(--text3)">›</div></div>'
+    return '<div style="display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:10px">'
+      +'<div onclick="dispoMOpen('+p.id+')" style="flex:1;cursor:pointer">'
+        +'<div style="font-size:15px;font-weight:700;color:var(--text)">'+esc(p.name)+'</div>'
+        +'<div style="font-size:12px;color:var(--text3);margin-top:2px">'+d1+' - '+d2+' · '+resps+' rep.</div>'
+      +'</div>'
+      +'<button onclick="dispoMEdit('+p.id+')" style="background:none;border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer;color:var(--text2);font-family:inherit">✎</button>'
       +'</div>';
   }).join('');
 }
