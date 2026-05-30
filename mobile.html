@@ -583,7 +583,8 @@ textarea.edit-field-input{min-height:60px;resize:none}
     </div>
     <div id="dispo-m-new-wrap" style="position:fixed;inset:0;z-index:9999;display:none;background:rgba(0,0,0,.6);align-items:flex-end">
       <div style="background:var(--bg);border-radius:20px 20px 0 0;width:100%;padding:20px 18px 40px;display:flex;flex-direction:column;gap:14px">
-        <div style="font-size:18px;font-weight:700;color:var(--text)">Nouvelle période</div>
+        <div id="dpm-title" style="font-size:18px;font-weight:700;color:var(--text)">Nouvelle période</div>
+        <input type="hidden" id="dpm-id" value="">
         <div>
           <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:4px;text-transform:uppercase">Nom</div>
           <input id="dpm-name" type="text" placeholder="ex: Ete 2026" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:inherit;outline:none;box-sizing:border-box">
@@ -600,7 +601,7 @@ textarea.edit-field-input{min-height:60px;resize:none}
         </div>
         <div style="display:flex;gap:10px">
           <button onclick="document.getElementById('dispo-m-new-wrap').style.display='none'" style="flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);background:none;color:var(--text);font-size:14px;font-family:inherit;cursor:pointer">Annuler</button>
-          <button onclick="dispoMCreatePoll()" style="flex:2;padding:12px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer">Creer</button>
+          <button id="dpm-btn" onclick="dispoMCreatePoll()" style="flex:2;padding:12px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer">Creer</button>
         </div>
       </div>
     </div>
@@ -1812,7 +1813,7 @@ function renderDispoMPolls(){
     var d1=new Date(p.date_start+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
     var d2=new Date(p.date_end+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'});
     var resps=DB.availability_responses.filter(function(r){return parseInt(r.poll_id)===p.id;}).length;
-    return '<div onclick="dispoMOpen('+p.id+')" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px">'
+    return '<div style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px">'+'<div onclick="dispoMOpen('+p.id+')" style="flex:1;cursor:pointer">" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px">'
       +'<div style="flex:1"><div style="font-size:15px;font-weight:700;color:var(--text)">'+esc(p.name)+'</div>'
       +'<div style="font-size:12px;color:var(--text3);margin-top:2px">'+d1+' - '+d2+'</div></div>'
       +'<div style="text-align:right"><div style="font-size:12px;color:var(--accent);font-weight:600">'+resps+' rep.</div><div style="font-size:16px;color:var(--text3)">›</div></div>'
@@ -1960,20 +1961,41 @@ async function dispoMToggle(btn){
   btn.disabled=false;
 }
 
-function dispoMNewPoll(){ document.getElementById('dispo-m-new-wrap').style.display='flex'; }
+function dispoMNewPoll(){
+  document.getElementById('dpm-id').value='';
+  document.getElementById('dpm-name').value='';
+  document.getElementById('dpm-start').value='';
+  document.getElementById('dpm-end').value='';
+  document.getElementById('dpm-title').textContent='Nouvelle période';
+  document.getElementById('dpm-btn').textContent='Creer';
+  document.getElementById('dispo-m-new-wrap').style.display='flex';
+}
+
+function dispoMEdit(id){
+  var p=DB.availability_polls.find(function(x){return x.id===id;}); if(!p) return;
+  document.getElementById('dpm-id').value=id;
+  document.getElementById('dpm-name').value=p.name;
+  document.getElementById('dpm-start').value=p.date_start;
+  document.getElementById('dpm-end').value=p.date_end;
+  document.getElementById('dpm-title').textContent='Modifier';
+  document.getElementById('dpm-btn').textContent='Enregistrer';
+  document.getElementById('dispo-m-new-wrap').style.display='flex';
+}
 
 async function dispoMCreatePoll(){
+  var id=document.getElementById('dpm-id').value;
   var name=document.getElementById('dpm-name').value.trim();
   var start=document.getElementById('dpm-start').value;
   var end=document.getElementById('dpm-end').value;
   if(!name||!start||!end){ alert('Remplissez tous les champs.'); return; }
   if(start>end){ alert('Date de fin invalide.'); return; }
-  await sb.from('availability_polls').insert({name:name,date_start:start,date_end:end});
+  if(id){
+    await sb.from('availability_polls').update({name:name,date_start:start,date_end:end}).eq('id',parseInt(id));
+  } else {
+    await sb.from('availability_polls').insert({name:name,date_start:start,date_end:end});
+  }
   await loadAll(); renderDispoMPolls();
   document.getElementById('dispo-m-new-wrap').style.display='none';
-  document.getElementById('dpm-name').value='';
-  document.getElementById('dpm-start').value='';
-  document.getElementById('dpm-end').value='';
 }
 
 function dispoGetWeek(dt){

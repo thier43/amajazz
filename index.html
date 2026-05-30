@@ -900,10 +900,11 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
     <!-- Nouvelle période de disponibilité -->
     <div class="modal" id="modal-new-poll" style="max-width:420px;width:94vw">
       <div class="modal-header">
-        <h3 class="modal-title">Nouvelle période</h3>
+        <h3 class="modal-title" id="dp-modal-title">Nouvelle période</h3>
         <button class="modal-close" onclick="closeModal()">×</button>
       </div>
       <div class="modal-body" style="display:flex;flex-direction:column;gap:14px">
+        <input type="hidden" id="dp-id" value="">
         <div>
           <label class="form-label">Nom de la période</label>
           <input class="form-input" id="dp-name" placeholder="ex: Été 2026">
@@ -920,7 +921,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
         </div>
         <div style="display:flex;gap:8px;justify-content:flex-end;padding-top:4px">
           <button class="btn btn-outline" onclick="closeModal()">Annuler</button>
-          <button class="btn btn-primary" onclick="savePoll()">Créer</button>
+          <button class="btn btn-primary" id="dp-save-btn" onclick="savePoll()">Créer</button>
         </div>
       </div>
     </div>
@@ -1260,6 +1261,7 @@ function dispoRenderContent(){
       <span style="font-size:14px;font-weight:700;color:var(--text);flex:1">${esc(poll.name)}</span>
       <span id="dispo-save-st" style="font-size:12px;color:var(--green)"></span>
       <button onclick="_dispoView=_dispoView==='saisie'?'synthese':'saisie';dispoRenderContent()" style="padding:4px 12px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);font-size:11px;cursor:pointer;font-family:inherit;color:var(--text2)">${isSaisie?'Voir synthèse':'Ma saisie'}</button>
+      <button onclick="editPoll(${poll.id})" style="padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:none;font-size:11px;cursor:pointer;font-family:inherit;color:var(--text2)">✎ Modifier</button>
       <button onclick="deletePoll(${poll.id})" style="padding:4px 10px;border-radius:8px;border:1px solid rgba(231,76,60,.3);background:none;font-size:11px;cursor:pointer;font-family:inherit;color:var(--red)">✕ Supprimer</button>
     </div>
     <div style="padding:16px 20px">
@@ -1304,22 +1306,43 @@ function dispoGetWeek(dt){
   return d.toISOString().slice(0,10);
 }
 
-function openNewPollModal(){ showModal('new-poll'); }
-function closeNewPollModal(){ closeModal(); }
+function openNewPollModal(){
+  document.getElementById('dp-id').value='';
+  document.getElementById('dp-name').value='';
+  document.getElementById('dp-start').value='';
+  document.getElementById('dp-end').value='';
+  document.getElementById('dp-modal-title').textContent='Nouvelle période';
+  document.getElementById('dp-save-btn').textContent='Créer';
+  showModal('new-poll');
+}
+
+function editPoll(id){
+  const p = DB.availability_polls.find(x=>x.id===id); if(!p) return;
+  document.getElementById('dp-id').value=id;
+  document.getElementById('dp-name').value=p.name;
+  document.getElementById('dp-start').value=p.date_start;
+  document.getElementById('dp-end').value=p.date_end;
+  document.getElementById('dp-modal-title').textContent='Modifier la période';
+  document.getElementById('dp-save-btn').textContent='Enregistrer';
+  showModal('new-poll');
+}
 
 async function savePoll(){
+  const id    = document.getElementById('dp-id').value;
   const name  = document.getElementById('dp-name').value.trim();
   const start = document.getElementById('dp-start').value;
   const end   = document.getElementById('dp-end').value;
   if(!name||!start||!end){ alert('Remplissez tous les champs.'); return; }
   if(start>end){ alert('La date de fin doit être après le début.'); return; }
-  await sb.from('availability_polls').insert({name,date_start:start,date_end:end});
+  if(id){
+    await sb.from('availability_polls').update({name,date_start:start,date_end:end}).eq('id',parseInt(id));
+  } else {
+    await sb.from('availability_polls').insert({name,date_start:start,date_end:end});
+  }
   await loadAll();
   renderDisponibilites();
+  if(_dispoPollId) dispoRenderContent();
   closeModal();
-  document.getElementById('dp-name').value='';
-  document.getElementById('dp-start').value='';
-  document.getElementById('dp-end').value='';
 }
 
 async function deletePoll(id){
