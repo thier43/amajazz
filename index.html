@@ -939,7 +939,7 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 // ============================================================
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-let DB = { songs:[], members:[], sets:[], set_songs:[], concerts:[], concert_songs:[], events:[], preferences:[] };
+let DB = { songs:[], members:[], sets:[], set_songs:[], concerts:[], concert_songs:[], events:[], preferences:[], event_attendance:[], availability_polls:[], availability_responses:[] };
 let editingId = null;
 let setSelectedSongs = [];
 let setNotesMap    = {}; // song_id -> note
@@ -1314,7 +1314,9 @@ async function savePoll(){
   if(!name||!start||!end){ alert('Remplissez tous les champs.'); return; }
   if(start>end){ alert('La date de fin doit être après le début.'); return; }
   await sb.from('availability_polls').insert({name,date_start:start,date_end:end});
-  await loadAll(); renderDisponibilites(); closeModal();
+  await loadAll();
+  renderDisponibilites();
+  closeModal();
   document.getElementById('dp-name').value='';
   document.getElementById('dp-start').value='';
   document.getElementById('dp-end').value='';
@@ -1350,7 +1352,7 @@ async function init(){
 }
 
 async function loadAll(){
-  const [songs, members, sets, set_songs, concerts, concert_songs, events, preferences] = await Promise.all([
+  const [songs, members, sets, set_songs, concerts, concert_songs, events, preferences, ev_att, av_polls, av_resp] = await Promise.all([
     sb.from('songs').select('*').order('name'),
     sb.from('members').select('*').order('prenom'),
     sb.from('sets').select('*').order('name'),
@@ -1359,15 +1361,21 @@ async function loadAll(){
     sb.from('concert_songs').select('*').order('position'),
     sb.from('events').select('*').order('date'),
     sb.from('preferences').select('*'),
+    sb.from('event_attendance').select('*'),
+    sb.from('availability_polls').select('*').order('date_start'),
+    sb.from('availability_responses').select('*'),
   ]);
-  DB.songs          = songs.data          || [];
-  DB.members        = members.data        || [];
-  DB.sets           = sets.data           || [];
-  DB.set_songs      = set_songs.data      || [];
-  DB.concerts       = concerts.data       || [];
-  DB.concert_songs  = concert_songs.data  || [];
-  DB.events         = events.data         || [];
-  DB.preferences    = preferences.data    || [];
+  DB.songs                  = songs.data          || [];
+  DB.members                = members.data        || [];
+  DB.sets                   = sets.data           || [];
+  DB.set_songs              = set_songs.data      || [];
+  DB.concerts               = concerts.data       || [];
+  DB.concert_songs          = concert_songs.data  || [];
+  DB.events                 = events.data         || [];
+  DB.preferences            = preferences.data    || [];
+  DB.event_attendance       = ev_att.data         || [];
+  DB.availability_polls     = av_polls.data       || [];
+  DB.availability_responses = av_resp.data        || [];
 }
 
 // ============================================================
