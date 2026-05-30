@@ -83,7 +83,6 @@ button{font-family:'DM Sans',sans-serif}
 
 /* ===== PAGES ===== */
 .page{display:none;padding:30px 34px;min-height:100%;animation:fadeIn .2s ease}
-#page-presences.active{display:flex !important}
 .page.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 .page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:26px;gap:16px}
@@ -380,78 +379,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
   padding:2px 0;box-sizing:border-box;margin-left:30px;width:calc(100% - 30px);
 }
 .sqm-ni::placeholder{ color:var(--text3);font-style:italic; }
-
-/* FP */
-.fp-row{padding:12px 20px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .15s}
-.fp-row:hover{background:var(--surface2)}
-.fp-mrow{display:flex;align-items:center;gap:10px;padding:10px 20px;border-bottom:1px solid var(--border)}
-.fp-mrow.me{background:rgba(185,106,40,.08);border-left:3px solid var(--accent)}
-.fp-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
-.fp-nm{flex:1;font-size:13px;font-weight:500;color:var(--text)}
-.fp-bt{width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:14px;opacity:.3;transition:all .12s}
-.fp-bt:hover{opacity:.7}
-.fp-bt.on{opacity:1;border-color:transparent}
-.fp-bt.on.p{background:rgba(39,174,96,.25);border-color:#27ae60}
-.fp-bt.on.q{background:rgba(243,156,18,.25);border-color:#f39c12}
-.fp-bt.on.a{background:rgba(231,76,60,.25);border-color:#e74c3c}
-
-/* PAGE PRÉSENCES */
-.pres-layout{display:grid;grid-template-columns:280px 1fr;gap:20px;height:calc(100vh - 120px)}
-.pres-dates{overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
-.pres-date-item{padding:11px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;display:flex;flex-direction:column;gap:3px}
-.pres-date-item:last-child{border-bottom:none}
-.pres-date-item:hover{background:var(--surface2)}
-.pres-date-item.active{background:rgba(185,106,40,.08);border-left:3px solid var(--accent)}
-.pres-date-name{font-size:13px;font-weight:600;color:var(--text)}
-.pres-date-sub{font-size:11px;color:var(--text3)}
-.pres-date-summary{display:flex;gap:4px;margin-top:2px}
-.pres-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;overflow:hidden}
-.pres-panel-header{padding:16px 20px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
-.pres-panel-title{font-size:17px;font-weight:700;color:var(--text)}
-.pres-panel-sub{font-size:12px;color:var(--text3);margin-top:2px}
-.pres-member-row{display:flex;align-items:center;gap:12px;padding:11px 20px;border-bottom:1px solid var(--border)}
-.pres-member-row:last-child{border-bottom:none}
-.pres-member-row.me{background:rgba(185,106,40,.07);border-left:3px solid var(--accent)}
-.pres-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
-.pres-nm{flex:1;font-size:13px;font-weight:500;color:var(--text)}
-.pres-bts{display:flex;gap:5px}
-.pres-bt{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:12px;color:var(--text2);transition:all .12s;font-family:inherit}
-.pres-bt:hover{background:var(--surface3)}
-.pres-bt.on-p{background:rgba(39,174,96,.15);border-color:#27ae60;color:#27ae60;font-weight:600}
-.pres-bt.on-q{background:rgba(243,156,18,.15);border-color:#f39c12;color:#c87f0a;font-weight:600}
-.pres-bt.on-a{background:rgba(231,76,60,.15);border-color:#e74c3c;color:#e74c3c;font-weight:600}
-.pres-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;align-items:center;flex-shrink:0;background:var(--surface)}
-
-/* ===== DISPONIBILITÉS ===== */
-#page-disponibilites.active{display:flex !important}
-.dispo-layout{display:flex;gap:20px;flex:1;overflow:hidden}
-.dispo-left{width:300px;flex-shrink:0;display:flex;flex-direction:column;gap:12px}
-.dispo-poll-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;cursor:pointer;transition:all .15s}
-.dispo-poll-card:hover{border-color:var(--accent);background:var(--surface2)}
-.dispo-poll-card.active{border-color:var(--accent);background:rgba(185,106,40,.07);border-left:3px solid var(--accent)}
-.dispo-poll-name{font-size:14px;font-weight:700;color:var(--text)}
-.dispo-poll-dates{font-size:11px;color:var(--text3);margin-top:2px}
-.dispo-right{flex:1;overflow:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
-/* Grille de saisie */
-.dispo-grid{border-collapse:collapse;width:100%;font-size:12px}
-.dispo-grid th{padding:8px 10px;background:var(--surface2);border:1px solid var(--border);font-weight:600;color:var(--text);white-space:nowrap;position:sticky;top:0;z-index:2}
-.dispo-grid th.day-header{min-width:90px;text-align:center}
-.dispo-grid td{padding:6px 8px;border:1px solid var(--border);text-align:center;vertical-align:middle}
-.dispo-grid tr:nth-child(even) td{background:var(--surface)}
-.dispo-slot-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:14px;transition:all .12s;display:inline-flex;align-items:center;justify-content:center}
-.dispo-slot-btn:hover{border-color:var(--accent)}
-.dispo-slot-btn.on-morning{background:rgba(41,128,185,.2);border-color:#2980b9}
-.dispo-slot-btn.on-afternoon{background:rgba(39,174,96,.2);border-color:#27ae60}
-.dispo-slot-btn.on-full{background:rgba(185,106,40,.2);border-color:var(--accent)}
-/* Synthèse */
-.dispo-synth-bar{height:6px;border-radius:3px;background:var(--accent);margin-top:3px;transition:width .3s}
 </style>
-<script>
-// Redirection automatique vers mobile si on est sur un téléphone
-if(/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) && window.innerWidth < 768){
-  window.location.replace('/mobile.html');
-}
-</script>
 </head>
 <body>
 
@@ -516,10 +444,6 @@ if(/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) && window.innerW
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
         Préférences
       </div>
-      <div class="nav-item" data-page="presences">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><path d="M16 11l2 2 4-4" stroke-width="2"/></svg>
-        Présences
-      </div>
     </nav>
     <!-- Current user badge -->
     <div id="sidebar-user-badge" style="padding:8px 16px;display:none">
@@ -552,7 +476,6 @@ if(/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) && window.innerW
         <div>
           <div class="text-xs text-muted" style="text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Prochains événements</div>
           <div id="dash-events"></div>
-          <div id="dash-absents" style="margin-top:12px"></div>
         </div>
         <div>
           <div class="text-xs text-muted" style="text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Prochaine répétition</div>
@@ -600,21 +523,36 @@ if(/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) && window.innerW
     <!-- PLANNING -->
     <div class="page" id="page-planning">
       <div class="page-header">
-        <div><h2 class="page-title" id="planning-title">Planning</h2><p class="page-sub" id="planning-sub">Répétitions &amp; prestations</p></div>
-        <div class="flex gap-8" id="planning-actions">
-          <button class="btn btn-ghost btn-sm" id="btn-plan-cal" onclick="planningView('cal')" style="font-weight:700;color:var(--accent)">📅 Calendrier</button>
-          <button class="btn btn-ghost btn-sm" id="btn-plan-dispo" onclick="planningView('dispo')">🗓 Disponibilités</button>
-          <button class="btn btn-outline btn-sm" id="btn-plan-add-repet" onclick="openRepetModal()">+ Répétition</button>
-          <button class="btn btn-primary btn-sm" id="btn-plan-add-conc" onclick="openConcertModal()">+ Prestation</button>
+        <div style="display:flex;align-items:center;gap:16px">
+          <h2 class="page-title" id="planning-title">Planning</h2>
+          <div style="display:flex;gap:4px;background:var(--surface2);border-radius:20px;padding:3px">
+            <button id="btn-plan-cal" onclick="planningView('cal')" style="padding:5px 14px;border-radius:16px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;background:var(--accent);color:#fff">📅 Calendrier</button>
+            <button id="btn-plan-dispo" onclick="planningView('dispo')" style="padding:5px 14px;border-radius:16px;border:none;font-size:12px;font-weight:400;cursor:pointer;font-family:inherit;background:transparent;color:var(--text3)">🗓 Disponibilités</button>
+          </div>
+        </div>
+        <div class="flex gap-8" id="planning-add-btns">
+          <button class="btn btn-outline btn-sm" onclick="openRepetModal()">+ Répétition</button>
+          <button class="btn btn-primary btn-sm" onclick="openConcertModal()">+ Prestation</button>
         </div>
       </div>
       <!-- Vue calendrier -->
-      <div id="planning-cal-view">
-        <div class="calendar" id="calendar"></div>
-      </div>
+      <div id="plan-cal-view"><div class="calendar" id="calendar"></div></div>
       <!-- Vue disponibilités -->
-      <div id="planning-dispo-view" style="display:none;height:calc(100vh - 140px);display:none;flex-direction:column">
-        
+      <div id="plan-dispo-view" style="display:none;height:calc(100vh - 140px);overflow:hidden;display:none;flex-direction:column">
+        <div style="display:flex;height:100%;overflow:hidden">
+          <!-- Gauche : périodes -->
+          <div style="width:260px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;background:var(--surface);display:flex;flex-direction:column">
+            <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+              <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3)">Périodes</span>
+              <button class="btn btn-outline btn-sm" onclick="openNewPollModal()">+ Nouvelle</button>
+            </div>
+            <div id="dispo-polls-list" style="overflow-y:auto;flex:1;padding:10px"></div>
+          </div>
+          <!-- Droite : contenu -->
+          <div id="dispo-content" style="flex:1;overflow-y:auto">
+            <div style="padding:60px;text-align:center;color:var(--text3);font-style:italic">← Sélectionnez une période</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -656,93 +594,6 @@ if(/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) && window.innerW
       </div>
     </div>
 
-
-    <!-- PRÉSENCES -->
-    <div class="page" id="page-presences" style="height:calc(100vh - 56px);flex-direction:column;padding:0;overflow:hidden">
-      <!-- Header fixe -->
-      <div style="padding:16px 24px 12px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between">
-        <div>
-          <h2 class="page-title" style="margin:0">Présences</h2>
-          <p class="page-sub" style="margin:2px 0 0">Gestion des présences aux répétitions</p>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px">
-          <div id="pres-panel-sum" style="display:flex;gap:6px"></div>
-          <span id="pres-save-st" style="font-size:12px;color:var(--green)"></span>
-          <button class="btn btn-primary" id="pres-save-btn" onclick="presSave()" style="display:none">💾 Enregistrer</button>
-        </div>
-      </div>
-      <!-- Layout 2 colonnes -->
-      <div style="display:flex;flex:1;overflow:hidden">
-        <!-- Colonne gauche : dates -->
-        <div style="width:320px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;background:var(--surface)">
-          <div style="padding:10px 14px;font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);font-weight:600;border-bottom:1px solid var(--border)">Répétitions à venir</div>
-          <div id="pres-dates-list"></div>
-        </div>
-        <!-- Colonne droite : musiciens -->
-        <div style="flex:1;overflow-y:auto;background:var(--bg)">
-          <div style="padding:14px 20px;border-bottom:1px solid var(--border);background:var(--surface)">
-            <div id="pres-panel-title" style="font-size:16px;font-weight:700;color:var(--text)">Sélectionnez une date</div>
-            <div id="pres-panel-sub" style="font-size:12px;color:var(--text3);margin-top:2px">Cliquez sur une répétition à gauche</div>
-          </div>
-          <div id="pres-members-list">
-            <div style="padding:60px;text-align:center;color:var(--text3);font-style:italic;font-size:14px">← Sélectionnez une date à gauche</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- DISPONIBILITÉS -->
-    <div class="page" id="page-disponibilites" style="height:calc(100vh - 56px);flex-direction:column;padding:0;overflow:hidden">
-      <div style="padding:16px 24px 12px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between">
-        <div>
-          <h2 class="page-title" style="margin:0">Disponibilités</h2>
-          <p class="page-sub" style="margin:2px 0 0">Indiquez vos disponibilités pour planifier les répétitions</p>
-        </div>
-        <button class="btn btn-primary" onclick="openNewPollModal()">+ Nouvelle période</button>
-      </div>
-      <div style="display:flex;flex:1;overflow:hidden;gap:0">
-        <!-- Gauche : liste des sondages -->
-        <div style="width:280px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;background:var(--surface);padding:14px">
-          <div style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);font-weight:600;margin-bottom:10px">Périodes</div>
-          <div id="dispo-polls-list"></div>
-        </div>
-        <!-- Droite : contenu -->
-        <div style="flex:1;overflow:auto" id="dispo-content">
-          <div style="padding:60px;text-align:center;color:var(--text3);font-style:italic">← Sélectionnez une période</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal nouvelle période -->
-    <div class="modal-overlay" id="dispo-new-overlay" onclick="if(event.target===this)closeNewPollModal()">
-      <div class="modal" style="max-width:420px;width:94vw" onclick="event.stopPropagation()">
-        <div class="modal-header">
-          <h3 class="modal-title">Nouvelle période</h3>
-          <button class="modal-close" onclick="closeNewPollModal()">×</button>
-        </div>
-        <div class="modal-body" style="display:flex;flex-direction:column;gap:14px">
-          <div>
-            <label class="form-label">Nom de la période</label>
-            <input class="form-input" id="dp-name" placeholder="ex: Été 2026">
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-            <div>
-              <label class="form-label">Date de début</label>
-              <input class="form-input" id="dp-start" type="date">
-            </div>
-            <div>
-              <label class="form-label">Date de fin</label>
-              <input class="form-input" id="dp-end" type="date">
-            </div>
-          </div>
-          <div style="font-size:11px;color:var(--text3)">Les jours seront automatiquement générés entre ces deux dates.</div>
-          <div style="display:flex;gap:8px;justify-content:flex-end;padding-top:4px">
-            <button class="btn btn-outline" onclick="closeNewPollModal()">Annuler</button>
-            <button class="btn btn-primary" onclick="savePoll()">Créer</button>
-          </div>
-        </div>
-      </div>
-    </div>
   </main>
 </div>
 
@@ -1046,22 +897,31 @@ if(/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) && window.innerW
     </div>
     <div class="modal-body" id="detail-body"></div>
   </div>
-
-    <div id="fp-d" style="background:var(--surface);border:1px solid var(--border2);border-radius:16px;box-shadow:var(--shadow);max-width:500px;width:94vw;max-height:80vh;display:none;flex-direction:column;overflow:hidden">
-      <div class="modal-header"><h3 class="modal-title" id="fp-d-title">Feuille présentielle</h3><button class="modal-close" onclick="closeModal()">×</button></div>
-      <div style="overflow-y:auto;flex:1"><div id="fp-d-list"></div></div>
-    </div>
-    <div id="fp-m" style="background:var(--surface);border:1px solid var(--border2);border-radius:16px;box-shadow:var(--shadow);max-width:460px;width:94vw;max-height:82vh;display:none;flex-direction:column;overflow:hidden">
-      <div class="modal-header" style="flex-direction:column;align-items:stretch;gap:4px">
-        <div style="display:flex;align-items:center;justify-content:space-between"><h3 class="modal-title" id="fp-m-title">Présences</h3><button class="modal-close" onclick="fpS('d')">←</button></div>
-        <div id="fp-m-sub" style="font-size:12px;color:var(--text3)"></div>
-        <div id="fp-m-sum" style="display:flex;gap:5px;margin-top:4px"></div>
+    <!-- Nouvelle période de disponibilité -->
+    <div class="modal" id="modal-new-poll" style="max-width:420px;width:94vw">
+      <div class="modal-header">
+        <h3 class="modal-title">Nouvelle période</h3>
+        <button class="modal-close" onclick="closeModal()">×</button>
       </div>
-      <div style="overflow-y:auto;flex:1"><div id="fp-m-list"></div></div>
-      <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-shrink:0">
-        <span id="fp-st" style="flex:1;font-size:12px;color:var(--green)"></span>
-        <button class="btn btn-outline" onclick="fpS('d')">← Retour</button>
-        <button class="btn btn-primary" onclick="fpSave()">💾 Enregistrer</button>
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:14px">
+        <div>
+          <label class="form-label">Nom de la période</label>
+          <input class="form-input" id="dp-name" placeholder="ex: Été 2026">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <label class="form-label">Date de début</label>
+            <input class="form-input" id="dp-start" type="date">
+          </div>
+          <div>
+            <label class="form-label">Date de fin</label>
+            <input class="form-input" id="dp-end" type="date">
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;padding-top:4px">
+          <button class="btn btn-outline" onclick="closeModal()">Annuler</button>
+          <button class="btn btn-primary" onclick="savePoll()">Créer</button>
+        </div>
       </div>
     </div>
 
@@ -1079,7 +939,7 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 // ============================================================
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-let DB = { songs:[], members:[], sets:[], set_songs:[], concerts:[], concert_songs:[], events:[], preferences:[], event_attendance:[], availability_polls:[], availability_responses:[] };
+let DB = { songs:[], members:[], sets:[], set_songs:[], concerts:[], concert_songs:[], events:[], preferences:[] };
 let editingId = null;
 let setSelectedSongs = [];
 let setNotesMap    = {}; // song_id -> note
@@ -1197,57 +1057,45 @@ function openQuickSetModal(setId){
 }
 
 function renderQuickSetModal(){
-  const prioColors  = ['#999','#e6a817','#e74c3c'];
-  const prioLabels  = ['Normal','Attention','Prioritaire'];
-  const prioLefts   = ['#ddd','#f0c040','#e74c3c'];
+  const prioColors = ['var(--text3)','var(--amber)','var(--red)'];
   document.getElementById('sqm-list').innerHTML = _sqmRows.map((ss,i)=>{
     const s = DB.songs.find(x=>x.id===ss.song_id);
     if(!s) return '';
     const prio = ss.priority||0;
-    const rowBg   = i%2===0 ? '#f8f5f1' : '#ede8e1';
-    const leftCol = prioLefts[prio];
-    const hasData = ss.local_key||ss.local_bpm||ss.local_struct||ss.set_notes;
-    return `<div style="
-        padding:12px 18px 10px;
-        border-left:4px solid ${leftCol};
-        border-bottom:1px solid #ddd;
-        background:${rowBg};
-      ">
-      <!-- Titre -->
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <span style="font-size:12px;color:#888;min-width:22px;text-align:right;font-weight:700">${i+1}</span>
-        <span style="font-size:14px;font-weight:700;color:#2a2318;flex:1">${esc(s.name)}</span>
-        <span style="width:9px;height:9px;border-radius:50%;background:${prioColors[prio]};flex-shrink:0" title="${prioLabels[prio]}"></span>
-        ${s.key?`<span style="font-size:11px;padding:1px 6px;border-radius:10px;background:rgba(41,128,185,.12);color:#2980b9;font-weight:600">${esc(s.key)}</span>`:''}
-        ${s.bpm?`<span style="font-size:11px;padding:1px 6px;border-radius:10px;background:rgba(124,159,232,.12);color:#5b7ec9;font-weight:600">${s.bpm} BPM</span>`:''}
+    return `<div class="sqm-row prio${prio}">
+      <!-- Ligne 1 : numéro + titre + pastille priorité -->
+      <div class="sqm-title-line">
+        <span class="sqm-num">${i+1}</span>
+        <span class="sqm-name">${esc(s.name)}</span>
+        <span class="sqm-prio-dot" style="background:${prioColors[prio]}" title="${['Normal','Attention','Prioritaire'][prio]}"></span>
       </div>
-      <!-- Champs -->
-      <div style="display:grid;grid-template-columns:64px 60px 1fr;gap:8px;padding-left:30px;margin-bottom:8px;align-items:end">
-        <div>
-          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#999;margin-bottom:3px">Tonalité</div>
-          <input type="text" maxlength="5" placeholder="${esc(s.key||'—')}" value="${esc(ss.local_key||'')}"
-            oninput="_sqmRows[${i}].local_key=this.value||null"
-            style="width:100%;background:#fff;border:1px solid #ccc;border-radius:6px;padding:5px 7px;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box">
+      <!-- Ligne 2 : Tonalité | BPM | Structure -->
+      <div class="sqm-fields-line">
+        <div class="sqm-fc">
+          <span class="sqm-fl">Tonalité</span>
+          <input class="sqm-fi" type="text" maxlength="5"
+            placeholder="${esc(s.key||'—')}" value="${esc(ss.local_key||'')}"
+            oninput="_sqmRows[${i}].local_key=this.value||null">
         </div>
-        <div>
-          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#999;margin-bottom:3px">BPM</div>
-          <input type="number" min="0" max="999" placeholder="${s.bpm||'—'}" value="${ss.local_bpm||''}"
+        <div class="sqm-fc">
+          <span class="sqm-fl">BPM</span>
+          <input class="sqm-fi" type="number" min="0" max="999"
+            placeholder="${s.bpm||'—'}" value="${ss.local_bpm||''}"
             oninput="_sqmRows[${i}].local_bpm=this.value?parseInt(this.value):null"
-            style="width:100%;background:#fff;border:1px solid #ccc;border-radius:6px;padding:5px 7px;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box;-moz-appearance:textfield;appearance:textfield">
+            style="appearance:textfield;-moz-appearance:textfield">
         </div>
-        <div>
-          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#999;margin-bottom:3px">Structure</div>
-          <input type="text" placeholder="ex : A/A/B/A" value="${esc(ss.local_struct||'')}"
-            oninput="_sqmRows[${i}].local_struct=this.value||null"
-            style="width:100%;background:#fff;border:1px solid #ccc;border-radius:6px;padding:5px 7px;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box">
+        <div class="sqm-fc">
+          <span class="sqm-fl">Structure</span>
+          <input class="sqm-fi" type="text"
+            placeholder="ex : A/A/B/A" value="${esc(ss.local_struct||'')}"
+            oninput="_sqmRows[${i}].local_struct=this.value||null">
         </div>
       </div>
-      <!-- Note -->
-      <div style="padding-left:30px">
-        <input type="text" placeholder="⚠ Note pour ce set…" value="${esc(ss.set_notes||'')}"
-          oninput="_sqmRows[${i}].set_notes=this.value||null"
-          style="width:100%;background:rgba(185,106,40,.06);border:1px dashed rgba(185,106,40,.35);border-radius:6px;font-size:12px;color:#666;font-family:inherit;outline:none;padding:6px 10px;box-sizing:border-box">
-      </div>
+      <!-- Ligne 3 : Note -->
+      <input class="sqm-ni" type="text"
+        placeholder="⚠ Note pour ce set…"
+        value="${esc(ss.set_notes||'')}"
+        oninput="_sqmRows[${i}].set_notes=this.value||null">
     </div>`;
   }).join('');
 }
@@ -1283,274 +1131,49 @@ function closeQuickSetModal(){
 }
 
 
-// FP
-let _fpEId=null,_fpCh={};
-const _fpC={'Cordes':['#e67e22','rgba(230,126,34,.15)'],'Cuivres':['#e74c3c','rgba(231,76,60,.15)'],'Bois':['#27ae60','rgba(39,174,96,.15)'],'Claviers':['#2980b9','rgba(41,128,185,.15)'],'Percussions':['#8e44ad','rgba(142,68,173,.15)'],'Voix':['#f39c12','rgba(243,156,18,.15)']};
-function fpS(w){
-  document.getElementById('fp-d').style.display='none';
-  document.getElementById('fp-m').style.display='none';
-  document.getElementById('fp-'+w).style.display='flex';
-  document.getElementById('modal-overlay').classList.add('open');
-}
-function fpOpen(sid){
-  const set=DB.sets.find(s=>s.id===sid); if(!set) return;
-  const today=new Date().toISOString().slice(0,10);
-  const evts=DB.events.filter(e=>e.set_id===sid&&e.type!=='prestation').sort((a,b)=>a.date.localeCompare(b.date));
-  const shown=[...evts.filter(e=>e.date>=today).slice(0,8),...evts.filter(e=>e.date<today).slice(-2).reverse()];
-  document.getElementById('fp-d-title').textContent=set.name+' — Feuille présentielle';
-  document.getElementById('fp-d-list').innerHTML=shown.length?shown.map(e=>{
-    const d=new Date(e.date+'T12:00:00');
-    const lbl=d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-    const time=e.time?' · '+e.time.slice(0,5):'';
-    const isPast=e.date<today;
-    const atts=DB.event_attendance.filter(a=>parseInt(a.event_id)===e.id);
-    const p=atts.filter(a=>a.status==='present').length,q=atts.filter(a=>a.status==='maybe').length,ab=atts.filter(a=>a.status==='absent').length;
-    return `<div class="fp-row" onclick="fpOD(${e.id})"><div style="flex:1"><div style="font-size:13px;font-weight:600;color:${isPast?'var(--text3)':'var(--text)'}">${isPast?'↩ ':'📅 '}${lbl}${time}</div><div style="font-size:11px;color:var(--text3);margin-top:2px">${(p||q||ab)?`${p?'✅'+p+' ':''}${q?'❓'+q+' ':''}${ab?'❌'+ab:''}`:'<i>Aucune réponse</i>'}</div></div><span style="color:var(--text3)">›</span></div>`;
-  }).join(''):'<div style="padding:24px;text-align:center;color:var(--text3);font-style:italic">Aucune date planifiée.</div>';
-  fpS('d');
-}
-function fpOD(eid){
-  _fpEId=parseInt(eid);_fpCh={};
-  const e=DB.events.find(x=>x.id===_fpEId); if(!e) return;
-  // Pré-remplir "présent" pour les musiciens sans réponse
-  const existing=DB.event_attendance.filter(a=>parseInt(a.event_id)===_fpEId).map(a=>parseInt(a.member_id));
-  DB.members.forEach(m=>{ if(!existing.includes(parseInt(m.id))) _fpCh[m.id]='present'; });
-  const set=e.set_id?DB.sets.find(s=>s.id===e.set_id):null;
-  const d=new Date(e.date+'T12:00:00');
-  document.getElementById('fp-m-title').textContent=set?.name||'Répétition';
-  document.getElementById('fp-m-sub').textContent=d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+(e.time?' · '+e.time.slice(0,5)+(e.time_end?' – '+e.time_end.slice(0,5):''):'');
-  document.getElementById('fp-st').textContent='';
-  fpRM();fpS('m');
-}
-function fpRM(){
-  const atts=DB.event_attendance.filter(a=>parseInt(a.event_id)===_fpEId);
-  const p=atts.filter(a=>a.status==='present').length,q=atts.filter(a=>a.status==='maybe').length,ab=atts.filter(a=>a.status==='absent').length;
-  document.getElementById('fp-m-sum').innerHTML=(p?`<span style="font-size:11px;padding:2px 7px;border-radius:8px;background:var(--surface2)">✅ ${p}</span>`:'')+
-    (q?`<span style="font-size:11px;padding:2px 7px;border-radius:8px;background:var(--surface2)">❓ ${q}</span>`:'')+
-    (ab?`<span style="font-size:11px;padding:2px 7px;border-radius:8px;background:var(--surface2)">❌ ${ab}</span>`:'');
-  const myId=parseInt(currentUserId||0);
-  const icons={present:'✅',maybe:'❓',absent:'❌',unknown:'⬜'};
-  document.getElementById('fp-m-list').innerHTML=DB.members.map(m=>{
-    const att=atts.find(r=>parseInt(r.member_id)===parseInt(m.id));
-    const saved=att?.status||'unknown';
-    const st=_fpCh[m.id]!==undefined?_fpCh[m.id]:saved;
-    const isMe=parseInt(m.id)===myId;
-    const [col,bg]=_fpC[m.family]||['#888','rgba(136,136,136,.12)'];
-    const av=m.avatar||(m.prenom?m.prenom[0].toUpperCase():'?');
-    return `<div class="fp-mrow${isMe?' me':''}"><div class="fp-av" style="background:${bg};color:${col}">${av}</div><span class="fp-nm">${esc(m.prenom||'')} ${esc(m.nom||'')}</span>${isMe?`<div style="display:flex;gap:4px"><button class="fp-bt${st==='present'?' on p':''}" onclick="fpMk(${m.id},'present')">✅</button><button class="fp-bt${st==='maybe'?' on q':''}" onclick="fpMk(${m.id},'maybe')">❓</button><button class="fp-bt${st==='absent'?' on a':''}" onclick="fpMk(${m.id},'absent')">❌</button></div>`:`<span style="font-size:16px;opacity:${st==='unknown'?.2:.9}">${icons[st]}</span>`}</div>`;
-  }).join('');
-}
-function fpMk(id,st){_fpCh[id]=st;fpRM();}
-async function fpSave(){
-  const stEl=document.getElementById('fp-st');
-  stEl.style.color='var(--text3)';stEl.textContent='Enregistrement…';
-  try{
-    for(const [mid,status] of Object.entries(_fpCh)){
-      const ex=DB.event_attendance.find(a=>parseInt(a.event_id)===_fpEId&&parseInt(a.member_id)===parseInt(mid));
-      if(ex) await sb.from('event_attendance').update({status}).eq('id',ex.id);
-      else   await sb.from('event_attendance').insert({event_id:_fpEId,member_id:parseInt(mid),status});
-    }
-    await loadAll();_fpCh={};fpRM();renderSets();renderDashboard();
-    stEl.style.color='var(--green)';stEl.textContent='✓ Enregistré !';
-    setTimeout(()=>{stEl.textContent='';},2500);
-  }catch(err){stEl.style.color='var(--red)';stEl.textContent='Erreur: '+err.message;}
-}
-function fpAA(sid){
-  const today=new Date().toISOString().slice(0,10);
-  return DB.events.filter(e=>e.set_id===sid&&e.date>=today&&e.type!=='prestation')
-    .sort((a,b)=>a.date.localeCompare(b.date)).slice(0,2)
-    .some(e=>DB.event_attendance.filter(a=>parseInt(a.event_id)===e.id&&a.status==='absent').length>0);
-}
-function renderAbsentsWidget(){
-  const el=document.getElementById('dash-absents');if(!el)return;
-  const today=new Date().toISOString().slice(0,10);const lines=[];
-  DB.sets.forEach(set=>{
-    DB.events.filter(e=>e.set_id===set.id&&e.date>=today&&e.type!=='prestation')
-      .sort((a,b)=>a.date.localeCompare(b.date)).slice(0,2).forEach(e=>{
-        const abs=DB.event_attendance.filter(a=>parseInt(a.event_id)===e.id&&a.status==='absent')
-          .map(a=>DB.members.find(m=>m.id===a.member_id)).filter(Boolean);
-        if(abs.length){const d=new Date(e.date+'T12:00:00');
-          lines.push(`<div style="margin-bottom:8px"><div style="font-size:12px;font-weight:600;color:var(--text)">❌ ${esc(set.name)} · ${d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})}</div><div style="font-size:12px;color:var(--red);padding-left:10px">${abs.map(m=>esc(m.prenom+' '+(m.nom||''))).join(', ')}</div></div>`);}
-      });
-  });
-  el.innerHTML=lines.length?lines.join(''):'<div style="color:var(--text3);font-size:12px;font-style:italic">Aucune absence signalée.</div>';
-}
-
-// ===== PAGE PRÉSENCES =====
-let _presEvtId = null, _presCh = {};
-const _presC = {'Cordes':['#e67e22','rgba(230,126,34,.15)'],'Cuivres':['#e74c3c','rgba(231,76,60,.15)'],'Bois':['#27ae60','rgba(39,174,96,.15)'],'Claviers':['#2980b9','rgba(41,128,185,.15)'],'Percussions':['#8e44ad','rgba(142,68,173,.15)'],'Voix':['#f39c12','rgba(243,156,18,.15)']};
-
-function renderPresences(){
-  const today = new Date().toISOString().slice(0,10);
-  const until = new Date(); until.setMonth(until.getMonth()+2);
-  const untilStr = until.toISOString().slice(0,10);
-  const evts = DB.events
-    .filter(e=>e.type!=='prestation' && e.date>=today && e.date<=untilStr)
-    .sort((a,b)=>a.date.localeCompare(b.date));
-
-  document.getElementById('pres-dates-list').innerHTML = evts.length
-    ? evts.map(e=>{
-        const set = e.set_id ? DB.sets.find(s=>s.id===e.set_id) : null;
-        const d = new Date(e.date+'T12:00:00');
-        const dateStr = d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'long'});
-        const time = e.time ? e.time.slice(0,5) : '';
-        const atts = DB.event_attendance.filter(a=>parseInt(a.event_id)===e.id);
-        const p=atts.filter(a=>a.status==='present').length;
-        const q=atts.filter(a=>a.status==='maybe').length;
-        const ab=atts.filter(a=>a.status==='absent').length;
-        const isActive = e.id===_presEvtId;
-        const itemBg = isActive ? 'rgba(185,106,40,.09)' : 'transparent';
-        const itemBorder = isActive ? '3px solid var(--accent)' : '3px solid transparent';
-        return `<div onclick="presSelectDate(${e.id})" style="padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;background:${itemBg};border-left:${itemBorder};transition:background .12s">
-          <div style="font-size:12px;font-weight:600;color:var(--text)">${esc(set?.name||'Répétition')}</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:1px">${dateStr}${time?' · '+time:''}</div>
-          ${(p||q||ab)?`<div style="display:flex;gap:3px;margin-top:4px">
-            ${p?`<span style="font-size:10px;padding:1px 5px;border-radius:6px;background:rgba(39,174,96,.12);color:#27ae60">✅${p}</span>`:''}
-            ${q?`<span style="font-size:10px;padding:1px 5px;border-radius:6px;background:rgba(243,156,18,.12);color:#c87f0a">❓${q}</span>`:''}
-            ${ab?`<span style="font-size:10px;padding:1px 5px;border-radius:6px;background:rgba(231,76,60,.12);color:#e74c3c">❌${ab}</span>`:''}
-          </div>`:'<div style="font-size:10px;color:var(--text3);margin-top:3px;font-style:italic">Aucune réponse</div>'}
-        </div>`;
-      }).join('')
-    : '<div style="padding:20px;text-align:center;color:var(--text3);font-style:italic">Aucune répétition dans les 2 prochains mois.</div>';
-}
-
-function presSelectDate(evtId){
-  _presEvtId = evtId; _presCh = {};
-  const e = DB.events.find(x=>x.id===evtId); if(!e) return;
-  const set = e.set_id ? DB.sets.find(s=>s.id===e.set_id) : null;
-  const d = new Date(e.date+'T12:00:00');
-  document.getElementById('pres-panel-title').textContent = set?.name||'Répétition';
-  document.getElementById('pres-panel-sub').textContent =
-    d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+
-    (e.time?' · '+e.time.slice(0,5)+(e.time_end?' – '+e.time_end.slice(0,5):''):'');
-  document.getElementById('pres-save-st').textContent='';
-  document.getElementById('pres-save-btn').style.display='inline-flex';
-  // Pré-remplir présent pour musiciens sans réponse
-  const existing = DB.event_attendance.filter(a=>parseInt(a.event_id)===evtId).map(a=>parseInt(a.member_id));
-  DB.members.forEach(m=>{ if(!existing.includes(parseInt(m.id))) _presCh[m.id]='present'; });
-  presRenderMembers();
-  // Mettre à jour liste dates (highlight)
-  renderPresences();
-}
-
-function presRenderMembers(){
-  const atts = DB.event_attendance.filter(a=>parseInt(a.event_id)===_presEvtId);
-  const p=atts.filter(a=>a.status==='present').length+Object.values(_presCh).filter(v=>v==='present').length;
-  const q=atts.filter(a=>a.status==='maybe').length+Object.values(_presCh).filter(v=>v==='maybe').length;
-  const ab=atts.filter(a=>a.status==='absent').length+Object.values(_presCh).filter(v=>v==='absent').length;
-  document.getElementById('pres-panel-sum').innerHTML =
-    (p?`<span style="font-size:11px;padding:2px 8px;border-radius:8px;background:rgba(39,174,96,.12);color:#27ae60">✅ ${p} présent${p>1?'s':''}</span>`:'')+
-    (q?`<span style="font-size:11px;padding:2px 8px;border-radius:8px;background:rgba(243,156,18,.12);color:#c87f0a">❓ ${q} incertain${q>1?'s':''}</span>`:'')+
-    (ab?`<span style="font-size:11px;padding:2px 8px;border-radius:8px;background:rgba(231,76,60,.12);color:#e74c3c">❌ ${ab} absent${ab>1?'s':''}</span>`:'');
-  const myId = parseInt(currentUserId||0);
-  const icons = {present:'✅',maybe:'❓',absent:'❌',unknown:'⬜'};
-  document.getElementById('pres-members-list').innerHTML = DB.members.map(m=>{
-    const att = atts.find(r=>parseInt(r.member_id)===parseInt(m.id));
-    const saved = att?.status||'unknown';
-    const st = _presCh[m.id]!==undefined ? _presCh[m.id] : saved;
-    const isMe = parseInt(m.id)===myId;
-    const [col,bg] = _presC[m.family]||['#888','rgba(136,136,136,.12)'];
-    const av = m.avatar||(m.prenom?m.prenom[0].toUpperCase():'?');
-    const rowBg = isMe ? 'rgba(185,106,40,.06)' : (parseInt(m.id)%2===0?'var(--surface)':'var(--bg)');
-    const leftBorder = isMe ? 'border-left:3px solid var(--accent)' : 'border-left:3px solid transparent';
-    return `<div style="display:flex;align-items:center;gap:14px;padding:10px 20px;border-bottom:1px solid var(--border);background:${rowBg};${leftBorder}">
-      <div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;background:${bg};color:${col}">${av}</div>
-      <span style="flex:1;font-size:13px;font-weight:${isMe?'700':'500'};color:var(--text);min-width:120px">${esc(m.prenom||'')} ${esc(m.nom||'')}</span>
-      <div style="display:flex;gap:6px;flex-shrink:0">
-        <button onclick="presMark(${m.id},'present')" style="padding:4px 10px;border-radius:16px;border:1px solid ${st==='present'?'#27ae60':'var(--border)'};background:${st==='present'?'rgba(39,174,96,.15)':'var(--surface2)'};color:${st==='present'?'#27ae60':'var(--text2)'};font-size:11px;font-weight:${st==='present'?'700':'400'};cursor:pointer;font-family:inherit">✅</button>
-        <button onclick="presMark(${m.id},'maybe')" style="padding:4px 10px;border-radius:16px;border:1px solid ${st==='maybe'?'#f39c12':'var(--border)'};background:${st==='maybe'?'rgba(243,156,18,.15)':'var(--surface2)'};color:${st==='maybe'?'#c87f0a':'var(--text2)'};font-size:11px;font-weight:${st==='maybe'?'700':'400'};cursor:pointer;font-family:inherit">❓</button>
-        <button onclick="presMark(${m.id},'absent')" style="padding:4px 10px;border-radius:16px;border:1px solid ${st==='absent'?'#e74c3c':'var(--border)'};background:${st==='absent'?'rgba(231,76,60,.15)':'var(--surface2)'};color:${st==='absent'?'#e74c3c':'var(--text2)'};font-size:11px;font-weight:${st==='absent'?'700':'400'};cursor:pointer;font-family:inherit">❌</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function presMark(id,st){ _presCh[id]=st; presRenderMembers(); }
-
-async function presSave(){
-  const stEl = document.getElementById('pres-save-st');
-  stEl.style.color='var(--text3)'; stEl.textContent='Enregistrement…';
-  try{
-    for(const [mid,status] of Object.entries(_presCh)){
-      const ex = DB.event_attendance.find(a=>parseInt(a.event_id)===_presEvtId&&parseInt(a.member_id)===parseInt(mid));
-      if(ex) await sb.from('event_attendance').update({status}).eq('id',ex.id);
-      else   await sb.from('event_attendance').insert({event_id:_presEvtId,member_id:parseInt(mid),status});
-    }
-    await loadAll(); _presCh={};
-    presRenderMembers(); renderPresences(); renderDashboard();
-    stEl.style.color='var(--green)'; stEl.textContent='✓ Enregistré !';
-    setTimeout(()=>{stEl.textContent='';},2500);
-  }catch(err){ stEl.style.color='var(--red)'; stEl.textContent='Erreur: '+err.message; }
-}
-
-
-async function cancelEvent(eventId, isCancelled){
-  const msg = isCancelled ? 'Rétablir cette répétition ?' : 'Marquer cette répétition comme annulée ?';
-  if(!confirm(msg)) return;
-  try{
-    await sb.from('events').update({cancelled: !isCancelled}).eq('id', eventId);
-    await loadAll();
-    renderDashboard();
-    renderCalendar();
-  }catch(e){ alert('Erreur : '+e.message); }
-}
-
-
 // ===== DISPONIBILITÉS =====
 let _dispoPollId = null;
-let _dispoView   = 'saisie'; // 'saisie' | 'synthese'
-let _dispoPending = {}; // {date_slot_key: status}
-
-const SLOTS = [
-  {key:'morning',   label:'🌅 Matin',    icon:'🌅'},
-  {key:'afternoon', label:'☀️ Après-midi', icon:'☀️'},
-];
-
+let _dispoView   = 'saisie';
 
 function planningView(view){
-  const cal   = document.getElementById('planning-cal-view');
-  const dispo = document.getElementById('planning-dispo-view');
-  const btnCal   = document.getElementById('btn-plan-cal');
-  const btnDispo = document.getElementById('btn-plan-dispo');
-  const btnR = document.getElementById('btn-plan-add-repet');
-  const btnC = document.getElementById('btn-plan-add-conc');
+  const calView   = document.getElementById('plan-cal-view');
+  const dispoView = document.getElementById('plan-dispo-view');
+  const btnCal    = document.getElementById('btn-plan-cal');
+  const btnDispo  = document.getElementById('btn-plan-dispo');
+  const addBtns   = document.getElementById('planning-add-btns');
   if(view==='cal'){
-    cal.style.display='block';
-    dispo.style.display='none';
-    btnCal.style.fontWeight='700'; btnCal.style.color='var(--accent)';
-    btnDispo.style.fontWeight=''; btnDispo.style.color='';
-    btnR.style.display=''; btnC.style.display='';
-    document.getElementById('planning-sub').textContent='Répétitions & prestations';
+    calView.style.display='block';
+    dispoView.style.display='none';
+    btnCal.style.background='var(--accent)'; btnCal.style.color='#fff'; btnCal.style.fontWeight='700';
+    btnDispo.style.background='transparent'; btnDispo.style.color='var(--text3)'; btnDispo.style.fontWeight='400';
+    addBtns.style.display='flex';
   } else {
-    cal.style.display='none';
-    dispo.style.display='flex';
-    btnDispo.style.fontWeight='700'; btnDispo.style.color='var(--accent)';
-    btnCal.style.fontWeight=''; btnCal.style.color='';
-    btnR.style.display='none'; btnC.style.display='none';
-    document.getElementById('planning-sub').textContent='Indiquez vos disponibilités';
+    calView.style.display='none';
+    dispoView.style.display='flex';
+    btnDispo.style.background='var(--accent)'; btnDispo.style.color='#fff'; btnDispo.style.fontWeight='700';
+    btnCal.style.background='transparent'; btnCal.style.color='var(--text3)'; btnCal.style.fontWeight='400';
+    addBtns.style.display='none';
     renderDisponibilites();
   }
 }
 
 function renderDisponibilites(){
-  const list = document.getElementById('dispo-polls-list');
-  if(!list) return;
+  const list = document.getElementById('dispo-polls-list'); if(!list) return;
   list.innerHTML = DB.availability_polls.length
     ? DB.availability_polls.map(p=>{
         const d1 = new Date(p.date_start+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
         const d2 = new Date(p.date_end+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'});
-        const isActive = p.id === _dispoPollId;
-        return `<div class="dispo-poll-card${isActive?' active':''}" onclick="dispoSelectPoll(${p.id})">
-          <div class="dispo-poll-name">${esc(p.name)}</div>
-          <div class="dispo-poll-dates">${d1} – ${d2}</div>
+        const isActive = p.id===_dispoPollId;
+        return `<div onclick="dispoSelectPoll(${p.id})" style="padding:10px 12px;border-radius:8px;cursor:pointer;margin-bottom:6px;background:${isActive?'rgba(185,106,40,.1)':'var(--surface2)'};border:1px solid ${isActive?'var(--accent)':'var(--border)'};border-left:3px solid ${isActive?'var(--accent)':'transparent'}">
+          <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(p.name)}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">${d1} – ${d2}</div>
         </div>`;
       }).join('')
-    : '<div style="color:var(--text3);font-size:12px;font-style:italic">Aucune période créée.</div>';
+    : '<div style="color:var(--text3);font-size:12px;font-style:italic;padding:10px">Aucune période. Créez-en une.</div>';
 }
 
 function dispoSelectPoll(id){
-  _dispoPollId = id;
-  _dispoPending = {};
+  _dispoPollId = id; _dispoView = 'saisie';
   renderDisponibilites();
   dispoRenderContent();
 }
@@ -1559,126 +1182,89 @@ function dispoRenderContent(){
   const el = document.getElementById('dispo-content'); if(!el) return;
   const poll = DB.availability_polls.find(p=>p.id===_dispoPollId); if(!poll) return;
 
-  // Générer les dates de la période
   const dates = [];
   let cur = new Date(poll.date_start+'T12:00:00');
   const end = new Date(poll.date_end+'T12:00:00');
-  while(cur <= end){
-    dates.push(cur.toISOString().slice(0,10));
-    cur.setDate(cur.getDate()+1);
-  }
+  while(cur<=end){ dates.push(cur.toISOString().slice(0,10)); cur.setDate(cur.getDate()+1); }
 
-  el.innerHTML = `
-    <div style="padding:16px 20px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;sticky;top:0;background:var(--surface)">
-      <span style="font-size:15px;font-weight:700;color:var(--text);flex:1">${esc(poll.name)}</span>
-      <button onclick="_dispoView='saisie';dispoRenderContent()" style="padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:${_dispoView==='saisie'?'var(--accent)':'var(--surface2)'};color:${_dispoView==='saisie'?'#fff':'var(--text2)'};font-size:12px;cursor:pointer;font-family:inherit">Ma saisie</button>
-      <button onclick="_dispoView='synthese';dispoRenderContent()" style="padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:${_dispoView==='synthese'?'var(--accent)':'var(--surface2)'};color:${_dispoView==='synthese'?'#fff':'var(--text2)'};font-size:12px;cursor:pointer;font-family:inherit">Synthèse</button>
-      <button class="btn btn-danger btn-sm" onclick="deletePoll(${poll.id})" title="Supprimer">✕</button>
-    </div>
-    <div style="padding:16px 20px">
-      ${_dispoView==='saisie' ? dispoSaisieHTML(dates) : dispoSyntheseHTML(dates)}
-    </div>
-    ${_dispoView==='saisie' ? `<div style="padding:8px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;align-items:center">
-      <span id="dispo-save-st" style="font-size:12px;color:var(--green)"></span>
-      <span style="font-size:11px;color:var(--text3);font-style:italic">Sauvegarde automatique au clic</span>
-    </div>` : ''}
-  `;
-}
-
-function dispoSaisieHTML(dates){
+  const isSaisie = _dispoView==='saisie';
   const myId = parseInt(currentUserId||0);
-  const myResponses = DB.availability_responses.filter(r=>r.poll_id===_dispoPollId && parseInt(r.member_id)===myId);
-
-  const weeks = {};
-  dates.forEach(d=>{
-    const dt = new Date(d+'T12:00:00');
-    const weekKey = getWeekKey(dt);
-    if(!weeks[weekKey]) weeks[weekKey]=[];
-    weeks[weekKey].push({d, dt});
-  });
-
-  return Object.entries(weeks).map(([wk, days])=>{
-    const rows = days.map(({d,dt})=>{
-      const dayLabel = dt.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
-      const isWE = dt.getDay()===0||dt.getDay()===6;
-      return SLOTS.map(slot=>{
-        const key = d+'_'+slot.key;
-        const saved = myResponses.find(r=>r.date===d&&r.slot===slot.key);
-        const pending = _dispoPending[key];
-        const isOn = pending!==undefined ? pending : !!saved;
-        return `<div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-bottom:1px solid var(--border);background:${isWE?'rgba(185,106,40,.04)':isOn?'rgba(39,174,96,.06)':''}">
-          <span style="min-width:130px;font-size:12px;color:${isWE?'var(--accent)':'var(--text2)'};font-weight:${slot.key==='morning'?'600':'400'}">${slot.key==='morning'?dayLabel:''}</span>
-          <span style="min-width:90px;font-size:12px;color:var(--text3)">${slot.icon} ${slot.key==='morning'?'Matin':'Après-midi'}</span>
-          <button data-poll="${_dispoPollId}" data-date="${date}" data-slot="${slot.key}" onclick="dispoToggle(this)" style="
-            padding:5px 16px;border-radius:20px;
-            border:1px solid ${isOn?'#27ae60':'var(--border)'};
-            background:${isOn?'rgba(39,174,96,.15)':'var(--surface2)'};
-            color:${isOn?'#27ae60':'var(--text3)'};
-            font-size:12px;font-weight:${isOn?'700':'400'};
-            cursor:pointer;font-family:inherit;transition:all .12s">
-            ${isOn?'✅ Disponible':'○ Non renseigné'}
-          </button>
-        </div>`;
-      }).join('');
-    }).filter(Boolean).join('');
-    if(!rows.trim()) return '';
-    return `<div style="margin-bottom:16px">
-      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:6px;padding:4px 10px;background:var(--surface2);border-radius:6px">Semaine du ${days[0].dt.toLocaleDateString('fr-FR',{day:'numeric',month:'long'})}</div>
-      <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">${rows}</div>
-    </div>`;
-  }).filter(Boolean).join('') || '<div style="padding:40px;text-align:center;color:var(--text3);font-style:italic">Aucune disponibilité enregistrée pour cette période.</div>';
-}
-
-function dispoSyntheseHTML(dates){
   const total = DB.members.length;
+
+  // Grouper par semaine
   const weeks = {};
   dates.forEach(d=>{
-    const dt = new Date(d+'T12:00:00');
-    const wk = getWeekKey(dt);
+    const dt=new Date(d+'T12:00:00');
+    const wk=dispoGetWeek(dt);
     if(!weeks[wk]) weeks[wk]=[];
     weeks[wk].push({d,dt});
   });
 
-  return Object.entries(weeks).map(([wk, days])=>{
-    const rows = days.map(({d,dt})=>{
-      // Ne montrer que les jours avec au moins une réponse
-      const dayTotal = DB.availability_responses.filter(r=>parseInt(r.poll_id)===parseInt(_dispoPollId)&&r.date===d).length;
-      if(!dayTotal) return '';
-      const dayLabel = dt.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
+  const weeksHTML = Object.entries(weeks).map(([wk,days])=>{
+    const dayRows = days.map(({d,dt})=>{
+      if(!isSaisie){
+        const dayTotal = DB.availability_responses.filter(r=>parseInt(r.poll_id)===_dispoPollId&&r.date===d).length;
+        if(!dayTotal) return '';
+      }
       const isWE = dt.getDay()===0||dt.getDay()===6;
-      return SLOTS.map(slot=>{
-        const resps = DB.availability_responses.filter(r=>parseInt(r.poll_id)===parseInt(_dispoPollId)&&r.date===d&&r.slot===slot.key);
-        const count = resps.length;
-        const pct = total>0?Math.round(count/total*100):0;
-        const names = resps.map(r=>DB.members.find(m=>m.id===r.member_id)).filter(Boolean).map(m=>esc(m.prenom)).join(', ');
-        const barColor = pct>=80?'#27ae60':pct>=50?'#f39c12':'#e74c3c';
-        return `<div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-bottom:1px solid var(--border);background:${isWE?'rgba(185,106,40,.04)':''}">
-          <span style="min-width:130px;font-size:12px;color:${isWE?'var(--accent)':'var(--text2)'};font-weight:${slot.key==='morning'?'600':'400'}">${slot.key==='morning'?dayLabel:''}</span>
-          <span style="min-width:90px;font-size:12px;color:var(--text3)">${slot.icon} ${slot.key==='morning'?'Matin':'Après-midi'}</span>
-          <div style="flex:1;max-width:200px">
-            <div style="display:flex;align-items:center;gap:6px">
-              <div style="flex:1;height:8px;border-radius:4px;background:var(--border);overflow:hidden">
-                <div style="height:100%;width:${pct}%;background:${barColor};border-radius:4px;transition:width .3s"></div>
+      const dayLabel = dt.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
+      return ['morning','afternoon'].map((slot,si)=>{
+        const slotLabel = si===0?'🌅 Matin':'☀️ Après-midi';
+        if(isSaisie){
+          const isOn = DB.availability_responses.some(r=>
+            parseInt(r.poll_id)===_dispoPollId&&parseInt(r.member_id)===myId&&r.date===d&&r.slot===slot);
+          return `<div style="display:flex;align-items:center;gap:12px;padding:8px 16px;border-bottom:1px solid var(--border);background:${isWE?'rgba(185,106,40,.03)':isOn?'rgba(39,174,96,.05)':''}">
+            <span style="min-width:80px;font-size:12px;color:${isWE?'var(--accent)':'var(--text2)'};font-weight:${si===0?'600':'400'}">${si===0?dayLabel:''}</span>
+            <span style="min-width:100px;font-size:12px;color:var(--text3)">${slotLabel}</span>
+            <button data-poll="${_dispoPollId}" data-date="${d}" data-slot="${slot}" onclick="dispoToggle(this)"
+              style="padding:4px 14px;border-radius:16px;font-size:12px;cursor:pointer;font-family:inherit;transition:all .12s;
+                border:1px solid ${isOn?'#27ae60':'var(--border)'};
+                background:${isOn?'rgba(39,174,96,.15)':'var(--surface2)'};
+                color:${isOn?'#27ae60':'var(--text3)'};
+                font-weight:${isOn?'700':'400'}">
+              ${isOn?'✅ Disponible':'○ Indiquer'}
+            </button>
+          </div>`;
+        } else {
+          const resps = DB.availability_responses.filter(r=>parseInt(r.poll_id)===_dispoPollId&&r.date===d&&r.slot===slot);
+          const count=resps.length, pct=total>0?Math.round(count/total*100):0;
+          const col=pct>=80?'#27ae60':pct>=50?'#f39c12':'#e74c3c';
+          const names=resps.map(r=>DB.members.find(m=>m.id===r.member_id)).filter(Boolean).map(m=>esc(m.prenom)).join(', ');
+          return `<div style="display:flex;align-items:center;gap:12px;padding:8px 16px;border-bottom:1px solid var(--border)">
+            <span style="min-width:80px;font-size:12px;font-weight:${si===0?'600':'400'};color:${isWE?'var(--accent)':'var(--text2)'}">${si===0?dayLabel:''}</span>
+            <span style="min-width:100px;font-size:12px;color:var(--text3)">${slotLabel}</span>
+            <div style="flex:1;max-width:180px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="flex:1;height:7px;border-radius:4px;background:var(--border);overflow:hidden">
+                  <div style="height:100%;width:${pct}%;background:${col};border-radius:4px"></div>
+                </div>
+                <span style="font-size:11px;font-weight:700;color:${col};min-width:35px">${count}/${total}</span>
               </div>
-              <span style="font-size:11px;font-weight:700;color:${barColor};min-width:30px">${count}/${total}</span>
+              ${names?`<div style="font-size:10px;color:var(--text3);margin-top:2px">${names}</div>`:''}
             </div>
-            ${names?`<div style="font-size:10px;color:var(--text3);margin-top:2px">${names}</div>`:''}
-          </div>
-        </div>`;
+          </div>`;
+        }
       }).join('');
     }).filter(Boolean).join('');
-    if(!rows.trim()) return '';
-    return `<div style="margin-bottom:16px">
-      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:6px;padding:4px 10px;background:var(--surface2);border-radius:6px">Semaine du ${days[0].dt.toLocaleDateString('fr-FR',{day:'numeric',month:'long'})}</div>
-      <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">${rows}</div>
-    </div>`;
-  }).filter(Boolean).join('') || '<div style="padding:40px;text-align:center;color:var(--text3);font-style:italic">Aucune disponibilité enregistrée pour cette période.</div>';
-}
 
-function getWeekKey(dt){
-  const d = new Date(dt); d.setHours(12,0,0,0);
-  d.setDate(d.getDate() - (d.getDay()===0?6:d.getDay()-1));
-  return d.toISOString().slice(0,10);
+    if(!dayRows.trim()) return '';
+    const wkLabel = 'Semaine du '+days[0].dt.toLocaleDateString('fr-FR',{day:'numeric',month:'long'});
+    return `<div style="margin-bottom:16px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);padding:5px 10px;background:var(--surface2);border-radius:6px;margin-bottom:4px">${wkLabel}</div>
+      <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">${dayRows}</div>
+    </div>`;
+  }).filter(Boolean).join('');
+
+  el.innerHTML = `
+    <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--surface);position:sticky;top:0;z-index:5">
+      <span style="font-size:14px;font-weight:700;color:var(--text);flex:1">${esc(poll.name)}</span>
+      <span id="dispo-save-st" style="font-size:12px;color:var(--green)"></span>
+      <button onclick="_dispoView=_dispoView==='saisie'?'synthese':'saisie';dispoRenderContent()" style="padding:4px 12px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);font-size:11px;cursor:pointer;font-family:inherit;color:var(--text2)">${isSaisie?'Voir synthèse':'Ma saisie'}</button>
+      <button onclick="deletePoll(${poll.id})" style="padding:4px 10px;border-radius:8px;border:1px solid rgba(231,76,60,.3);background:none;font-size:11px;cursor:pointer;font-family:inherit;color:var(--red)">✕ Supprimer</button>
+    </div>
+    <div style="padding:16px 20px">
+      ${weeksHTML||'<div style="padding:40px;text-align:center;color:var(--text3);font-style:italic">Aucune disponibilité enregistrée.</div>'}
+    </div>`;
 }
 
 async function dispoToggle(btn){
@@ -1688,40 +1274,51 @@ async function dispoToggle(btn){
   const date   = btn.dataset.date;
   const slot   = btn.dataset.slot;
   const saved  = DB.availability_responses.find(r=>
-    parseInt(r.poll_id)===pollId && parseInt(r.member_id)===myId &&
-    r.date===date && r.slot===slot
-  );
-  const willBeOn = !saved;
+    parseInt(r.poll_id)===pollId&&parseInt(r.member_id)===myId&&r.date===date&&r.slot===slot);
   btn.disabled = true;
   const st = document.getElementById('dispo-save-st');
   try{
     if(saved) await sb.from('availability_responses').delete().eq('id',saved.id);
     else      await sb.from('availability_responses').insert({poll_id:pollId,member_id:myId,date,slot});
-    // Recharger les réponses
     const {data} = await sb.from('availability_responses').select('*');
     if(data) DB.availability_responses = data;
-    // Vérifier l'état réel après reload
     const nowOn = DB.availability_responses.some(r=>
-      parseInt(r.poll_id)===pollId && parseInt(r.member_id)===myId &&
-      r.date===date && r.slot===slot
-    );
-    btn.style.background  = nowOn ? 'rgba(39,174,96,.15)' : 'var(--surface2)';
-    btn.style.borderColor = nowOn ? '#27ae60' : 'var(--border)';
-    btn.style.color       = nowOn ? '#27ae60' : 'var(--text2)';
-    btn.style.fontWeight  = nowOn ? '700' : '400';
-    btn.textContent       = nowOn ? '✅ Disponible' : '○ Non renseigné';
-    const row = btn.closest('div');
-    if(row) row.style.background = nowOn ? 'rgba(39,174,96,.06)' : '';
+      parseInt(r.poll_id)===pollId&&parseInt(r.member_id)===myId&&r.date===date&&r.slot===slot);
+    btn.style.border   = `1px solid ${nowOn?'#27ae60':'var(--border)'}`;
+    btn.style.background = nowOn?'rgba(39,174,96,.15)':'var(--surface2)';
+    btn.style.color    = nowOn?'#27ae60':'var(--text3)';
+    btn.style.fontWeight = nowOn?'700':'400';
+    btn.textContent    = nowOn?'✅ Disponible':'○ Indiquer';
+    const row = btn.parentElement;
+    if(row) row.style.background = nowOn?'rgba(39,174,96,.05)':'';
     if(st){ st.style.color='var(--green)'; st.textContent=nowOn?'✓ Enregistré':'Retiré'; setTimeout(()=>{st.textContent='';},1200); }
     if(_dispoView==='synthese') dispoRenderContent();
   }catch(e){
     if(st){ st.style.color='var(--red)'; st.textContent='Erreur: '+e.message; }
-  } finally {
-    btn.disabled = false;
-  }
+  } finally { btn.disabled=false; }
 }
 
-async function dispoSave(){ /* sauvegarde automatique */ }
+function dispoGetWeek(dt){
+  const d=new Date(dt); d.setHours(12,0,0,0);
+  d.setDate(d.getDate()-(d.getDay()===0?6:d.getDay()-1));
+  return d.toISOString().slice(0,10);
+}
+
+function openNewPollModal(){ showModal('new-poll'); }
+function closeNewPollModal(){ closeModal(); }
+
+async function savePoll(){
+  const name  = document.getElementById('dp-name').value.trim();
+  const start = document.getElementById('dp-start').value;
+  const end   = document.getElementById('dp-end').value;
+  if(!name||!start||!end){ alert('Remplissez tous les champs.'); return; }
+  if(start>end){ alert('La date de fin doit être après le début.'); return; }
+  await sb.from('availability_polls').insert({name,date_start:start,date_end:end});
+  await loadAll(); renderDisponibilites(); closeModal();
+  document.getElementById('dp-name').value='';
+  document.getElementById('dp-start').value='';
+  document.getElementById('dp-end').value='';
+}
 
 async function deletePoll(id){
   if(!confirm('Supprimer cette période et toutes ses réponses ?')) return;
@@ -1729,26 +1326,6 @@ async function deletePoll(id){
   await loadAll(); _dispoPollId=null;
   renderDisponibilites();
   document.getElementById('dispo-content').innerHTML='<div style="padding:60px;text-align:center;color:var(--text3);font-style:italic">← Sélectionnez une période</div>';
-}
-
-function openNewPollModal(){
-  document.getElementById('dispo-new-overlay').classList.add('open');
-}
-function closeNewPollModal(){
-  document.getElementById('dispo-new-overlay').classList.remove('open');
-}
-async function savePoll(){
-  const name  = document.getElementById('dp-name').value.trim();
-  const start = document.getElementById('dp-start').value;
-  const end   = document.getElementById('dp-end').value;
-  if(!name||!start||!end){ alert('Remplissez tous les champs.'); return; }
-  if(start>end){ alert('La date de fin doit être après la date de début.'); return; }
-  await sb.from('availability_polls').insert({name, date_start:start, date_end:end});
-  await loadAll(); renderDisponibilites();
-  closeNewPollModal();
-  document.getElementById('dp-name').value='';
-  document.getElementById('dp-start').value='';
-  document.getElementById('dp-end').value='';
 }
 
 async function init(){
@@ -1773,7 +1350,7 @@ async function init(){
 }
 
 async function loadAll(){
-  const [songs, members, sets, set_songs, concerts, concert_songs, events, preferences, ev_att, av_polls, av_responses] = await Promise.all([
+  const [songs, members, sets, set_songs, concerts, concert_songs, events, preferences] = await Promise.all([
     sb.from('songs').select('*').order('name'),
     sb.from('members').select('*').order('prenom'),
     sb.from('sets').select('*').order('name'),
@@ -1782,9 +1359,6 @@ async function loadAll(){
     sb.from('concert_songs').select('*').order('position'),
     sb.from('events').select('*').order('date'),
     sb.from('preferences').select('*'),
-    sb.from('event_attendance').select('*'),
-    sb.from('availability_polls').select('*').order('date_start'),
-    sb.from('availability_responses').select('*'),
   ]);
   DB.songs          = songs.data          || [];
   DB.members        = members.data        || [];
@@ -1794,9 +1368,6 @@ async function loadAll(){
   DB.concert_songs  = concert_songs.data  || [];
   DB.events         = events.data         || [];
   DB.preferences    = preferences.data    || [];
-  DB.event_attendance  = ev_att.data      || [];
-  DB.availability_polls     = av_polls.data    || [];
-  DB.availability_responses = av_responses.data|| [];
 }
 
 // ============================================================
@@ -1810,7 +1381,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
     const page = item.dataset.page;
     document.getElementById('page-'+page).classList.add('active');
     const renders = {
-      dashboard: renderDashboard, morceaux: renderSongs, presences: renderPresences,
+      dashboard: renderDashboard, morceaux: renderSongs,
       membres: renderMembers, sets: renderSets,
       concerts: renderConcerts, planning: renderCalendar,
       preferences: renderPreferences,
@@ -1855,7 +1426,7 @@ function renderSongs(){
         <div class="song-name">${esc(s.name)}${s.artist?` <span style="font-size:12px;color:var(--text3);font-weight:400">— ${esc(s.artist)}</span>`:''}</div>
         <div class="song-meta">
           ${s.key   ?`<span class="tag tag-key">${esc(s.key)}</span>`:''}
-
+          ${s.tempo ?`<span class="tag tag-tempo">♩ ${s.tempo} BPM</span>`:''}
           ${s.style ?`<span class="tag tag-style">${esc(s.style)}</span>`:''}
           ${s.duration?`<span class="tag tag-green">~${s.duration} min</span>`:''}
         </div>
@@ -2127,7 +1698,7 @@ function renderSets(){
     return `
       <div class="set-card" ondblclick="openQuickSetModal(${set.id})" title="Double-clic : édition rapide" style="cursor:pointer">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
-          <div class="set-name" style="display:flex;align-items:center;gap:6px">${esc(set.name)}${fpAA(set.id)?'<span title="Absences" style="font-size:13px">⚠️</span>':''}</div>
+          <div class="set-name">${esc(set.name)}</div>
           <div class="flex gap-8" style="flex-shrink:0">
             ${songs.length?`<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();printSetProgram(${set.id})" title="Imprimer">🖨</button>`:''}
             <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openSetModal(${set.id})">✎</button>
@@ -2150,6 +1721,7 @@ function renderSets(){
                 ${(ss.local_key||s.key)?`<span class="tag tag-key" style="font-size:10px">${esc(ss.local_key||s.key)}</span>`:''}
                 ${(ss.local_bpm||s.bpm)?`<span class="tag" style="font-size:10px;background:rgba(124,159,232,.15);color:var(--accent2)">${ss.local_bpm||s.bpm} BPM</span>`:''}
                 ${ss.local_struct?`<span class="tag" style="font-size:10px;background:rgba(93,200,160,.12);color:var(--green);font-family:monospace">${esc(ss.local_struct)}</span>`:''}
+                ${s.tempo?`<span class="tag" style="font-size:10px;background:rgba(93,200,160,.12);color:var(--green)">${esc(s.tempo)}</span>`:''}
                 ${s.folder_link?`<a href="${esc(s.folder_link)}" target="_blank" onclick="event.stopPropagation()" title="Ouvrir le dossier" style="color:var(--accent2);font-size:13px;text-decoration:none">&#128279;</a>`:''}
               </div>
               ${ss.set_notes?`<div style="font-size:11px;color:var(--amber);padding-left:30px;line-height:1.4">⚠ ${esc(ss.set_notes)}</div>`:''}
@@ -2756,11 +2328,11 @@ function renderDashboard(){
   const nextRepets = DB.events
     .filter(e=>e.date >= todayStr)
     .sort((a,b)=>a.date.localeCompare(b.date))
-    .slice(0,3)
+    .slice(0,2)
     .map(e=>{
       const setName = e.set_id ? DB.sets.find(s=>s.id===e.set_id)?.name : null;
       const timeStr = e.time ? e.time.slice(0,5)+(e.time_end?' – '+e.time_end.slice(0,5):'') : '';
-      return {id:e.id, date:e.date, label: setName||'Répétition', sub:(e.venue||'')+(timeStr?' · '+timeStr:''), type:'repet', cancelled:!!e.cancelled};
+      return {date:e.date, label: setName||'Répétition', sub:(e.venue||'')+(timeStr?' · '+timeStr:''), type:'repet'};
     });
 
   // 1 prochaine prestation : d'abord la plus proche avec date, sinon la première sans date
@@ -2781,30 +2353,6 @@ function renderDashboard(){
 
   const upcoming = [...nextRepets, ...concertItems];
 
-  // Absents de la prochaine répétition
-  (()=>{
-    const el = document.getElementById('dash-absents'); if(!el) return;
-    const today = new Date().toISOString().slice(0,10);
-    const next2Evts = DB.events
-      .filter(e=>e.date>=today && e.type!=='prestation' && !e.cancelled)
-      .sort((a,b)=>a.date.localeCompare(b.date)).slice(0,2);
-    if(!next2Evts.length){ el.innerHTML=''; return; }
-    const blocks = next2Evts.map(evt=>{
-      const absents = DB.event_attendance
-        .filter(a=>parseInt(a.event_id)===evt.id && a.status==='absent')
-        .map(a=>DB.members.find(m=>m.id===a.member_id)).filter(Boolean);
-      if(!absents.length) return '';
-      const set = evt.set_id ? DB.sets.find(s=>s.id===evt.set_id) : null;
-      const d = new Date(evt.date+'T12:00:00');
-      const dateLabel = d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
-      return `<div style="padding:10px 14px;background:rgba(231,76,60,.07);border:1px solid rgba(231,76,60,.2);border-left:3px solid var(--red);border-radius:var(--radius-sm);margin-bottom:6px">
-        <div style="font-size:11px;font-weight:600;color:var(--red);margin-bottom:4px">❌ Absents — ${esc(set?.name||'Répétition')} · ${dateLabel}</div>
-        <div style="font-size:12px;color:var(--text)">${absents.map(m=>esc(m.prenom+' '+(m.nom||''))).join(', ')}</div>
-      </div>`;
-    }).filter(Boolean).join('');
-    el.innerHTML = blocks || '';
-  })();
-
   document.getElementById('dash-events').innerHTML = upcoming.length
     ? upcoming.map(e=>{
         const dateLabel = e.date
@@ -2813,17 +2361,13 @@ function renderDashboard(){
         const statusBadge = e.type==='concert' && e.status==='projet'
           ? `<span style="font-size:10px;padding:1px 7px;border-radius:20px;background:rgba(232,200,124,.15);color:var(--amber);margin-left:6px">Projet</span>`
           : '';
-        const isCancelled = e.type==='repet' && e.cancelled;
-        return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:${isCancelled?'rgba(231,76,60,.04)':'var(--surface)'};border:1px solid ${isCancelled?'rgba(231,76,60,.25)':'var(--border)'};border-radius:var(--radius-sm);margin-bottom:8px;position:relative;overflow:hidden">
-          ${isCancelled?`<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:1">
-            <div style="color:rgba(231,76,60,.55);font-size:22px;font-weight:900;letter-spacing:6px;transform:rotate(-8deg);text-transform:uppercase;font-family:'Bebas Neue',sans-serif">ANNULÉE</div>
-          </div>`:''}
-          <div style="width:7px;height:7px;border-radius:50%;background:${isCancelled?'var(--red)':e.type==='concert'?'var(--accent)':'var(--accent2)'};flex-shrink:0;opacity:${isCancelled?.5:1}"></div>
-          <div style="flex:1;min-width:0;cursor:pointer;opacity:${isCancelled?.45:1}" ondblclick="${e.type==='concert'?'navTo(\'concerts\')':'navTo(\'planning\')'}">
-            <div class="text-sm" style="display:flex;align-items:center;text-decoration:${isCancelled?'line-through':''};color:${isCancelled?'var(--red)':'inherit'}">${esc(e.label)}${statusBadge}</div>
-            <div class="text-xs text-muted" style="text-decoration:${isCancelled?'line-through':''}">${dateLabel}${e.sub?' · '+esc(e.sub):''}</div>
+        return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer" title="Double-cliquez pour ouvrir" ondblclick="${e.type==='concert'?'navTo(\'concerts\')':'navTo(\'planning\')'}">
+          <div style="width:7px;height:7px;border-radius:50%;background:${e.type==='concert'?'var(--accent)':'var(--accent2)'};flex-shrink:0"></div>
+          <div style="flex:1;min-width:0">
+            <div class="text-sm" style="display:flex;align-items:center">${esc(e.label)}${statusBadge}</div>
+            <div class="text-xs text-muted">${dateLabel}${e.sub?' · '+esc(e.sub):''}</div>
           </div>
-          ${e.type==='repet'&&e.id?`<button onclick="cancelEvent(${e.id},${isCancelled})" title="${isCancelled?'Rétablir':'Annuler'}" style="background:none;border:1px solid ${isCancelled?'rgba(39,174,96,.4)':'rgba(231,76,60,.3)'};border-radius:6px;padding:3px 8px;font-size:11px;color:${isCancelled?'var(--green)':'var(--red)'};cursor:pointer;flex-shrink:0;font-family:inherit;z-index:2;position:relative">${isCancelled?'↩ Rétablir':'✕ Annuler'}</button>`:''}
+          <span style="font-size:10px;color:var(--text3);flex-shrink:0">↗</span>
         </div>`;
       }).join('')
     : `<p class="text-xs text-muted">Aucun événement à venir.</p>`;
