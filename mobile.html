@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v2026-05-30-2 -->
+<!DOCTYPE html><!-- v2026-05-30-3 -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -581,7 +581,7 @@ textarea.edit-field-input{min-height:60px;resize:none}
         </div>
       </div>
     </div>
-    <div id="dispo-m-new-wrap" style="position:fixed;inset:0;z-index:9999;display:none;background:rgba(0,0,0,.6)">
+    <div id="dispo-m-new-wrap" style="position:fixed;inset:0;z-index:99999;display:none;background:rgba(0,0,0,.6)">
       <!-- Modale centrée verticalement avec hauteur fixe -->
       <div style="position:absolute;bottom:0;left:0;right:0;background:var(--bg);border-radius:20px 20px 0 0">
         <div style="padding:20px 18px 16px;display:flex;flex-direction:column;gap:14px">
@@ -601,7 +601,7 @@ textarea.edit-field-input{min-height:60px;resize:none}
               <input id="dpm-end" type="date" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 8px;font-size:13px;color:var(--text);font-family:inherit;outline:none;box-sizing:border-box">
             </div>
           </div>
-          <div style="display:flex;gap:10px;padding-top:4px;padding-bottom:20px">
+          <div style="display:flex;gap:10px;padding-top:4px;padding-bottom:24px">
             <button onclick="document.getElementById('dispo-m-new-wrap').style.display='none'" style="flex:1;padding:14px;border-radius:10px;border:1px solid var(--border);background:none;color:var(--text);font-size:14px;font-family:inherit;cursor:pointer">Annuler</button>
             <button id="dpm-btn" onclick="dispoMCreatePoll()" style="flex:2;padding:14px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer">Creer</button>
           </div>
@@ -1105,7 +1105,7 @@ function printConcert(concertId){
 }
 
 function buildPrintPage(title, subtitle, dateStr, timeStr, venue, rows){
-  return `<!DOCTYPE html><!-- v2026-05-30-2 --><html lang="fr"><head><meta charset="UTF-8"><title>${title}</title>
+  return `<!DOCTYPE html><!-- v2026-05-30-3 --><html lang="fr"><head><meta charset="UTF-8"><title>${title}</title>
   <style>
     body{font-family:'DM Sans',sans-serif;color:#1a1a1a;padding:0;margin:0}
     @page{size:A4;margin:16mm}
