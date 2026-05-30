@@ -582,24 +582,28 @@ textarea.edit-field-input{min-height:60px;resize:none}
       </div>
     </div>
     <div id="dispo-m-new-wrap" style="position:fixed;inset:0;z-index:9999;display:none;background:rgba(0,0,0,.6);align-items:flex-end">
-      <div style="background:var(--bg);border-radius:20px 20px 0 0;width:100%;max-height:92vh;overflow-y:auto;padding:20px 18px 40px;display:flex;flex-direction:column;gap:14px">
-        <div id="dpm-title" style="font-size:18px;font-weight:700;color:var(--text)">Nouvelle période</div>
-        <input type="hidden" id="dpm-id" value="">
-        <div>
-          <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:4px;text-transform:uppercase">Nom</div>
-          <input id="dpm-name" type="text" placeholder="ex: Ete 2026" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:inherit;outline:none;box-sizing:border-box">
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div style="background:var(--bg);border-radius:20px 20px 0 0;width:100%;display:flex;flex-direction:column">
+        <!-- Contenu scrollable -->
+        <div style="overflow-y:auto;padding:20px 18px 0;display:flex;flex-direction:column;gap:14px">
+          <div id="dpm-title" style="font-size:18px;font-weight:700;color:var(--text)">Nouvelle période</div>
+          <input type="hidden" id="dpm-id" value="">
           <div>
-            <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:4px;text-transform:uppercase">Debut</div>
-            <input id="dpm-start" type="date" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 8px;font-size:13px;color:var(--text);font-family:inherit;outline:none;box-sizing:border-box">
+            <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:4px;text-transform:uppercase">Nom</div>
+            <input id="dpm-name" type="text" placeholder="ex: Ete 2026" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);font-family:inherit;outline:none;box-sizing:border-box">
           </div>
-          <div>
-            <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:4px;text-transform:uppercase">Fin</div>
-            <input id="dpm-end" type="date" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 8px;font-size:13px;color:var(--text);font-family:inherit;outline:none;box-sizing:border-box">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div>
+              <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:4px;text-transform:uppercase">Debut</div>
+              <input id="dpm-start" type="date" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 8px;font-size:13px;color:var(--text);font-family:inherit;outline:none;box-sizing:border-box">
+            </div>
+            <div>
+              <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:4px;text-transform:uppercase">Fin</div>
+              <input id="dpm-end" type="date" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 8px;font-size:13px;color:var(--text);font-family:inherit;outline:none;box-sizing:border-box">
+            </div>
           </div>
         </div>
-        <div style="display:flex;gap:10px">
+        <!-- Boutons fixes en bas -->
+        <div style="display:flex;gap:10px;padding:16px 18px 32px;flex-shrink:0;border-top:1px solid var(--border);margin-top:16px;background:var(--bg)">
           <button onclick="document.getElementById('dispo-m-new-wrap').style.display='none'" style="flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);background:none;color:var(--text);font-size:14px;font-family:inherit;cursor:pointer">Annuler</button>
           <button id="dpm-btn" onclick="dispoMCreatePoll()" style="flex:2;padding:12px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer">Creer</button>
         </div>
