@@ -1392,8 +1392,11 @@ let _fpEId=null,_fpCh={};
 const _fpC={'Cordes':['#e67e22','rgba(230,126,34,.15)'],'Cuivres':['#e74c3c','rgba(231,76,60,.15)'],'Bois':['#27ae60','rgba(39,174,96,.15)'],'Claviers':['#2980b9','rgba(41,128,185,.15)'],'Percussions':['#8e44ad','rgba(142,68,173,.15)'],'Voix':['#f39c12','rgba(243,156,18,.15)']};
 
 function fpS(w){
+  // Cacher toutes les modales existantes
+  document.querySelectorAll('.modal').forEach(m=>m.style.display='none');
   document.getElementById('fp-d').style.display='none';
   document.getElementById('fp-m').style.display='none';
+  // Afficher uniquement la bonne
   document.getElementById('fp-'+w).style.display='flex';
   document.getElementById('modal-overlay').classList.add('open');
 }
