@@ -379,6 +379,20 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
   padding:2px 0;box-sizing:border-box;margin-left:30px;width:calc(100% - 30px);
 }
 .sqm-ni::placeholder{ color:var(--text3);font-style:italic; }
+
+/* Feuille présentielle */
+.fp-date-row{padding:12px 20px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .15s}
+.fp-date-row:hover{background:var(--surface2)}
+.fp-mrow{display:flex;align-items:center;gap:10px;padding:10px 20px;border-bottom:1px solid var(--border)}
+.fp-mrow.me{background:rgba(185,106,40,.08);border-left:3px solid var(--accent)}
+.fp-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.fp-nm{flex:1;font-size:13px;font-weight:500;color:var(--text)}
+.fp-bt{width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:14px;opacity:.3;transition:all .12s}
+.fp-bt:hover{opacity:.7}
+.fp-bt.on{opacity:1;border-color:transparent}
+.fp-bt.on.p{background:rgba(39,174,96,.25);border-color:#27ae60}
+.fp-bt.on.q{background:rgba(243,156,18,.25);border-color:#f39c12}
+.fp-bt.on.a{background:rgba(231,76,60,.25);border-color:#e74c3c}
 </style>
 </head>
 <body>
@@ -898,12 +912,12 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
     <div class="modal-body" id="detail-body"></div>
   </div>
     <!-- Nouvelle période de disponibilité -->
-    <div class="modal" id="modal-new-poll" style="max-width:420px;width:94vw">
-      <div class="modal-header">
+    <div class="modal" id="modal-new-poll" style="max-width:420px;width:94vw;display:flex;flex-direction:column;overflow:hidden;max-height:90vh">
+      <div class="modal-header" style="flex-shrink:0">
         <h3 class="modal-title" id="dp-modal-title">Nouvelle période</h3>
         <button class="modal-close" onclick="closeModal()">×</button>
       </div>
-      <div class="modal-body" style="display:flex;flex-direction:column;gap:14px">
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;overflow-y:auto;flex:1">
         <input type="hidden" id="dp-id" value="">
         <div>
           <label class="form-label">Nom de la période</label>
@@ -919,10 +933,29 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
             <input class="form-input" id="dp-end" type="date">
           </div>
         </div>
-        <div style="display:flex;gap:8px;justify-content:flex-end;padding-top:4px">
-          <button class="btn btn-outline" onclick="closeModal()">Annuler</button>
-          <button class="btn btn-primary" id="dp-save-btn" onclick="savePoll()">Créer</button>
-        </div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;padding:16px 20px;border-top:1px solid var(--border);flex-shrink:0">
+        <button class="btn btn-outline" onclick="closeModal()">Annuler</button>
+        <button class="btn btn-primary" id="dp-save-btn" onclick="savePoll()">Créer</button>
+      </div>
+    </div>
+
+
+    <div id="fp-d" style="background:var(--surface);border:1px solid var(--border2);border-radius:16px;box-shadow:var(--shadow);max-width:500px;width:94vw;max-height:80vh;display:none;flex-direction:column;overflow:hidden">
+      <div class="modal-header"><h3 class="modal-title" id="fp-d-title">Feuille présentielle</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+      <div style="overflow-y:auto;flex:1"><div id="fp-d-list"></div></div>
+    </div>
+    <div id="fp-m" style="background:var(--surface);border:1px solid var(--border2);border-radius:16px;box-shadow:var(--shadow);max-width:460px;width:94vw;max-height:82vh;display:none;flex-direction:column;overflow:hidden">
+      <div class="modal-header" style="flex-direction:column;align-items:stretch;gap:4px">
+        <div style="display:flex;align-items:center;justify-content:space-between"><h3 class="modal-title" id="fp-m-title">Présences</h3><button class="modal-close" onclick="fpS('d')">←</button></div>
+        <div id="fp-m-sub" style="font-size:12px;color:var(--text3)"></div>
+        <div id="fp-m-sum" style="display:flex;gap:5px;margin-top:4px"></div>
+      </div>
+      <div style="overflow-y:auto;flex:1"><div id="fp-m-list"></div></div>
+      <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-shrink:0">
+        <span id="fp-st" style="flex:1;font-size:12px;color:var(--green)"></span>
+        <button class="btn btn-outline" onclick="fpS('d')">← Retour</button>
+        <button class="btn btn-primary" onclick="fpSave()">💾 Enregistrer</button>
       </div>
     </div>
 
@@ -1353,6 +1386,126 @@ async function deletePoll(id){
   document.getElementById('dispo-content').innerHTML='<div style="padding:60px;text-align:center;color:var(--text3);font-style:italic">← Sélectionnez une période</div>';
 }
 
+
+// ===== FEUILLE PRÉSENTIELLE =====
+let _fpEId=null,_fpCh={};
+const _fpC={'Cordes':['#e67e22','rgba(230,126,34,.15)'],'Cuivres':['#e74c3c','rgba(231,76,60,.15)'],'Bois':['#27ae60','rgba(39,174,96,.15)'],'Claviers':['#2980b9','rgba(41,128,185,.15)'],'Percussions':['#8e44ad','rgba(142,68,173,.15)'],'Voix':['#f39c12','rgba(243,156,18,.15)']};
+
+function fpS(w){
+  document.getElementById('fp-d').style.display='none';
+  document.getElementById('fp-m').style.display='none';
+  document.getElementById('fp-'+w).style.display='flex';
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function fpOpen(sid){
+  const set=DB.sets.find(s=>s.id===sid); if(!set) return;
+  const today=new Date().toISOString().slice(0,10);
+  const evts=DB.events.filter(e=>e.set_id===sid&&e.type!=='prestation').sort((a,b)=>a.date.localeCompare(b.date));
+  const shown=[...evts.filter(e=>e.date>=today).slice(0,8),...evts.filter(e=>e.date<today).slice(-2).reverse()];
+  document.getElementById('fp-d-title').textContent=set.name+' — Feuille présentielle';
+  document.getElementById('fp-d-list').innerHTML=shown.length
+    ?shown.map(e=>{
+      const d=new Date(e.date+'T12:00:00');
+      const lbl=d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+      const time=e.time?' · '+e.time.slice(0,5):'';
+      const isPast=e.date<today;
+      const atts=DB.event_attendance.filter(a=>parseInt(a.event_id)===e.id);
+      const p=atts.filter(a=>a.status==='present').length,q=atts.filter(a=>a.status==='maybe').length,ab=atts.filter(a=>a.status==='absent').length;
+      return `<div class="fp-date-row" onclick="fpOD(${e.id})">
+        <div style="flex:1"><div style="font-size:13px;font-weight:600;color:${isPast?'var(--text3)':'var(--text)'}">${isPast?'↩ ':'📅 '}${lbl}${time}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">${(p||q||ab)?`${p?'✅'+p+' ':''}${q?'❓'+q+' ':''}${ab?'❌'+ab:''}`:'<i>Aucune réponse</i>'}</div></div>
+        <span style="color:var(--text3)">›</span></div>`;
+    }).join('')
+    :'<div style="padding:24px;text-align:center;color:var(--text3);font-style:italic">Aucune date planifiée.</div>';
+  fpS('d');
+}
+
+function fpOD(eid){
+  _fpEId=parseInt(eid);_fpCh={};
+  const e=DB.events.find(x=>x.id===_fpEId); if(!e) return;
+  const set=e.set_id?DB.sets.find(s=>s.id===e.set_id):null;
+  const d=new Date(e.date+'T12:00:00');
+  document.getElementById('fp-m-title').textContent=set?.name||'Répétition';
+  document.getElementById('fp-m-sub').textContent=d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+(e.time?' · '+e.time.slice(0,5)+(e.time_end?' – '+e.time_end.slice(0,5):''):'');
+  document.getElementById('fp-st').textContent='';
+  const existing=DB.event_attendance.filter(a=>parseInt(a.event_id)===_fpEId).map(a=>parseInt(a.member_id));
+  DB.members.forEach(m=>{ if(!existing.includes(parseInt(m.id))) _fpCh[m.id]='present'; });
+  fpRM();fpS('m');
+}
+
+function fpRM(){
+  const atts=DB.event_attendance.filter(a=>parseInt(a.event_id)===_fpEId);
+  const p=atts.filter(a=>a.status==='present').length,q=atts.filter(a=>a.status==='maybe').length,ab=atts.filter(a=>a.status==='absent').length;
+  document.getElementById('fp-m-sum').innerHTML=(p?`<span style="font-size:11px;padding:2px 7px;border-radius:8px;background:var(--surface2)">✅ ${p}</span>`:'')+
+    (q?`<span style="font-size:11px;padding:2px 7px;border-radius:8px;background:var(--surface2)">❓ ${q}</span>`:'')+
+    (ab?`<span style="font-size:11px;padding:2px 7px;border-radius:8px;background:var(--surface2)">❌ ${ab}</span>`:'');
+  const myId=parseInt(currentUserId||0);
+  const icons={present:'✅',maybe:'❓',absent:'❌',unknown:'⬜'};
+  document.getElementById('fp-m-list').innerHTML=DB.members.map(m=>{
+    const att=atts.find(r=>parseInt(r.member_id)===parseInt(m.id));
+    const saved=att?.status||'unknown';
+    const st=_fpCh[m.id]!==undefined?_fpCh[m.id]:saved;
+    const isMe=parseInt(m.id)===myId;
+    const [col,bg]=_fpC[m.family]||['#888','rgba(136,136,136,.12)'];
+    const av=m.avatar||(m.prenom?m.prenom[0].toUpperCase():'?');
+    return `<div class="fp-mrow${isMe?' me':''}">
+      <div class="fp-av" style="background:${bg};color:${col}">${av}</div>
+      <span class="fp-nm">${esc(m.prenom||'')} ${esc(m.nom||'')}</span>
+      ${isMe?`<div style="display:flex;gap:4px">
+        <button class="fp-bt${st==='present'?' on p':''}" onclick="fpMk(${m.id},'present')">✅</button>
+        <button class="fp-bt${st==='maybe'  ?' on q':''}" onclick="fpMk(${m.id},'maybe')">❓</button>
+        <button class="fp-bt${st==='absent' ?' on a':''}" onclick="fpMk(${m.id},'absent')">❌</button>
+      </div>`:`<span style="font-size:16px;opacity:${st==='unknown'?.2:.9}">${icons[st]}</span>`}
+    </div>`;
+  }).join('');
+}
+
+function fpMk(id,st){_fpCh[id]=st;fpRM();}
+
+async function fpSave(){
+  const stEl=document.getElementById('fp-st');
+  stEl.style.color='var(--text3)';stEl.textContent='Enregistrement…';
+  try{
+    for(const [mid,status] of Object.entries(_fpCh)){
+      const ex=DB.event_attendance.find(a=>parseInt(a.event_id)===_fpEId&&parseInt(a.member_id)===parseInt(mid));
+      if(ex) await sb.from('event_attendance').update({status}).eq('id',ex.id);
+      else   await sb.from('event_attendance').insert({event_id:_fpEId,member_id:parseInt(mid),status});
+    }
+    await loadAll();_fpCh={};fpRM();renderSets();renderDashboard();
+    stEl.style.color='var(--green)';stEl.textContent='✓ Enregistré !';
+    setTimeout(()=>{stEl.textContent='';},2500);
+  }catch(err){stEl.style.color='var(--red)';stEl.textContent='Erreur: '+err.message;}
+}
+
+function fpAbsAlert(sid){
+  const today=new Date().toISOString().slice(0,10);
+  return DB.events.filter(e=>e.set_id===sid&&e.date>=today&&e.type!=='prestation')
+    .sort((a,b)=>a.date.localeCompare(b.date)).slice(0,2)
+    .some(e=>DB.event_attendance.filter(a=>parseInt(a.event_id)===e.id&&a.status==='absent').length>0);
+}
+
+function renderAbsentsWidget(){
+  const el=document.getElementById('dash-absents'); if(!el) return;
+  const today=new Date().toISOString().slice(0,10);
+  const next2Evts=DB.events.filter(e=>e.date>=today&&e.type!=='prestation'&&!e.cancelled)
+    .sort((a,b)=>a.date.localeCompare(b.date)).slice(0,2);
+  if(!next2Evts.length){el.innerHTML='';return;}
+  const blocks=next2Evts.map(evt=>{
+    const absents=DB.event_attendance.filter(a=>parseInt(a.event_id)===evt.id&&a.status==='absent')
+      .map(a=>DB.members.find(m=>m.id===a.member_id)).filter(Boolean);
+    if(!absents.length) return '';
+    const set=evt.set_id?DB.sets.find(s=>s.id===evt.set_id):null;
+    const d=new Date(evt.date+'T12:00:00');
+    const dateLabel=d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
+    return `<div style="padding:10px 14px;background:rgba(231,76,60,.07);border:1px solid rgba(231,76,60,.2);border-left:3px solid var(--red);border-radius:var(--radius-sm);margin-bottom:6px">
+      <div style="font-size:11px;font-weight:600;color:var(--red);margin-bottom:4px">❌ Absents — ${esc(set?.name||'Répétition')} · ${dateLabel}</div>
+      <div style="font-size:12px;color:var(--text)">${absents.map(m=>esc(m.prenom+' '+(m.nom||''))).join(', ')}</div>
+    </div>`;
+  }).filter(Boolean).join('');
+  el.innerHTML=blocks||'';
+}
+
 async function init(){
   try {
     await loadAll();
@@ -1729,9 +1882,10 @@ function renderSets(){
     return `
       <div class="set-card" ondblclick="openQuickSetModal(${set.id})" title="Double-clic : édition rapide" style="cursor:pointer">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
-          <div class="set-name">${esc(set.name)}</div>
+          <div class="set-name" style="display:flex;align-items:center;gap:6px">${esc(set.name)}${fpAbsAlert(set.id)?'<span title="Absences" style="font-size:13px">⚠️</span>':''}</div>
           <div class="flex gap-8" style="flex-shrink:0">
             ${songs.length?`<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();printSetProgram(${set.id})" title="Imprimer">🖨</button>`:''}
+            <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();fpOpen(${set.id})" style="color:var(--accent)" title="Feuille présentielle">👥</button>
             <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openSetModal(${set.id})">✎</button>
             <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteSet(${set.id})">✕</button>
           </div>
@@ -2345,6 +2499,7 @@ async function saveRepet(){
 //  DASHBOARD
 // ============================================================
 function renderDashboard(){
+  renderAbsentsWidget();
   document.getElementById('stats-bar').innerHTML = [
     {v:DB.songs.length,   l:'Morceaux',    p:'morceaux'},
     {v:DB.members.length, l:'Musiciens',   p:'membres'},
