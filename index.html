@@ -764,6 +764,11 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
         <div id="avatar-picker" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px"></div>
         <input class="form-input" id="f-member-avatar" placeholder="🎸 ou initiales" maxlength="4" oninput="syncAvatarPicker(this.value)" style="margin-top:4px">
       </div>
+      <div class="form-group">
+        <label class="form-label">Jours indisponibles habituellement</label>
+        <p style="font-size:11px;color:var(--text3);margin:2px 0 8px">Sera automatiquement pré-coché "Absent" pour les répétitions tombant ces jours-là.</p>
+        <div id="unavail-days-picker" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+      </div>
       <div class="form-actions">
         <button class="btn btn-outline" onclick="closeModal()">Annuler</button>
         <button class="btn btn-primary" onclick="saveMember()">Enregistrer</button>
@@ -1474,7 +1479,13 @@ function fpOD(eid){
   document.getElementById('fp-m-sub').textContent=d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+(e.time?' · '+e.time.slice(0,5)+(e.time_end?' – '+e.time_end.slice(0,5):''):'');
   document.getElementById('fp-st').textContent='';
   const existing=DB.event_attendance.filter(a=>parseInt(a.event_id)===_fpEId).map(a=>parseInt(a.member_id));
-  DB.members.forEach(m=>{ if(!existing.includes(parseInt(m.id))) _fpCh[m.id]='present'; });
+  const eventDow = new Date(e.date+'T12:00:00').getDay();
+  DB.members.forEach(m=>{
+    if(!existing.includes(parseInt(m.id))){
+      const unavail = m.unavailable_days||[];
+      _fpCh[m.id] = unavail.includes(eventDow) ? 'absent' : 'present';
+    }
+  });
   fpRM();fpS('m');
 }
 
@@ -1531,10 +1542,23 @@ function fpAbsAlert(sid){
 
 function renderAbsentsWidget(){
   const el=document.getElementById('dash-absents'); if(!el) return;
-  const today=new Date().toISOString().slice(0,10);
-  const next2Evts=DB.events.filter(e=>e.date>=today&&e.type!=='prestation'&&!e.cancelled)
-    .sort((a,b)=>a.date.localeCompare(b.date)).slice(0,2);
-  if(!next2Evts.length){el.innerHTML='';return;}
+  const now=new Date();
+  const dow=now.getDay(); // 0=dim,1=lun,...,5=ven,6=sam
+  // Vendredi(5), Samedi(6), Dimanche(0) → semaine suivante
+  const useNextWeek = dow===5||dow===6||dow===0;
+  // Calculer début et fin de la semaine cible (lundi→dimanche)
+  const monday=new Date(now);
+  const diffToMon = (dow===0?-6:1-dow) + (useNextWeek?7:0);
+  monday.setDate(now.getDate()+diffToMon);
+  monday.setHours(0,0,0,0);
+  const sunday=new Date(monday);
+  sunday.setDate(monday.getDate()+6);
+  sunday.setHours(23,59,59,999);
+  const weekStart=monday.toISOString().slice(0,10);
+  const weekEnd=sunday.toISOString().slice(0,10);
+  const next2Evts=DB.events.filter(e=>e.date>=weekStart&&e.date<=weekEnd&&e.type!=='prestation'&&!e.cancelled)
+    .sort((a,b)=>a.date.localeCompare(b.date));
+  if(!next2Evts.length){el.innerHTML='<div style="color:var(--text3);font-size:12px;font-style:italic">Aucune répétition '+(useNextWeek?'la semaine prochaine':'cette semaine')+'.</div>';return;}
   const blocks=next2Evts.map(evt=>{
     const absents=DB.event_attendance.filter(a=>parseInt(a.event_id)===evt.id&&a.status==='absent')
       .map(a=>DB.members.find(m=>m.id===a.member_id)).filter(Boolean);
@@ -1591,7 +1615,13 @@ function presSelectDate(evtId){
   document.getElementById('pres-save-st').textContent='';
   document.getElementById('pres-save-btn').style.display='inline-flex';
   const existing=DB.event_attendance.filter(a=>parseInt(a.event_id)===evtId).map(a=>parseInt(a.member_id));
-  DB.members.forEach(m=>{ if(!existing.includes(parseInt(m.id))) _presCh[m.id]='present'; });
+  const eventDow2 = new Date(e.date+'T12:00:00').getDay();
+  DB.members.forEach(m=>{
+    if(!existing.includes(parseInt(m.id))){
+      const unavail = m.unavailable_days||[];
+      _presCh[m.id] = unavail.includes(eventDow2) ? 'absent' : 'present';
+    }
+  });
   presRenderMembers();
   renderPresences();
 }
@@ -1633,6 +1663,28 @@ async function presSave(){
     stEl.style.color='var(--green)';stEl.textContent='✓ Enregistré !';
     setTimeout(()=>{stEl.textContent='';},2500);
   }catch(err){stEl.style.color='var(--red)';stEl.textContent='Erreur: '+err.message;}
+}
+
+
+const DAY_NAMES=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+
+function renderUnavailDaysPicker(selectedDays){
+  const el = document.getElementById('unavail-days-picker'); if(!el) return;
+  el.innerHTML = DAY_NAMES.map((name,idx)=>{
+    const isOn = (selectedDays||[]).includes(idx);
+    return `<button type="button" onclick="toggleUnavailDay(${idx})" data-day="${idx}"
+      style="padding:7px 14px;border-radius:18px;border:1px solid ${isOn?'#e74c3c':'var(--border)'};
+      background:${isOn?'rgba(231,76,60,.15)':'var(--surface2)'};color:${isOn?'#e74c3c':'var(--text2)'};
+      font-size:12px;font-weight:${isOn?'700':'400'};cursor:pointer;font-family:inherit">${name}</button>`;
+  }).join('');
+}
+
+let _editingUnavailDays = [];
+
+function toggleUnavailDay(idx){
+  if(_editingUnavailDays.includes(idx)) _editingUnavailDays = _editingUnavailDays.filter(d=>d!==idx);
+  else _editingUnavailDays.push(idx);
+  renderUnavailDaysPicker(_editingUnavailDays);
 }
 
 async function init(){
@@ -1932,6 +1984,7 @@ function renderMembers(){
               <div class="member-name">${esc(m.prenom)}${m.nom?' '+esc(m.nom):''}</div>
               ${m.pseudo?`<div class="member-pseudo">"${esc(m.pseudo)}"</div>`:''}
               <div class="member-family">${esc(m.instrument||m.family||'')}</div>
+              ${(m.unavailable_days&&m.unavailable_days.length)?`<div style="font-size:10px;color:var(--red);margin-top:4px">🚫 ${m.unavailable_days.map(d=>DAY_NAMES[d]).join(', ')}</div>`:''}
               <div style="display:flex;gap:6px;margin-top:10px;justify-content:center">
                 <button class="btn btn-ghost btn-sm" onclick="openMemberModal(${m.id})">✎ Modifier</button>
                 <button class="btn btn-danger btn-sm" onclick="deleteMember(${m.id})">✕</button>
@@ -1955,6 +2008,8 @@ function openMemberModal(id=null){
   setVal('f-member-instrument', m.instrument||'');
   setVal('f-member-avatar',     m.avatar||'');
   renderAvatarPicker(m.avatar||'');
+  _editingUnavailDays = (m.unavailable_days||[]).slice();
+  renderUnavailDaysPicker(_editingUnavailDays);
   showModal('member');
 }
 
@@ -1979,6 +2034,7 @@ async function saveMember(){
     prenom, nom:getVal('f-member-nom'),
     pseudo:getVal('f-member-pseudo'), family:getVal('f-member-family'),
     instrument:getVal('f-member-instrument'), avatar:getVal('f-member-avatar'),
+    unavailable_days: _editingUnavailDays.slice(),
   };
   setSyncStatus('loading');
   try {

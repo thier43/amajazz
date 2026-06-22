@@ -797,7 +797,16 @@ function renderDashboard(){
   (()=>{
     const el=document.getElementById('dash-absents-m'); if(!el) return;
     const today=new Date().toISOString().slice(0,10);
-    const next2Evts=DB.events.filter(e=>e.date>=today&&e.type!=='prestation'&&!e.cancelled).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,2);
+    const now2=new Date();
+    const dow2=now2.getDay();
+    const useNext=dow2===5||dow2===6||dow2===0;
+    const mon=new Date(now2);
+    mon.setDate(now2.getDate()+(dow2===0?-6:1-dow2)+(useNext?7:0));
+    mon.setHours(0,0,0,0);
+    const sun=new Date(mon); sun.setDate(mon.getDate()+6); sun.setHours(23,59,59,999);
+    const wStart=mon.toISOString().slice(0,10);
+    const wEnd=sun.toISOString().slice(0,10);
+    const next2Evts=DB.events.filter(e=>e.date>=wStart&&e.date<=wEnd&&e.type!=='prestation'&&!e.cancelled).sort((a,b)=>a.date.localeCompare(b.date));
     if(!next2Evts.length){el.innerHTML='';return;}
     const blocks=next2Evts.map(evt=>{
       const absents=DB.event_attendance.filter(a=>parseInt(a.event_id)===evt.id&&a.status==='absent')
@@ -1051,6 +1060,7 @@ function renderMembers(){
           <div class="member-name">${esc(m.prenom)}${m.nom?' '+esc(m.nom):''}</div>
           ${m.pseudo?`<div class="member-pseudo">"${esc(m.pseudo)}"</div>`:''}
           <div class="member-instrument">${esc(m.instrument||m.family||'')}</div>
+          ${(m.unavailable_days&&m.unavailable_days.length)?`<div style="font-size:10px;color:var(--red);margin-top:4px">🚫 ${m.unavailable_days.map(d=>DAY_NAMES_M[d]).join(', ')}</div>`:''}
           <div style="font-size:10px;color:var(--text3);margin-top:6px">✎ Modifier</div>
         </div>`).join('')}
       </div>`;
@@ -1354,6 +1364,8 @@ function openMemberModal(id){
   document.getElementById('mf-family').value    = m?.family||'Soufflants';
   document.getElementById('mf-instrument').value= m?.instrument||'';
   document.getElementById('mf-avatar').value    = m?.avatar||'';
+  _mfUnavailDays = (m && m.unavailable_days) ? m.unavailable_days.slice() : [];
+  renderMfUnavailDays();
   document.getElementById('member-delete-btn').style.display = id ? 'block' : 'none';
   const overlay = document.getElementById('member-modal-overlay');
   overlay.style.display = 'flex';
@@ -1374,6 +1386,7 @@ async function saveMemberM(){
     family:    document.getElementById('mf-family').value,
     instrument:document.getElementById('mf-instrument').value.trim()||null,
     avatar:    document.getElementById('mf-avatar').value.trim()||null,
+    unavailable_days: _mfUnavailDays.slice(),
   };
   setSyncStatus('loading');
   try {
@@ -1721,7 +1734,13 @@ function fpmOpenDate(eid){
   const e=DB.events.find(x=>x.id===_fpmEId); if(!e) return;
   // Pré-remplir "présent" pour les musiciens sans réponse
   const existing=DB.event_attendance.filter(a=>parseInt(a.event_id)===_fpmEId).map(a=>parseInt(a.member_id));
-  DB.members.forEach(m=>{ if(!existing.includes(parseInt(m.id))) _fpmCh[m.id]='present'; });
+  const eventDowM = new Date(e.date+'T12:00:00').getDay();
+  DB.members.forEach(m=>{
+    if(!existing.includes(parseInt(m.id))){
+      const unavail = m.unavailable_days||[];
+      _fpmCh[m.id] = unavail.includes(eventDowM) ? 'absent' : 'present';
+    }
+  });
   const set=e.set_id?DB.sets.find(s=>s.id===e.set_id):null;
   const d=new Date(e.date+'T12:00:00');
   document.getElementById('fpm-title').textContent=set?.name||'Répétition';
@@ -2009,6 +2028,25 @@ function dispoGetWeek(dt){
   return d.toISOString().slice(0,10);
 }
 
+
+const DAY_NAMES_M=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+let _mfUnavailDays = [];
+
+function renderMfUnavailDays(){
+  var el=document.getElementById('mf-unavail-days'); if(!el) return;
+  el.innerHTML = DAY_NAMES_M.map(function(name,idx){
+    var isOn=_mfUnavailDays.indexOf(idx)>=0;
+    return '<button type="button" onclick="toggleMfUnavailDay('+idx+')" style="padding:6px 12px;border-radius:16px;border:1px solid '+(isOn?'#e74c3c':'var(--border)')+';background:'+(isOn?'rgba(231,76,60,.15)':'var(--surface2)')+';color:'+(isOn?'#e74c3c':'var(--text2)')+';font-size:12px;font-weight:'+(isOn?'700':'400')+';cursor:pointer;font-family:inherit">'+name+'</button>';
+  }).join('');
+}
+
+function toggleMfUnavailDay(idx){
+  var i=_mfUnavailDays.indexOf(idx);
+  if(i>=0) _mfUnavailDays.splice(i,1);
+  else _mfUnavailDays.push(idx);
+  renderMfUnavailDays();
+}
+
 // ===== WELCOME MOBILE =====
 const _famColM = {
   'Cordes':'#e67e22','Cuivres':'#e74c3c','Bois':'#27ae60',
@@ -2168,6 +2206,11 @@ init();
         <input id="mf-instrument" class="minput" placeholder="Ex: Trompette, Guitare…"></div>
       <div><label style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Avatar (initiales ou émoji)</label>
         <input id="mf-avatar" class="minput" placeholder="Ex: JD ou 🎸"></div>
+      <div>
+        <label style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Jours indisponibles habituellement</label>
+        <p style="font-size:10px;color:var(--text3);margin:0 0 6px">Pré-coché "Absent" ces jours-là.</p>
+        <div id="mf-unavail-days" style="display:flex;gap:5px;flex-wrap:wrap"></div>
+      </div>
     </div>
     <div style="display:flex;gap:10px;margin-top:20px">
       <button onclick="document.getElementById('member-modal-overlay').style.display='none'" style="flex:1;padding:12px;border:1px solid var(--border);border-radius:10px;background:none;color:var(--text2);font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer">Annuler</button>
