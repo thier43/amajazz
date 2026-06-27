@@ -787,6 +787,10 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
         <label class="form-label">Nom de la répétition *</label>
         <input class="form-input" id="f-set-name" placeholder="Ex: Répétition Vendredi – Jazz Standards">
       </div>
+      <label style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(231,76,60,.06);border:1px solid rgba(231,76,60,.25);border-radius:var(--radius-sm);cursor:pointer;margin-bottom:16px">
+        <input type="checkbox" id="f-set-default-absent" style="width:16px;height:16px;accent-color:var(--red)">
+        <span style="font-size:13px;color:var(--text)"><b>Période creuse</b> — par défaut, tous les musiciens seront marqués <span style="color:var(--red);font-weight:600">absents</span> pour les prochaines dates de cette répétition (chacun se signale présent s'il vient).</span>
+      </label>
       <div class="set-builder">
         <div class="drop-zone">
           <div class="drop-zone-title">Répertoire disponible</div>
@@ -1480,10 +1484,12 @@ function fpOD(eid){
   document.getElementById('fp-st').textContent='';
   const existing=DB.event_attendance.filter(a=>parseInt(a.event_id)===_fpEId).map(a=>parseInt(a.member_id));
   const eventDow = new Date(e.date+'T12:00:00').getDay();
+  const setIsDefaultAbsent = !!(set && set.default_absent);
   DB.members.forEach(m=>{
     if(!existing.includes(parseInt(m.id))){
       const unavail = m.unavailable_days||[];
-      _fpCh[m.id] = unavail.includes(eventDow) ? 'absent' : 'present';
+      if(unavail.includes(eventDow)) _fpCh[m.id] = 'absent';
+      else _fpCh[m.id] = setIsDefaultAbsent ? 'absent' : 'present';
     }
   });
   fpRM();fpS('m');
@@ -1616,10 +1622,12 @@ function presSelectDate(evtId){
   document.getElementById('pres-save-btn').style.display='inline-flex';
   const existing=DB.event_attendance.filter(a=>parseInt(a.event_id)===evtId).map(a=>parseInt(a.member_id));
   const eventDow2 = new Date(e.date+'T12:00:00').getDay();
+  const setIsDefaultAbsent2 = !!(set && set.default_absent);
   DB.members.forEach(m=>{
     if(!existing.includes(parseInt(m.id))){
       const unavail = m.unavailable_days||[];
-      _presCh[m.id] = unavail.includes(eventDow2) ? 'absent' : 'present';
+      if(unavail.includes(eventDow2)) _presCh[m.id] = 'absent';
+      else _presCh[m.id] = setIsDefaultAbsent2 ? 'absent' : 'present';
     }
   });
   presRenderMembers();
@@ -2067,7 +2075,7 @@ function renderSets(){
     return `
       <div class="set-card" ondblclick="openQuickSetModal(${set.id})" title="Double-clic : édition rapide" style="cursor:pointer">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
-          <div class="set-name" style="display:flex;align-items:center;gap:6px">${esc(set.name)}${fpAbsAlert(set.id)?'<span title="Absences" style="font-size:13px">⚠️</span>':''}</div>
+          <div class="set-name" style="display:flex;align-items:center;gap:6px">${esc(set.name)}${set.default_absent?'<span title="Mode absent par défaut" style="font-size:11px;padding:2px 6px;border-radius:6px;background:rgba(231,76,60,.12);color:var(--red);font-weight:600">🚫 Période creuse</span>':''}${fpAbsAlert(set.id)?'<span title="Absences" style="font-size:13px">⚠️</span>':''}</div>
           <div class="flex gap-8" style="flex-shrink:0">
             ${songs.length?`<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();printSetProgram(${set.id})" title="Imprimer">🖨</button>`:''}
             <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();fpOpen(${set.id})" style="color:var(--accent)" title="Feuille présentielle">👥</button>
@@ -2109,6 +2117,7 @@ function openSetModal(id=null){
   document.getElementById('set-modal-title').textContent = id?'Modifier la répétition':'Nouvelle répétition';
   const set = id ? DB.sets.find(x=>x.id===id) : null;
   setVal('f-set-name', set?.name||'');
+  document.getElementById('f-set-default-absent').checked = !!(set?.default_absent);
   setSelectedSongs = id ? getSongIdsForSet(id) : [];
   setNotesMap  = {};
   setLocalKey    = {};
@@ -2209,10 +2218,11 @@ async function saveSet(){
   setSyncStatus('loading');
   try {
     let setId = editingId;
+    const defaultAbsent = document.getElementById('f-set-default-absent').checked;
     if(editingId){
-      await sb.from('sets').update({name}).eq('id', editingId);
+      await sb.from('sets').update({name, default_absent:defaultAbsent}).eq('id', editingId);
     } else {
-      const {data, error} = await sb.from('sets').insert({name}).select().single();
+      const {data, error} = await sb.from('sets').insert({name, default_absent:defaultAbsent}).select().single();
       if(error) throw error;
       setId = data.id;
     }

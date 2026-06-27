@@ -905,7 +905,7 @@ function renderSets(){
     return `<div class="set-card" onclick="handleSetTap(${set.id},event)">
       <div class="set-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
         <div style="flex:1">
-          <div class="set-name">${esc(set.name)}</div>
+          <div class="set-name" style="display:flex;align-items:center;gap:6px">${esc(set.name)}${set.default_absent?'<span style="font-size:10px;padding:2px 6px;border-radius:6px;background:rgba(231,76,60,.12);color:var(--red);font-weight:600">🚫 Creuse</span>':''}</div>
           <div class="set-meta">${songs.length} morceau${songs.length>1?'x':''} ${dur?'· ~'+dur+' min':''}</div>
         </div>
         <button onclick="fpmOpen(${set.id})" style="flex-shrink:0;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:14px;cursor:pointer" title="Feuille présentielle">👥</button>
@@ -1503,7 +1503,7 @@ function openEditPanel(type, id){
     _editSongs = DB.set_songs.filter(ss=>ss.set_id===id)
       .sort((a,b)=>a.position-b.position)
       .map(ss=>({song_id:ss.song_id, position:ss.position, notes:ss.set_notes||'', priority:ss.priority||0, local_key:ss.local_key||'', local_bpm:ss.local_bpm||'', local_struct:ss.local_struct||''}));
-    buildEditBody({name:set.name, notes:set.notes||''});
+    buildEditBody({name:set.name, notes:set.notes||'', defaultAbsent:!!set.default_absent});
   } else {
     const c = DB.concerts.find(x=>x.id===id);
     if(!c) return;
@@ -1524,7 +1524,7 @@ function openEditPanel(type, id){
   document.getElementById('edit-panel').classList.add('open');
 }
 
-function buildEditBody({name, notes}){
+function buildEditBody({name, notes, defaultAbsent}){
   const usedIds = _editSongs.map(s=>s.song_id);
   const available = DB.songs.filter(s=>!usedIds.includes(s.id))
     .sort((a,b)=>a.name.localeCompare(b.name,'fr'));
@@ -1585,6 +1585,11 @@ function buildEditBody({name, notes}){
       <div class="edit-field-label">Nom</div>
       <input class="edit-field-input" type="text" id="edit-name-input" value="${esc(name)}">
     </div>
+    ${_editType==='set'?`
+    <label style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(231,76,60,.06);border:1px solid rgba(231,76,60,.25);border-radius:10px;cursor:pointer;margin:10px 18px">
+      <input type="checkbox" id="edit-default-absent" ${defaultAbsent?'checked':''} style="width:16px;height:16px;accent-color:#e74c3c;flex-shrink:0">
+      <span style="font-size:12px;color:var(--text)"><b>Période creuse</b> — tous les musiciens marqués <span style="color:#e74c3c;font-weight:600">absents</span> par défaut sur les prochaines dates.</span>
+    </label>`:''}
     <div class="edit-field-row">
       <div class="edit-field-label">Notes générales</div>
       <textarea class="edit-field-input" id="edit-notes-input" placeholder="Notes…">${esc(notes)}</textarea>
@@ -1645,7 +1650,8 @@ async function saveEdit(){
 
   try {
     if(_editType==='set'){
-      await sb.from('sets').update({name, notes:notes||null}).eq('id',_editId);
+      const defaultAbsentVal = document.getElementById('edit-default-absent')?.checked || false;
+      await sb.from('sets').update({name, notes:notes||null, default_absent:defaultAbsentVal}).eq('id',_editId);
       await sb.from('set_songs').delete().eq('set_id',_editId);
       if(_editSongs.length){
         const rows = _editSongs.map((ss,i)=>({
@@ -1735,10 +1741,13 @@ function fpmOpenDate(eid){
   // Pré-remplir "présent" pour les musiciens sans réponse
   const existing=DB.event_attendance.filter(a=>parseInt(a.event_id)===_fpmEId).map(a=>parseInt(a.member_id));
   const eventDowM = new Date(e.date+'T12:00:00').getDay();
+  const setM=e.set_id?DB.sets.find(s=>s.id===e.set_id):null;
+  const setIsDefaultAbsentM = !!(setM && setM.default_absent);
   DB.members.forEach(m=>{
     if(!existing.includes(parseInt(m.id))){
       const unavail = m.unavailable_days||[];
-      _fpmCh[m.id] = unavail.includes(eventDowM) ? 'absent' : 'present';
+      if(unavail.includes(eventDowM)) _fpmCh[m.id] = 'absent';
+      else _fpmCh[m.id] = setIsDefaultAbsentM ? 'absent' : 'present';
     }
   });
   const set=e.set_id?DB.sets.find(s=>s.id===e.set_id):null;
