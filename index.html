@@ -3198,20 +3198,27 @@ function editPlanningEventSerie(serieKey){
   editingId = 'serie:'+serieKey;
   openRepetModal();
   setTimeout(()=>{
-    setVal('f-repet-type', first.type||'repetition');
-    toggleRepetType();
-    setVal('f-repet-time', first.time?.slice(0,5)||'17:00');
-    setVal('f-repet-time-end', first.time_end?.slice(0,5)||'19:00');
-    setVal('f-repet-venue', first.venue||'Centre Pierre Cardinal');
-    setVal('f-repet-notes', first.notes||'');
-    setVal('f-repet-recur','none');
-    document.getElementById('repet-recur-end').style.display='none';
-    if(first.set_id) setVal('f-repet-set-id', first.set_id);
-    if(first.concert_id) setVal('f-repet-concert-id', first.concert_id);
-    document.getElementById('repet-modal-title').textContent = 'Modifier la série';
-    // Hide date field for serie edit — only time/venue/notes matter
-    document.getElementById('f-repet-date').closest('.form-row').style.opacity='.4';
-    document.getElementById('f-repet-date').disabled=true;
+    try{
+      setVal('f-repet-type', first.type||'repetition');
+      toggleRepetType();
+      setVal('f-repet-time', first.time?first.time.slice(0,5):'17:00');
+      setVal('f-repet-time-end', first.time_end?first.time_end.slice(0,5):'19:00');
+      setVal('f-repet-venue', first.venue||'Centre Pierre Cardinal');
+      setVal('f-repet-notes', first.notes||'');
+      setVal('f-repet-recur','none');
+      const recEnd = document.getElementById('repet-recur-end');
+      if(recEnd) recEnd.style.display='none';
+      if(first.set_id) setVal('f-repet-set-id', first.set_id);
+      if(first.concert_id) setVal('f-repet-concert-id', first.concert_id);
+      const titleEl = document.getElementById('repet-modal-title');
+      if(titleEl) titleEl.textContent = 'Modifier la série';
+      const dateInput = document.getElementById('f-repet-date');
+      if(dateInput){
+        const row = dateInput.closest('.form-row') || dateInput.closest('.form-group');
+        if(row) row.style.opacity='.4';
+        dateInput.disabled=true;
+      }
+    }catch(err){ console.error('Erreur édition série:', err); toast('Erreur: '+err.message,'error'); }
   }, 50);
 }
 

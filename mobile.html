@@ -1005,7 +1005,8 @@ function renderCalendar(){
   let startDow = firstDay.getDay()-1; if(startDow<0) startDow=6;
 
   document.getElementById('cal-label-m').textContent = months[calMonth]+' '+calYear;
-  document.getElementById('planning-sub-m').textContent =
+  const subM = document.getElementById('planning-sub-m');
+  if(subM) subM.textContent =
     DB.events.filter(e=>e.date.startsWith(calYear+'-'+String(calMonth+1).padStart(2,'0'))).length+' événement(s) ce mois';
 
   const allEvts = [
