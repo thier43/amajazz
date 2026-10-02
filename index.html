@@ -563,7 +563,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
       <!-- Vue calendrier -->
       <div id="plan-cal-view"><div class="calendar" id="calendar"></div></div>
       <!-- Vue disponibilités -->
-      <div id="plan-dispo-view" style="display:none;height:calc(100vh - 140px);overflow:hidden;display:none;flex-direction:column">
+      <div id="plan-dispo-view" style="display:none;height:calc(100vh - 140px);overflow:hidden;flex-direction:column;min-height:0">
         <div style="display:flex;height:100%;overflow:hidden">
           <!-- Gauche : périodes -->
           <div style="width:260px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;background:var(--surface);display:flex;flex-direction:column">
@@ -621,7 +621,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
 
 
     <!-- PRÉSENCES -->
-    <div class="page" id="page-presences" style="height:calc(100vh - 56px);flex-direction:column;padding:0;overflow:hidden">
+    <div class="page" id="page-presences" style="height:calc(100vh - 56px);flex-direction:column;padding:0;overflow:hidden;min-height:0">
       <div style="padding:16px 24px 12px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between">
         <div>
           <h2 class="page-title" style="margin:0">Présences</h2>
@@ -633,12 +633,12 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
           <button class="btn btn-primary" id="pres-save-btn" onclick="presSave()" style="display:none">💾 Enregistrer</button>
         </div>
       </div>
-      <div style="display:flex;flex:1;overflow:hidden">
-        <div style="width:320px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;background:var(--surface)">
+      <div style="display:flex;flex:1;overflow:hidden;min-height:0">
+        <div style="width:320px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;background:var(--surface);min-height:0">
           <div style="padding:10px 14px;font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);font-weight:600;border-bottom:1px solid var(--border)">Répétitions à venir</div>
           <div id="pres-dates-list"></div>
         </div>
-        <div style="flex:1;overflow-y:auto;background:var(--bg)">
+        <div style="flex:1;overflow-y:auto;background:var(--bg);min-height:0">
           <div style="padding:14px 20px;border-bottom:1px solid var(--border);background:var(--surface)">
             <div id="pres-panel-title" style="font-size:16px;font-weight:700;color:var(--text)">Sélectionnez une date</div>
             <div id="pres-panel-sub" style="font-size:12px;color:var(--text3);margin-top:2px">Cliquez sur une répétition à gauche</div>
@@ -1001,7 +1001,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
         <div id="fp-m-sub" style="font-size:12px;color:var(--text3)"></div>
         <div id="fp-m-sum" style="display:flex;gap:5px;margin-top:4px"></div>
       </div>
-      <div style="overflow-y:auto;flex:1"><div id="fp-m-list"></div></div>
+      <div style="overflow-y:auto;flex:1;min-height:0"><div id="fp-m-list"></div></div>
       <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-shrink:0">
         <span id="fp-st" style="flex:1;font-size:12px;color:var(--green)"></span>
         <button class="btn btn-outline" onclick="fpS('d')">← Retour</button>
