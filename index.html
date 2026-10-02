@@ -394,7 +394,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
 .fp-bt.on.q{background:rgba(243,156,18,.25);border-color:#f39c12}
 .fp-bt.on.a{background:rgba(231,76,60,.25);border-color:#e74c3c}
 
-#page-presences.active{display:flex !important}
+#page-presences.active{display:block !important}
 .pres-row{display:flex;align-items:center;gap:10px;padding:10px 20px;border-bottom:1px solid var(--border)}
 .pres-row.me{background:rgba(185,106,40,.08);border-left:3px solid var(--accent)}
 .pres-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
@@ -621,8 +621,8 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
 
 
     <!-- PRÉSENCES -->
-    <div class="page" id="page-presences" style="height:calc(100vh - 56px);flex-direction:column;padding:0;overflow:hidden;min-height:0">
-      <div style="padding:16px 24px 12px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between">
+    <div class="page" id="page-presences" style="padding:0">
+      <div style="padding:16px 24px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg);z-index:10">
         <div>
           <h2 class="page-title" style="margin:0">Présences</h2>
           <p class="page-sub" style="margin:2px 0 0">Gestion des présences aux répétitions</p>
@@ -633,13 +633,13 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:14px 0}
           <button class="btn btn-primary" id="pres-save-btn" onclick="presSave()" style="display:none">💾 Enregistrer</button>
         </div>
       </div>
-      <div style="display:flex;flex:1;overflow:hidden;min-height:0">
-        <div style="width:320px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;background:var(--surface);min-height:0">
-          <div style="padding:10px 14px;font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);font-weight:600;border-bottom:1px solid var(--border)">Répétitions à venir</div>
+      <div style="display:grid;grid-template-columns:300px 1fr">
+        <div style="border-right:1px solid var(--border);background:var(--surface);min-height:calc(100vh - 120px)">
+          <div style="padding:10px 14px;font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);font-weight:600;border-bottom:1px solid var(--border);position:sticky;top:60px;background:var(--surface);z-index:5">Répétitions à venir</div>
           <div id="pres-dates-list"></div>
         </div>
-        <div style="flex:1;overflow-y:auto;background:var(--bg);min-height:0">
-          <div style="padding:14px 20px;border-bottom:1px solid var(--border);background:var(--surface)">
+        <div>
+          <div style="padding:14px 20px;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:60px;z-index:5">
             <div id="pres-panel-title" style="font-size:16px;font-weight:700;color:var(--text)">Sélectionnez une date</div>
             <div id="pres-panel-sub" style="font-size:12px;color:var(--text3);margin-top:2px">Cliquez sur une répétition à gauche</div>
           </div>
