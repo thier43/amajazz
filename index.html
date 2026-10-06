@@ -2514,7 +2514,9 @@ function renderCalendar(){
       const timeStr  = e.time ? e.time.slice(0,5)+(e.time_end?' – '+e.time_end.slice(0,5):'') : '';
       const isPresta = e.type==='prestation';
       const label    = (isPresta?'★ ':'♩ ')+(concName||setName||e.venue||'Répétition')+(timeStr?' · '+timeStr:'');
-      return {id:e.id, date:e.date, label, css:isPresta?'concert':'repet', title:(e.venue||'')+(timeStr?' · '+timeStr:''), evType:'planning'};
+      const cancelledCss = e.cancelled ? ' cancelled' : '';
+      const cancelledStyle = e.cancelled ? 'text-decoration:line-through;opacity:0.5;' : '';
+      return {id:e.id, date:e.date, label:(e.cancelled?'⊘ ':'')+label, css:(isPresta?'concert':'repet')+cancelledCss, title:(e.venue||'')+(timeStr?' · '+timeStr:'')+(e.cancelled?' [ANNULÉE]':''), evType:'planning', cancelledStyle};
     }),
     ...DB.concerts.map(c=>({id:c.id, date:c.date, label:'★ '+c.name, css:'concert', title:c.venue||'', evType:'concert'})),
   ];
@@ -2540,7 +2542,7 @@ function renderCalendar(){
     const evts = allEvts.filter(e=>e.date===dateStr);
     html += `<div class="cal-cell">
       <div class="cal-date-num ${isToday?'today':''}">${d}</div>
-      ${evts.map(e=>`<div class="cal-ev ${e.css}" title="${esc(e.title)}" onclick="openEventDetail(${e.id},'${e.evType}')" style="cursor:pointer">${esc(e.label)}</div>`).join('')}
+      ${evts.map(e=>`<div class="cal-ev ${e.css}" title="${esc(e.title)}" onclick="openEventDetail(${e.id},'${e.evType}')" style="cursor:pointer;${e.cancelledStyle||''}">${esc(e.label)}</div>`).join('')}
     </div>`;
   }
 
@@ -3119,6 +3121,7 @@ function openEventDetail(id, evType){
 
   document.getElementById('evdet-title').textContent = isPresta?'Prestation':'Répétition';
   document.getElementById('evdet-body').innerHTML = `
+    ${e.cancelled?`<div class="recur-badge" style="background:rgba(232,124,124,.12);color:var(--red)">⊘ Répétition annulée</div>`:''}
     ${isSerie?`<div class="recur-badge">↻ Série de ${serie.length} dates</div>`:''}
     <div class="evdet-info">
       ${setName||concName?`<div class="evdet-row"><span class="evdet-label">${isPresta?'Prestation':'Répétition'}</span><span class="evdet-val" style="color:var(--accent)">${esc(setName||concName)}</span></div>`:''}
@@ -3130,6 +3133,9 @@ function openEventDetail(id, evType){
 
     <div class="evdet-actions">
       <button class="btn btn-outline" onclick="editPlanningEvent(${id})">✎ Modifier cette date</button>
+      <button class="btn ${e.cancelled?'btn-outline':'btn-warning'}" onclick="cancelEvent(${id}, ${!e.cancelled})" style="${e.cancelled?'border-color:rgba(72,199,140,.4);color:var(--green)':''}">
+        ${e.cancelled?'↺ Rétablir la répétition':'⊘ Annuler cette répétition'}
+      </button>
       <button class="btn btn-danger" onclick="deletePlanningEvent(${id}, false)">✕ Supprimer cette date</button>
       ${isSerie?`
         <button class="btn btn-outline" style="grid-column:1/-1;border-color:rgba(232,200,124,.3);color:var(--amber)" onclick="editPlanningEventSerie(${id})">✎ Modifier toute la série (${serie.length} dates)</button>
@@ -3173,6 +3179,20 @@ async function deletePlanningEvent(id, wholeSerie){
       setSyncStatus('ok');
     } catch(err){ toast('Erreur: '+err.message,'error'); setSyncStatus('error'); }
   }
+}
+
+async function cancelEvent(id, isCancelled){
+  const e = DB.events.find(x=>x.id===id);
+  if(!e) return;
+  const msg = isCancelled ? 'Annuler cette répétition ?' : 'Rétablir cette répétition ?';
+  if(!confirm(msg)) return;
+  setSyncStatus('loading');
+  try {
+    await sb.from('events').update({cancelled: isCancelled}).eq('id', id);
+    await loadAll(); closeModal(); renderCalendar(); renderDashboard();
+    toast(isCancelled ? 'Répétition annulée' : 'Répétition rétablie');
+    setSyncStatus('ok');
+  } catch(err){ toast('Erreur: '+err.message,'error'); setSyncStatus('error'); }
 }
 
 function editPlanningEvent(id){
