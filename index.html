@@ -2098,6 +2098,7 @@ function renderSets(){
           <div class="flex gap-8" style="flex-shrink:0">
             ${songs.length?`<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();printSetProgram(${set.id})" title="Imprimer">🖨</button>`:''}
             <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();fpOpen(${set.id})" style="color:var(--accent)" title="Feuille présentielle">👥</button>
+            <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();duplicateSet(${set.id})" title="Dupliquer ce set" style="color:var(--text2)">⎘</button>
             <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openSetModal(${set.id})">✎</button>
             <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteSet(${set.id})">✕</button>
           </div>
@@ -2273,6 +2274,27 @@ async function deleteSet(id){
     toast('Set supprimé');
     setSyncStatus('ok');
   } catch(e){ toast('Erreur','error'); setSyncStatus('error'); }
+}
+
+async function duplicateSet(id){
+  const original = DB.sets.find(s=>s.id===id);
+  if(!original) return;
+  const newName = prompt('Nom du nouveau set :', original.name+' (copie)');
+  if(!newName) return;
+  setSyncStatus('loading');
+  try {
+    const {data:newSet, error:e1} = await sb.from('sets').insert({name:newName, default_absent:original.default_absent||false}).select().single();
+    if(e1) throw e1;
+    const songs = DB.set_songs.filter(ss=>ss.set_id===id);
+    if(songs.length){
+      const rows = songs.map(ss=>({set_id:newSet.id, song_id:ss.song_id, position:ss.position, priority:ss.priority||0, set_notes:ss.set_notes||null}));
+      const {error:e2} = await sb.from('set_songs').insert(rows);
+      if(e2) throw e2;
+    }
+    await loadAll(); renderSets();
+    toast('"'+newName+'" créé avec '+songs.length+' morceau'+(songs.length>1?'x':''));
+    setSyncStatus('ok');
+  } catch(e){ toast('Erreur : '+e.message,'error'); setSyncStatus('error'); }
 }
 
 // ============================================================
