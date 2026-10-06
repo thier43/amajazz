@@ -1663,13 +1663,23 @@ function presRenderMembers(){
     const isMe=parseInt(m.id)===myId;
     const [col,bg]=_presColors[m.family]||['#888','rgba(136,136,136,.12)'];
     const av=m.avatar||(m.prenom?m.prenom[0].toUpperCase():'?');
+    const btnBase = 'cursor:pointer;font-family:inherit;border-radius:8px;font-size:12px;font-weight:600;padding:5px 12px;transition:all .12s;border:2px solid transparent;';
+    const btnPresent = st==='present'
+      ? btnBase+'background:#27ae60;color:#fff;border-color:#27ae60;'
+      : btnBase+'background:transparent;color:var(--text3);border-color:var(--border);opacity:0.45;';
+    const btnMaybe = st==='maybe'
+      ? btnBase+'background:#e67e22;color:#fff;border-color:#e67e22;'
+      : btnBase+'background:transparent;color:var(--text3);border-color:var(--border);opacity:0.45;';
+    const btnAbsent = st==='absent'
+      ? btnBase+'background:#e74c3c;color:#fff;border-color:#e74c3c;'
+      : btnBase+'background:transparent;color:var(--text3);border-color:var(--border);opacity:0.45;';
     return `<div class="pres-row${isMe?' me':''}">
       <div class="pres-av" style="background:${bg};color:${col}">${av}</div>
       <span class="pres-nm">${esc(m.prenom||'')} ${esc(m.nom||'')}</span>
-      <div style="display:flex;gap:6px">
-        <button onclick="presMark(${m.id},'present')" style="padding:4px 10px;border-radius:16px;border:1px solid ${st==='present'?'#27ae60':'var(--border)'};background:${st==='present'?'rgba(39,174,96,.15)':'var(--surface2)'};color:${st==='present'?'#27ae60':'var(--text2)'};font-size:11px;font-weight:${st==='present'?'700':'400'};cursor:pointer;font-family:inherit">✅</button>
-        <button onclick="presMark(${m.id},'maybe')" style="padding:4px 10px;border-radius:16px;border:1px solid ${st==='maybe'?'#f39c12':'var(--border)'};background:${st==='maybe'?'rgba(243,156,18,.15)':'var(--surface2)'};color:${st==='maybe'?'#c87f0a':'var(--text2)'};font-size:11px;font-weight:${st==='maybe'?'700':'400'};cursor:pointer;font-family:inherit">❓</button>
-        <button onclick="presMark(${m.id},'absent')" style="padding:4px 10px;border-radius:16px;border:1px solid ${st==='absent'?'#e74c3c':'var(--border)'};background:${st==='absent'?'rgba(231,76,60,.15)':'var(--surface2)'};color:${st==='absent'?'#e74c3c':'var(--text2)'};font-size:11px;font-weight:${st==='absent'?'700':'400'};cursor:pointer;font-family:inherit">❌</button>
+      <div style="display:flex;gap:5px">
+        <button onclick="presMark(${m.id},'present')" style="${btnPresent}" title="Présent">✓ Présent</button>
+        <button onclick="presMark(${m.id},'maybe')"   style="${btnMaybe}"   title="Peut-être">? Peut-être</button>
+        <button onclick="presMark(${m.id},'absent')"  style="${btnAbsent}"  title="Absent">✕ Absent</button>
       </div>
     </div>`;
   }).join('');
