@@ -2720,15 +2720,15 @@ function renderDashboard(){
   const now = new Date();
   const todayStr = now.toISOString().slice(0,10);
 
-  // 2 prochaines répétitions planning (events), annulées incluses mais marquées
+  // 2 prochaines répétitions planning (events), annulées exclues
   const nextRepets = DB.events
-    .filter(e=>e.date >= todayStr && e.type!=='prestation')
+    .filter(e=>e.date >= todayStr && e.type!=='prestation' && !e.cancelled)
     .sort((a,b)=>a.date.localeCompare(b.date))
     .slice(0,2)
     .map(e=>{
       const setName = e.set_id ? DB.sets.find(s=>s.id===e.set_id)?.name : null;
       const timeStr = e.time ? e.time.slice(0,5)+(e.time_end?' – '+e.time_end.slice(0,5):'') : '';
-      return {date:e.date, label: setName||'Répétition', sub:(e.venue||'')+(timeStr?' · '+timeStr:''), type:'repet', cancelled:!!e.cancelled};
+      return {date:e.date, label: setName||'Répétition', sub:(e.venue||'')+(timeStr?' · '+timeStr:''), type:'repet', cancelled:false};
     });
 
   // 1 prochaine prestation : d'abord la plus proche avec date, sinon la première sans date
