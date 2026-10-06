@@ -458,11 +458,11 @@ textarea.edit-field-input{min-height:60px;resize:none}
 .fp-mrow-m.me{background:rgba(185,106,40,.08);border-left:3px solid var(--accent)}
 .fp-av-m{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
 .fp-nm-m{flex:1;font-size:13px;font-weight:500;color:var(--text)}
-.fp-bt-m{width:34px;height:34px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:15px;opacity:.3;transition:all .12s}
-.fp-bt-m.on{opacity:1;border-color:transparent}
-.fp-bt-m.on.p{background:rgba(39,174,96,.25);border-color:#27ae60}
-.fp-bt-m.on.q{background:rgba(243,156,18,.25);border-color:#f39c12}
-.fp-bt-m.on.a{background:rgba(231,76,60,.25);border-color:#e74c3c}
+.fp-bt-m{border-radius:8px;border:2px solid var(--border);background:transparent;cursor:pointer;font-size:11px;font-weight:600;padding:5px 9px;color:var(--text3);opacity:.4;transition:all .12s;font-family:inherit}
+.fp-bt-m.on{opacity:1;color:#fff;border-color:transparent}
+.fp-bt-m.on.p{background:#27ae60}
+.fp-bt-m.on.q{background:#e67e22}
+.fp-bt-m.on.a{background:#e74c3c}
 </style>
 </head>
 <body>
@@ -1782,9 +1782,9 @@ function fpmRM(){
       <div class="fp-av-m" style="background:${bg};color:${col}">${av}</div>
       <span class="fp-nm-m">${esc(m.prenom||'')} ${esc(m.nom||'')}</span>
       ${isMe?`<div style="display:flex;gap:5px">
-        <button class="fp-bt-m${st==='present'?' on p':''}" onclick="fpmMk(${m.id},'present')">✅</button>
-        <button class="fp-bt-m${st==='maybe'  ?' on q':''}" onclick="fpmMk(${m.id},'maybe')">❓</button>
-        <button class="fp-bt-m${st==='absent' ?' on a':''}" onclick="fpmMk(${m.id},'absent')">❌</button>
+        <button class="fp-bt-m${st==='present'?' on p':''}" onclick="fpmMk(${m.id},'present')">✓ Présent</button>
+        <button class="fp-bt-m${st==='maybe'  ?' on q':''}" onclick="fpmMk(${m.id},'maybe')">? Peut-être</button>
+        <button class="fp-bt-m${st==='absent' ?' on a':''}" onclick="fpmMk(${m.id},'absent')">✕ Absent</button>
       </div>`:`<span style="font-size:18px;opacity:${st==='unknown'?.2:.9}">${icons[st]}</span>`}
     </div>`;
   }).join('');
