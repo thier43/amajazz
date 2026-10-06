@@ -1721,10 +1721,14 @@ function fpmOpen(sid){
     const isPast=e.date<today;
     const atts=DB.event_attendance.filter(a=>parseInt(a.event_id)===e.id);
     const p=atts.filter(a=>a.status==='present').length,q=atts.filter(a=>a.status==='maybe').length,ab=atts.filter(a=>a.status==='absent').length;
-    return `<div class="fp-row-m" onclick="fpmOpenDate(${e.id})">
+    const isCancelled = !!e.cancelled;
+    return `<div class="fp-row-m" onclick="fpmOpenDate(${e.id})" style="${isCancelled?'opacity:0.6;':''}">
       <div style="flex:1">
-        <div style="font-size:14px;font-weight:600;color:${isPast?'var(--text3)':'var(--text)'}">${isPast?'↩ ':'📅 '}${lbl}${time}</div>
-        <div style="font-size:12px;color:var(--text3);margin-top:2px">${(p||q||ab)?`${p?'✅'+p+' ':''}${q?'❓'+q+' ':''}${ab?'❌'+ab:''}`:'<i>Aucune réponse</i>'}</div>
+        <div style="font-size:14px;font-weight:600;color:${isCancelled?'var(--red)':isPast?'var(--text3)':'var(--text)'}">
+          ${isCancelled?'⊘ ':isPast?'↩ ':'📅 '}<span style="${isCancelled?'text-decoration:line-through;':''}">${lbl}${time}</span>
+          ${isCancelled?'<span style="font-size:10px;font-weight:600;margin-left:6px;padding:1px 6px;border-radius:10px;background:rgba(231,76,60,.15);color:var(--red);text-decoration:none">Annulée</span>':''}
+        </div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px">${isCancelled?'':(p||q||ab)?`${p?'✅'+p+' ':''}${q?'❓'+q+' ':''}${ab?'❌'+ab:''}`:'<i>Aucune réponse</i>'}</div>
       </div><span style="color:var(--text3);font-size:20px">›</span>
     </div>`;
   }).join(''):'<div style="padding:24px;text-align:center;color:var(--text3);font-style:italic">Aucune date planifiée.</div>';
